@@ -394,6 +394,16 @@ class UffHeroAction extends StatelessWidget {
 /// Pass [fillColor] to preserve a screen's existing surface color; otherwise it
 /// defaults to the theme surface. [placeholder] is an optional format example
 /// shown once the label has floated up (e.g. `7XXXXXXXX`).
+///
+/// Set [reserveErrorSpace] to `true` on validated fields (especially two fields
+/// sharing a [Row]) to permanently reserve a single-line slot below the field
+/// for the validator message. The field keeps a constant height whether or not
+/// an error is shown, so a `مطلوب` under one field never shifts its neighbour or
+/// the rows beneath it. A transparent single-space helper occupies the slot when
+/// there is no error; the error text then swaps into the *same* slot with no
+/// layout jump. [errorMaxLines] caps the message height (defaults to a single
+/// line when [reserveErrorSpace] is on) so a long message can't re-introduce the
+/// jump.
 InputDecoration uffInputDecoration(
   BuildContext context, {
   String? label,
@@ -403,6 +413,8 @@ InputDecoration uffInputDecoration(
   String? suffixText,
   Color? fillColor,
   String? errorText,
+  bool reserveErrorSpace = false,
+  int? errorMaxLines,
   BoxConstraints? prefixIconConstraints,
   BoxConstraints? suffixIconConstraints,
 }) {
@@ -411,15 +423,28 @@ InputDecoration uffInputDecoration(
         borderRadius: BorderRadius.circular(AppColors.radiusField),
         borderSide: BorderSide(color: color, width: width),
       );
+  // Error / helper share the same sub-text row below the field. Keeping their
+  // font metrics identical guarantees the reserved slot is exactly as tall as a
+  // shown error, so swapping between them never changes the field height.
+  final subTextStyle = AppTextStyles.labelSm(color: colors.error)
+      .copyWith(fontSize: 12, height: 1.15, fontWeight: FontWeight.w600);
   return InputDecoration(
     labelText: label,
     hintText: placeholder,
     suffixText: suffixText,
     errorText: errorText,
+    // Reserved constant-height error slot (opt-in) — see doc comment above.
+    helperText: reserveErrorSpace ? ' ' : null,
+    helperMaxLines: 1,
+    helperStyle: reserveErrorSpace
+        ? subTextStyle.copyWith(color: Colors.transparent)
+        : null,
+    errorMaxLines: errorMaxLines ?? (reserveErrorSpace ? 1 : null),
+    errorStyle: reserveErrorSpace ? subTextStyle : null,
     floatingLabelBehavior: FloatingLabelBehavior.auto,
     // Resting label (inside the border while empty): quiet placeholder look.
     labelStyle: AppTextStyles.bodyMd(color: colors.onSurfaceVariant)
-        .copyWith(fontWeight: FontWeight.w500, fontSize: 14.5),
+        .copyWith(fontWeight: FontWeight.w500, fontSize: 16),
     // Floating label (risen above the border): bold and highly legible, like
     // the reference design — dark ink normally, brand ink while focused.
     floatingLabelStyle: WidgetStateTextStyle.resolveWith((states) {
@@ -432,7 +457,7 @@ InputDecoration uffInputDecoration(
         ink = colors.onSurface;
       }
       return AppTextStyles.labelSm(color: ink).copyWith(
-        fontSize: 13.5,
+        fontSize: 14.5,
         fontWeight: FontWeight.w700,
         letterSpacing: 0.2,
         height: 1,
@@ -507,7 +532,8 @@ class UffField extends StatelessWidget {
       textDirection: textDirection,
       autofocus: autofocus,
       inputFormatters: inputFormatters,
-      style: AppTextStyles.bodyMd(color: colors.onSurface).copyWith(fontWeight: FontWeight.w600),
+      style: AppTextStyles.bodyMd(color: colors.onSurface)
+          .copyWith(fontWeight: FontWeight.w600, fontSize: 16),
       decoration: uffInputDecoration(
         context,
         label: label ?? hint,

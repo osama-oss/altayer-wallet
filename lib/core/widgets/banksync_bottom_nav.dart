@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:banksync_app/core/widgets/phosphor_icons_bold.dart';
+import 'brand_logo.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../providers/app_providers.dart';
+import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/bank_sync_colors.dart';
 
@@ -29,45 +30,54 @@ class BankSyncBottomNav extends StatelessWidget {
     final colors = context.bankColors;
     return Container(
       decoration: BoxDecoration(
-        color: colors.surfaceContainer,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        color: colors.surfaceContainerLowest,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
             color: colors.cardShadow,
-            blurRadius: 20,
-            offset: const Offset(0, -4),
+            blurRadius: 24,
+            offset: const Offset(0, -6),
           ),
         ],
       ),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
       child: SafeArea(
         top: false,
+        // Even distribution: each tab claims an equal slice with a full-width
+        // tap target — icon sits directly above its label, no crop / overlap.
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _NavItem(
-              svgName: 'ic_home',
-              label: l10n.navHome,
-              selected: currentTab == BankSyncTab.home,
-              onTap: () => onTabSelected(BankSyncTab.home),
+            Expanded(
+              child: _NavItem(
+                icon: Icons.home_rounded,
+                label: l10n.navHome,
+                selected: currentTab == BankSyncTab.home,
+                onTap: () => onTabSelected(BankSyncTab.home),
+              ),
             ),
-            _NavItem(
-              svgName: 'ic_swap',
-              label: l10n.navTransfers,
-              selected: currentTab == BankSyncTab.transfers,
-              onTap: () => onTabSelected(BankSyncTab.transfers),
+            Expanded(
+              child: _NavItem(
+                icon: Icons.swap_horiz_rounded,
+                label: l10n.navTransfers,
+                selected: currentTab == BankSyncTab.transfers,
+                onTap: () => onTabSelected(BankSyncTab.transfers),
+              ),
             ),
-            _NavItem(
-              svgName: 'ic_wallet',
-              label: l10n.navPayments,
-              selected: currentTab == BankSyncTab.payments,
-              onTap: () => onTabSelected(BankSyncTab.payments),
+            Expanded(
+              child: _NavItem(
+                icon: Icons.account_balance_wallet_rounded,
+                label: l10n.navPayments,
+                selected: currentTab == BankSyncTab.payments,
+                onTap: () => onTabSelected(BankSyncTab.payments),
+              ),
             ),
-            _NavItem(
-              svgName: 'ic_transfer_settings',
-              label: l10n.navExplore,
-              selected: currentTab == BankSyncTab.explore,
-              onTap: () => onTabSelected(BankSyncTab.explore),
+            Expanded(
+              child: _NavItem(
+                icon: Icons.settings_rounded,
+                label: l10n.navExplore,
+                selected: currentTab == BankSyncTab.explore,
+                onTap: () => onTabSelected(BankSyncTab.explore),
+              ),
             ),
           ],
         ),
@@ -78,13 +88,13 @@ class BankSyncBottomNav extends StatelessWidget {
 
 class _NavItem extends StatelessWidget {
   const _NavItem({
-    required this.svgName,
+    required this.icon,
     required this.label,
     required this.selected,
     required this.onTap,
   });
 
-  final String svgName;
+  final IconData icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -93,46 +103,55 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.bankColors;
     final languageCode = Localizations.localeOf(context).languageCode;
-    final suffix = Theme.of(context).brightness == Brightness.dark ? 'dark' : 'light';
-    final nonSelectedColor = colors.onSurfaceVariant.withValues(alpha: 0.5);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Selected → Ultimate Wallet identity blue. Unselected → a calm, clearly
+    // readable slate (not a washed-out grey), keeping the set unified.
+    final activeColor = colors.secondary;
+    final idleColor = isDark ? colors.onSurfaceVariant : AppColors.inkMuted;
+    final iconColor = selected ? activeColor : idleColor;
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(
+      child: InkResponse(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
+        radius: 44,
+        containedInkWell: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(
-                width: 40,
-                height: 40,
-                child: Center(
-                  child: SvgPicture.asset(
-                    'assets/icons/${svgName}_$suffix.svg',
-                    width: 24,
-                    height: 24,
-                    fit: BoxFit.contain,
-                    colorFilter: ColorFilter.mode(
-                      selected ? colors.secondary : nonSelectedColor,
-                      BlendMode.srcIn,
-                    ),
-                  ),
+              // Reference idea: the active tab lifts into a soft rounded pill
+              // in the brand blue; idle tabs stay flat and quiet.
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                width: 56,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? activeColor.withValues(alpha: isDark ? 0.22 : 0.12)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(17),
                 ),
+                child: Icon(icon, size: 24, color: iconColor),
               ),
               const SizedBox(height: 4),
               Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
                 style: AppTextStyles.labelSm(
-                  color: selected ? colors.secondary : nonSelectedColor,
+                  color: iconColor,
                   languageCode: languageCode,
-                ).copyWith(fontSize: 11, fontWeight: selected ? FontWeight.w700 : FontWeight.w500),
+                ).copyWith(
+                  fontSize: 11,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -161,10 +180,7 @@ class BankSyncTopBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.bankColors;
-    final l10n = context.l10n;
     final languageCode = Localizations.localeOf(context).languageCode;
-    final isObscured = ref.watch(dashboardObscuredProvider);
-    final suffix = Theme.of(context).brightness == Brightness.dark ? 'dark' : 'light';
 
     // To prevent layout breakage on subpages, if centerTitle is set, render standard header
     if (centerTitle != null) {
@@ -198,106 +214,129 @@ class BankSyncTopBar extends ConsumerWidget {
       height: 64,
       color: colors.background,
       padding: const EdgeInsets.symmetric(horizontal: 16),
+      // Physical-edge alignment (not directional) so the profile icon always
+      // sits on the far left and notifications on the far right, and the logo
+      // stays at the *true* screen centre — regardless of RTL / LTR and of the
+      // icons' differing widths (e.g. the notification badge).
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // 1. Centered «عَ الطاير» wordmark
-          Align(
+          // Centre: brand logo (true screen centre).
+          const Align(
             alignment: Alignment.center,
-            child: Text(
-              'عَ الطاير',
-              style: AppTextStyles.headlineMd(
-                color: colors.secondary,
-                languageCode: languageCode,
-              ).copyWith(fontWeight: FontWeight.w900, fontSize: 20),
-            ),
+            child: BrandLogo(height: 38),
           ),
-          
-          // 2. Row with actions on left and avatar/login on right
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Left side: Actions (Notifications, Search)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _NotificationBellIcon(colors: colors),
-                ],
-              ),
 
-              // Right side: Avatar widget (Screen A Login vs Screen B points)
-              if (showAvatar)
-                isObscured
-                    ? InkWell(
-                        onTap: () {
-                          ref.read(dashboardObscuredProvider.notifier).state = false;
-                        },
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                colors.secondary.withValues(alpha: 0.15),
-                                colors.secondary.withValues(alpha: 0.05),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: colors.secondary.withValues(alpha: 0.25),
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: colors.secondary.withValues(alpha: 0.08),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                l10n.clickToAccess,
-                                style: AppTextStyles.labelSm(color: colors.secondary, languageCode: languageCode)
-                                    .copyWith(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.2),
-                              ),
-                              const SizedBox(width: 6),
-                              SvgPicture.asset(
-                                'assets/icons/ic_fingerprint_$suffix.svg',
-                                width: 18,
-                                height: 18,
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : InkWell(
-                        onTap: () => ref.read(dashboardTabProvider.notifier).state =
-                            BankSyncTab.explore,
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: colors.secondary.withValues(alpha: 0.1),
-                            border: Border.all(color: colors.outlineVariant, width: 1.5),
-                          ),
-                          child: Icon(Icons.person_rounded, color: colors.secondary, size: 20),
-                        ),
-                      )
-              else
-                const SizedBox(width: 40),
-            ],
+          // Far left: profile / account (user + QR) → Profile screen.
+          if (showAvatar)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: _ProfileQrButton(colors: colors),
+            ),
+
+          // Far right: notifications.
+          Align(
+            alignment: Alignment.centerRight,
+            child: _NotificationBellIcon(colors: colors),
           ),
         ],
       ),
     );
   }
+}
+
+/// Compact "profile + QR" action for the home header. A thin QR-style scan
+/// frame wrapped around a user glyph, drawn in the wallet's blue identity.
+/// Tapping opens the Profile screen. No container / no label — just a clean
+/// icon with a comfortable touch target and a light circular ripple.
+class _ProfileQrButton extends StatelessWidget {
+  const _ProfileQrButton({required this.colors});
+
+  final BankSyncColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkResponse(
+      onTap: () => context.push('/profile'),
+      radius: 26,
+      containedInkWell: false,
+      child: SizedBox(
+        width: 44,
+        height: 44,
+        child: Center(
+          child: SizedBox(
+            width: 28,
+            height: 28,
+            child: CustomPaint(
+              painter: _QrFramePainter(colors.secondary),
+              child: Center(
+                child: Icon(Icons.person_rounded,
+                    size: 15, color: colors.secondary),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Draws four L-shaped QR-scanner corner brackets inside the given size.
+class _QrFramePainter extends CustomPainter {
+  _QrFramePainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    const inset = 2.0;
+    const arm = 7.0; // length of each corner arm
+    final w = size.width;
+    final h = size.height;
+
+    // top-left
+    canvas.drawPath(
+      Path()
+        ..moveTo(inset, inset + arm)
+        ..lineTo(inset, inset)
+        ..lineTo(inset + arm, inset),
+      paint,
+    );
+    // top-right
+    canvas.drawPath(
+      Path()
+        ..moveTo(w - inset - arm, inset)
+        ..lineTo(w - inset, inset)
+        ..lineTo(w - inset, inset + arm),
+      paint,
+    );
+    // bottom-left
+    canvas.drawPath(
+      Path()
+        ..moveTo(inset, h - inset - arm)
+        ..lineTo(inset, h - inset)
+        ..lineTo(inset + arm, h - inset),
+      paint,
+    );
+    // bottom-right
+    canvas.drawPath(
+      Path()
+        ..moveTo(w - inset, h - inset - arm)
+        ..lineTo(w - inset, h - inset)
+        ..lineTo(w - inset - arm, h - inset),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _QrFramePainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 /// Bell icon with a dynamic unread-count badge.

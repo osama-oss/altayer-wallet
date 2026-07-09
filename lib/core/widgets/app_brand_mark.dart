@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/app_text_styles.dart';
 
-/// In-app «عَ الطاير» (Ala Taier) branding (logo + optional title).
+/// In-app «Ultimate Wallet» branding (logo + optional title).
 class AppBrandMark extends StatelessWidget {
   const AppBrandMark({
     super.key,
@@ -18,20 +18,28 @@ class AppBrandMark extends StatelessWidget {
   final Color? titleColor;
   final bool compact;
 
-  static const String logoAsset = 'assets/branding/ubs.svg';
-  static const String appName = 'عَ الطاير';
+  static String logoAsset(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark
+        ? 'assets/branding/ultimate_wallet_dark.svg'
+        : 'assets/branding/ultimate_wallet_light.svg';
+  }
+  static const String appName = 'Ultimate Wallet';
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final titleStyle = compact
-        ? AppTextStyles.headlineMd(color: titleColor ?? Colors.white)
+        ? AppTextStyles.headlineMd(color: titleColor ?? (isDark ? Colors.white : const Color(0xFF14152E)))
             .copyWith(fontWeight: FontWeight.w800)
-        : AppTextStyles.displayLgMobile(color: titleColor ?? Colors.white)
+        : AppTextStyles.displayLgMobile(color: titleColor ?? (isDark ? Colors.white : const Color(0xFF14152E)))
             .copyWith(fontSize: compact ? 20 : 24, fontWeight: FontWeight.w800);
+
+    final assetPath = logoAsset(context);
 
     if (!showTitle) {
       return SvgPicture.asset(
-        logoAsset,
+        assetPath,
         height: logoHeight,
         fit: BoxFit.contain,
       );
@@ -41,7 +49,7 @@ class AppBrandMark extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         SvgPicture.asset(
-          logoAsset,
+          assetPath,
           height: logoHeight,
           fit: BoxFit.contain,
         ),
@@ -66,12 +74,14 @@ class AppBrandMarkRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = titleColor ?? Colors.white;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = titleColor ?? (isDark ? Colors.white : const Color(0xFF14152E));
+    final assetPath = AppBrandMark.logoAsset(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         SvgPicture.asset(
-          AppBrandMark.logoAsset,
+          assetPath,
           height: logoHeight,
           fit: BoxFit.contain,
         ),
