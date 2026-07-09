@@ -5,6 +5,7 @@ import 'package:banksync_app/core/widgets/phosphor_icons_bold.dart';
 import 'brand_logo.dart';
 
 import '../../features/transfer/qr_scan_screen.dart';
+import '../../features/transfer/scan_review_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../providers/app_providers.dart';
 import '../theme/app_colors.dart';
@@ -102,7 +103,12 @@ class _ScanFab extends StatelessWidget {
     final acct = await openQrScanScreen(context);
     if (acct == null || acct.isEmpty) return;
     if (!context.mounted) return;
-    context.push('/transfer/others?to=${Uri.encodeComponent(acct)}');
+    // Scanning never transfers directly — review the recipient first.
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ScanReviewScreen(account: acct),
+      ),
+    );
   }
 
   @override
@@ -318,10 +324,10 @@ class BankSyncTopBar extends ConsumerWidget {
   }
 }
 
-/// Compact "profile + QR" action for the home header. A thin QR-style scan
-/// frame wrapped around a user glyph, drawn in the wallet's blue identity.
-/// Tapping opens the Profile screen. No container / no label — just a clean
-/// icon with a comfortable touch target and a light circular ripple.
+/// Compact profile action for the home header — a clean circular button with a
+/// very-light-blue fill and a clear blue user glyph, drawn in the wallet's blue
+/// identity and visually balanced with the notification bell on the far side.
+/// Tapping opens the Profile screen.
 class _ProfileQrButton extends StatelessWidget {
   const _ProfileQrButton({required this.colors});
 
@@ -337,79 +343,24 @@ class _ProfileQrButton extends StatelessWidget {
         width: 44,
         height: 44,
         child: Center(
-          child: SizedBox(
-            width: 28,
-            height: 28,
-            child: CustomPaint(
-              painter: _QrFramePainter(colors.secondary),
-              child: Center(
-                child: Icon(Icons.person_rounded,
-                    size: 15, color: colors.secondary),
+          child: Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: colors.secondaryFixed,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: colors.secondary.withValues(alpha: 0.18),
+                width: 1,
               ),
             ),
+            child: Icon(Icons.person_rounded, size: 22, color: colors.secondary),
           ),
         ),
       ),
     );
   }
-}
-
-/// Draws four L-shaped QR-scanner corner brackets inside the given size.
-class _QrFramePainter extends CustomPainter {
-  _QrFramePainter(this.color);
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.8
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    const inset = 2.0;
-    const arm = 7.0; // length of each corner arm
-    final w = size.width;
-    final h = size.height;
-
-    // top-left
-    canvas.drawPath(
-      Path()
-        ..moveTo(inset, inset + arm)
-        ..lineTo(inset, inset)
-        ..lineTo(inset + arm, inset),
-      paint,
-    );
-    // top-right
-    canvas.drawPath(
-      Path()
-        ..moveTo(w - inset - arm, inset)
-        ..lineTo(w - inset, inset)
-        ..lineTo(w - inset, inset + arm),
-      paint,
-    );
-    // bottom-left
-    canvas.drawPath(
-      Path()
-        ..moveTo(inset, h - inset - arm)
-        ..lineTo(inset, h - inset)
-        ..lineTo(inset + arm, h - inset),
-      paint,
-    );
-    // bottom-right
-    canvas.drawPath(
-      Path()
-        ..moveTo(w - inset, h - inset - arm)
-        ..lineTo(w - inset, h - inset)
-        ..lineTo(w - inset - arm, h - inset),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _QrFramePainter oldDelegate) =>
-      oldDelegate.color != color;
 }
 
 /// Bell icon with a dynamic unread-count badge.

@@ -211,6 +211,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/transfer/others',
         builder: (_, state) => TransferOthersScreen(
           initialBeneficiary: state.uri.queryParameters['to'],
+          initialAmount: state.uri.queryParameters['amount'],
         ),
       ),
       GoRoute(path: '/favorites', builder: (_, __) => const FavoritesScreen()),
