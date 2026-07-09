@@ -123,7 +123,7 @@ class BankSyncColors extends ThemeExtension<BankSyncColors> {
     onPrimary: Color(0xFF000000),
     primaryContainer: Color(0xFF1A2235),
     onPrimaryContainer: Color(0xFFB8C0D4),
-    secondary: Color(0xFF9B87FF),
+    secondary: Color(0xFF5B9DFF),
     onSecondary: Color(0xFFFFFFFF),
     secondaryContainer: Color(0xFF122342),
     onSecondaryContainer: Color(0xFFDBE5FF),

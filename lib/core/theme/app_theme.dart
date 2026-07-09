@@ -95,7 +95,7 @@ abstract final class AppTheme {
         labelStyle: AppTextStyles.bodyMd(
           color: palette.onSurfaceVariant,
           languageCode: languageCode,
-        ).copyWith(fontWeight: FontWeight.w500, fontSize: 14.5),
+        ).copyWith(fontWeight: FontWeight.w500, fontSize: 16),
         // Floating label (risen above the border): bold and highly legible —
         // dark ink normally, brand ink while focused, error ink on error.
         floatingLabelStyle: WidgetStateTextStyle.resolveWith((states) {
@@ -108,7 +108,7 @@ abstract final class AppTheme {
             ink = palette.onSurface;
           }
           return AppTextStyles.labelSm(color: ink, languageCode: languageCode).copyWith(
-            fontSize: 13.5,
+            fontSize: 14.5,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.2,
             height: 1,

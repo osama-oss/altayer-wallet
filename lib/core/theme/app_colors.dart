@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-/// «عَ الطاير» (Ala Taier) — digital wallet design tokens. Identity: electric
-/// violet-indigo · clean & light · bilingual AR / EN. (Wallet rebrand of the
-/// former UBS banking palette; success / positive amounts stay green.)
+/// Ultimate Wallet — digital wallet design tokens. Identity: trust blue
+/// (#0050B3) · clean & light · bilingual AR / EN. (Logo pairs blue with a
+/// green accent; success / positive amounts stay green.)
 abstract final class AppColors {
   // ── Brand helpers ────────────────────────────────────────────────────────
-  /// «عَ الطاير» primary brand colour — CTAs, active states, accents.
-  static const Color brandIndigo = Color(0xFF5B2EE5);
+  /// «Ultimate Wallet» primary brand colour — CTAs, active states, accents.
+  static const Color brandIndigo = Color(0xFF0050B3);
 
   /// Wallet brand — lighter stop of the signature gradient.
-  static const Color walletBrandAlt = Color(0xFF8A63FF);
+  static const Color walletBrandAlt = Color(0xFF3B82F6);
 
   /// Green kept for success / positive amounts (base-palette carry-over).
   static const Color brandIndigoLight = Color(0xFF13A438);
@@ -18,10 +18,10 @@ abstract final class AppColors {
   static const Color brandIndigoSurface = Color(0xFFE9F7EE);
 
   /// Hairline border for tinted surfaces.
-  static const Color brandIndigoBorder = Color(0xFFDDE0FA);
+  static const Color brandIndigoBorder = Color(0xFFD6E4F7);
 
   /// Dark navy used for feature / phone-frame surfaces.
-  static const Color navy = Color(0xFF090078);
+  static const Color navy = Color(0xFF063A80);
 
   /// Muted ink for secondary text (darker than [onSurfaceVariant]).
   static const Color inkMuted = Color(0xFF5A6173);
@@ -39,9 +39,9 @@ abstract final class AppColors {
   static const Color onSurfaceVariant = Color(0xFF9197A4);
   static const Color primary = Color(0xFF14152E);
   static const Color onPrimary = Color(0xFFFFFFFF);
-  static const Color primaryContainer = Color(0xFF090078);
+  static const Color primaryContainer = Color(0xFF063A80);
   static const Color onPrimaryContainer = Color(0xFF9197A4);
-  static const Color secondary = Color(0xFF5B2EE5);
+  static const Color secondary = Color(0xFF0050B3);
   static const Color onSecondary = Color(0xFFFFFFFF);
   static const Color secondaryContainer = Color(0xFF13A438);
   static const Color onSecondaryContainer = Color(0xFFFFFFFF);
@@ -58,13 +58,13 @@ abstract final class AppColors {
   static const Color outlineVariant = Color(0xFFECEDF2);
   static const Color surfaceContainerLowest = Color(0xFFFFFFFF);
   static const Color surfaceContainerLow = Color(0xFFF4F5F8);
-  static const Color surfaceContainer = Color(0xFFEEF0FF);
+  static const Color surfaceContainer = Color(0xFFE8F1FB);
   static const Color surfaceContainerHigh = Color(0xFFF1F2F7);
   static const Color surfaceContainerHighest = Color(0xFFE4E6EC);
   static const Color surfaceVariant = Color(0xFFE4E6EC);
-  static const Color secondaryFixed = Color(0xFFEEF0FF);
-  static const Color onSecondaryFixed = Color(0xFF5B2EE5);
-  static const Color primaryFixed = Color(0xFFDDE0FA);
+  static const Color secondaryFixed = Color(0xFFE8F1FB);
+  static const Color onSecondaryFixed = Color(0xFF0050B3);
+  static const Color primaryFixed = Color(0xFFD6E4F7);
 
   static const double radiusSm = 10;
   static const double radiusMd = 16;
