@@ -1,5 +1,5 @@
 name: banksync_app
-description: Ala Taier (عَ الطاير) — digital wallet built on the UFF core banking system.
+description: Ultimate Wallet — digital wallet built on the UFF core banking system.
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -52,7 +52,8 @@ flutter:
   assets:
     - assets/config/app_config.json
     - assets/branding/app_logo.png
-    - assets/branding/ubs.svg
+    - assets/branding/ultimate_wallet_light.svg
+    - assets/branding/ultimate_wallet_dark.svg
     - assets/icons/
     - assets/telecom/
     - assets/pay/

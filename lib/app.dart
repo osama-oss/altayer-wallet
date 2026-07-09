@@ -47,7 +47,7 @@ class _BankSyncAppState extends ConsumerState<BankSyncApp> {
     ref.watch(sessionIdleWatcherProvider);
 
     return MaterialApp.router(
-      title: 'عَ الطاير',
+      title: 'Ultimate Wallet',
       debugShowCheckedModeBanner: false,
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,

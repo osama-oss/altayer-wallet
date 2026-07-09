@@ -9,7 +9,7 @@
          must never leave the device via ADB/cloud backups (tokens are Keystore-
          encrypted so a restored copy is dead weight at best). -->
     <application
-        android:label="عَ الطاير"
+        android:label="Ultimate Wallet"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"

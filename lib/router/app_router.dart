@@ -11,6 +11,7 @@ import 'package:banksync_app/features/login/biometric_unlock_screen.dart';
 import 'package:banksync_app/features/login/login_screen.dart';
 import 'package:banksync_app/features/login/otp_verification_screen.dart';
 import 'package:banksync_app/features/login/registration_screen.dart';
+import 'package:banksync_app/features/login/account_activation_screen.dart';
 import 'package:banksync_app/features/login/reset_password_screen.dart';
 import 'package:banksync_app/features/login/set_initial_password_screen.dart';
 import 'package:banksync_app/features/pin/pin_change_screen.dart';
@@ -41,6 +42,9 @@ import 'package:banksync_app/features/bill_payments/payment_history_screen.dart'
 import 'package:banksync_app/features/bill_payments/un_money/un_money_hub_screen.dart';
 import 'package:banksync_app/features/transfer_hub/network_transfers_screen.dart';
 import 'package:banksync_app/features/cards/my_cards_screen.dart';
+import 'package:banksync_app/features/legal/terms_screen.dart';
+import 'package:banksync_app/features/kyc/kyc_screen.dart';
+import 'package:banksync_app/features/profile/profile_screen.dart';
 
 const _protectedRoutes = {
   '/home',
@@ -70,6 +74,8 @@ const _protectedRoutes = {
   '/bills/history',
   '/network-transfers',
   '/unmoney',
+  '/kyc',
+  '/profile',
 };
 
 const _guestOnlyRoutes = {
@@ -83,6 +89,7 @@ const _preAuthFlowRoutes = {
   '/set-initial-password',
   '/reset-password',
   '/register',
+  '/register/verify',
   '/otp-verification',
 };
 
@@ -149,6 +156,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(path: '/register', builder: (_, __) => const RegistrationScreen()),
+      GoRoute(
+        path: '/register/verify',
+        builder: (_, state) => AccountActivationScreen(
+          mobile: state.uri.queryParameters['mobile'] ?? '',
+        ),
+      ),
       GoRoute(
         path: '/biometric-unlock',
         builder: (_, state) => BiometricUnlockScreen(
@@ -275,6 +288,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           return SupportThreadScreen(caseId: id);
         },
       ),
+      GoRoute(path: '/terms', builder: (_, __) => const TermsScreen()),
+      GoRoute(path: '/kyc', builder: (_, __) => const KycScreen()),
+      GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
       GoRoute(path: '/guest-support', builder: (_, __) => const GuestSupportScreen()),
       GoRoute(
         path: '/guest-support/lookup',

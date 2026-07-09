@@ -15,6 +15,12 @@ class BankingAccount {
   final double balance;
   final int? cardColor;
 
+  /// Stable identity for a single wallet/card, used to key per-card UI state
+  /// (e.g. independent balance visibility). Prefers the account number and
+  /// falls back to the numeric id so every card resolves to a distinct key.
+  String get walletKey =>
+      accountNumber.trim().isNotEmpty ? accountNumber.trim() : 'id:$id';
+
   /// Account number sent to core integrations (e.g. lastTenTxn), zero-padded when numeric.
   String get accountNoForIntegration {
     final n = accountNumber.trim();
