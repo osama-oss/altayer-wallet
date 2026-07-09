@@ -13,7 +13,7 @@ abstract class AppLocalizations {
   static const supportedLocales = [Locale('en'), Locale('ar'), Locale('zh')];
 
   String get appTitle;
-  // ── «عَ الطاير» wallet ──────────────────────────────────────────────
+  // ── «Ultimate Wallet» wallet ──────────────────────────────────────────────
   String get walletBalanceLabel;
   String get walletActionSend;
   String get walletActionReceive;
@@ -30,6 +30,15 @@ abstract class AppLocalizations {
   String get walletReceiveShareHint;
   String get walletNumberLabel;
   String get walletRetry;
+  String get walletMyWallets;
+  String get walletQuickAccessTitle;
+  String get walletPromotionsTitle;
+  String get walletComingSoon;
+  String get walletAddFavorite;
+  String get walletServiceInternet;
+  String get walletCurrencySar;
+  String get walletCurrencyYer;
+  String get walletCurrencyUsd;
   String get navHome;
   String get navTransfers;
   String get navPayments;
@@ -76,6 +85,9 @@ abstract class AppLocalizations {
   String get signOut;
   String get helpSupport;
   String get helpSupportSubtitle;
+  String get termsAndConditions;
+  String get termsAndConditionsSubtitle;
+  String get termsAndConditionsFooter;
   String get supportTitle;
   String get supportNewCase;
   String get supportSubject;
@@ -252,6 +264,40 @@ abstract class AppLocalizations {
   String get enterCustomUsername;
   String get registrationUsernameMissing;
   String get alreadyHaveAccountSignIn;
+  String get registerWelcomeTitle;
+  String get registerWelcomeSubtitle;
+  String get registerNameAsIdHint;
+  String get firstName;
+  String get secondName;
+  String get thirdName;
+  String get surname;
+  String get genderMale;
+  String get genderFemale;
+  String get agreeToTerms;
+  String get createAccountButton;
+  String get customerService;
+  String get servicePoints;
+  String get tollFreeNumber;
+  String get mustAgreeToTerms;
+  String get requiredField;
+  String get activationTitle;
+  String activationSubtitle(String mobile);
+  String get activationExpiresIn;
+  String get didntReceiveCode;
+  String get contactCustomerService;
+  String get activationConfirm;
+  String get kycBannerText;
+  String get kycVerifyAccount;
+  String get kycTitle;
+  String get kycSubtitle;
+  String get kycIdFront;
+  String get kycIdBack;
+  String get kycSelfie;
+  String get kycUploadHint;
+  String get kycCamera;
+  String get kycGallery;
+  String get kycSubmit;
+  String get kycSubmitted;
   String get forgotPasswordTitle;
   String get resetPasswordHeading;
   String get resetPasswordDescription;
@@ -516,9 +562,9 @@ abstract class AppLocalizations {
 
 class AppLocalizationsEn extends AppLocalizations {
   @override
-  String get appTitle => 'Ala Taier';
+  String get appTitle => 'Ultimate Wallet';
 
-  // ── «عَ الطاير» wallet ──────────────────────────────────────────────
+  // ── «Ultimate Wallet» wallet ──────────────────────────────────────────────
   @override
   String get walletBalanceLabel => 'Wallet balance';
   @override
@@ -552,6 +598,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get walletNumberLabel => 'Wallet number';
   @override
   String get walletRetry => 'Retry';
+  @override
+  String get walletMyWallets => 'My wallets';
+  @override
+  String get walletQuickAccessTitle => 'Quick access';
+  @override
+  String get walletPromotionsTitle => 'Offers for you';
+  @override
+  String get walletComingSoon => 'Soon';
+  @override
+  String get walletAddFavorite => 'Add favorite';
+  @override
+  String get walletServiceInternet => 'Internet';
+  @override
+  String get walletCurrencySar => 'Saudi Riyal';
+  @override
+  String get walletCurrencyYer => 'Yemeni Rial';
+  @override
+  String get walletCurrencyUsd => 'US Dollar';
 
   @override
   String get navHome => 'Home';
@@ -696,6 +760,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpSupportSubtitle => 'Contact customer service';
+
+  @override
+  String get termsAndConditions => 'Terms & Conditions';
+
+  @override
+  String get termsAndConditionsSubtitle => 'E-money wallet account policy';
+
+  @override
+  String get termsAndConditionsFooter =>
+      'This document is provided for reference. Please refer to the officially approved version.';
 
   @override
   String get supportTitle => 'Support';
@@ -1239,6 +1313,113 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alreadyHaveAccountSignIn => 'Already have an account? Sign in';
 
   @override
+  String get registerWelcomeTitle => 'Welcome to Ultimate Wallet';
+
+  @override
+  String get registerWelcomeSubtitle =>
+      'Create your account, join Ultimate Wallet customers';
+
+  @override
+  String get registerNameAsIdHint => 'Enter your name exactly as in your ID';
+
+  @override
+  String get firstName => 'First name';
+
+  @override
+  String get secondName => 'Second name';
+
+  @override
+  String get thirdName => 'Third name';
+
+  @override
+  String get surname => 'Surname';
+
+  @override
+  String get genderMale => 'Male';
+
+  @override
+  String get genderFemale => 'Female';
+
+  @override
+  String get agreeToTerms => 'I agree to the Terms & Conditions';
+
+  @override
+  String get createAccountButton => 'Create account';
+
+  @override
+  String get customerService => 'Customer service';
+
+  @override
+  String get servicePoints => 'Service points';
+
+  @override
+  String get tollFreeNumber => 'Toll-free number';
+
+  @override
+  String get mustAgreeToTerms => 'You must agree to the Terms & Conditions';
+
+  @override
+  String get requiredField => 'Required';
+
+  @override
+  String get activationTitle => 'Ultimate Wallet account activation code';
+
+  @override
+  String activationSubtitle(String mobile) =>
+      'We sent an SMS with the activation code to your phone $mobile';
+
+  @override
+  String get activationExpiresIn => 'The confirmation code will expire in';
+
+  @override
+  String get didntReceiveCode => 'Didn\'t receive the code?';
+
+  @override
+  String get contactCustomerService => 'Contact customer service';
+
+  @override
+  String get activationConfirm => 'Confirm';
+
+  @override
+  String get kycBannerText =>
+      'Your account isn\'t verified — complete your details to activate your wallet.';
+
+  @override
+  String get kycVerifyAccount => 'Verify account';
+
+  @override
+  String get kycTitle => 'Account verification';
+
+  @override
+  String get kycSubtitle =>
+      'Upload photos of your documents to verify your identity';
+
+  @override
+  String get kycIdFront => 'ID card — front';
+
+  @override
+  String get kycIdBack => 'ID card — back';
+
+  @override
+  String get kycSelfie => 'Selfie photo';
+
+  @override
+  String get kycUploadHint => 'Tap to upload';
+
+  @override
+  String get kycCamera => 'Camera';
+
+  @override
+  String get kycGallery => 'Gallery';
+
+  @override
+  String get kycSubmit => 'Submit for verification';
+
+  @override
+  String get kycSubmitted =>
+      'Your documents were submitted and will be reviewed soon.';
+
+  @override
   String get forgotPasswordTitle => 'Forgot password';
 
   @override
@@ -1778,9 +1959,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
 class AppLocalizationsAr extends AppLocalizations {
   @override
-  String get appTitle => 'عَ الطاير';
+  String get appTitle => 'Ultimate Wallet';
 
-  // ── «عَ الطاير» wallet ──────────────────────────────────────────────
+  // ── «Ultimate Wallet» wallet ──────────────────────────────────────────────
   @override
   String get walletBalanceLabel => 'رصيد المحفظة';
   @override
@@ -1813,6 +1994,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get walletNumberLabel => 'رقم المحفظة';
   @override
   String get walletRetry => 'إعادة المحاولة';
+  @override
+  String get walletMyWallets => 'محافظي';
+  @override
+  String get walletQuickAccessTitle => 'الوصول السريع';
+  @override
+  String get walletPromotionsTitle => 'عروض تهمّك';
+  @override
+  String get walletComingSoon => 'قريباً';
+  @override
+  String get walletAddFavorite => 'أضف مفضّلة';
+  @override
+  String get walletServiceInternet => 'الإنترنت';
+  @override
+  String get walletCurrencySar => 'الريال السعودي';
+  @override
+  String get walletCurrencyYer => 'الريال اليمني';
+  @override
+  String get walletCurrencyUsd => 'الدولار الأمريكي';
 
   @override
   String get navHome => 'الرئيسية';
@@ -1959,6 +2158,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get helpSupportSubtitle => 'تواصل مع خدمة العملاء';
+
+  @override
+  String get termsAndConditions => 'الشروط والأحكام';
+
+  @override
+  String get termsAndConditionsSubtitle => 'سياسة فتح حساب المحفظة الإلكترونية';
+
+  @override
+  String get termsAndConditionsFooter =>
+      'هذا المستند للاطلاع فقط. يُرجى الرجوع إلى النسخة الرسمية المعتمدة.';
 
   @override
   String get supportTitle => 'الدعم';
@@ -2492,6 +2701,110 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get alreadyHaveAccountSignIn => 'لديك حساب؟ سجّل الدخول';
+
+  @override
+  String get registerWelcomeTitle => 'مرحباً بك في Ultimate Wallet';
+
+  @override
+  String get registerWelcomeSubtitle => 'قم بإنشاء حسابك، وانضم إلى عملاء Ultimate Wallet';
+
+  @override
+  String get registerNameAsIdHint => 'قم بإدخال الاسم كما في الهوية';
+
+  @override
+  String get firstName => 'الاسم الأول';
+
+  @override
+  String get secondName => 'الاسم الثاني';
+
+  @override
+  String get thirdName => 'الاسم الثالث';
+
+  @override
+  String get surname => 'اللقب';
+
+  @override
+  String get genderMale => 'ذكر';
+
+  @override
+  String get genderFemale => 'أنثى';
+
+  @override
+  String get agreeToTerms => 'أوافق على الشروط والأحكام';
+
+  @override
+  String get createAccountButton => 'إنشاء حساب';
+
+  @override
+  String get customerService => 'خدمة العملاء';
+
+  @override
+  String get servicePoints => 'نقاط الخدمة';
+
+  @override
+  String get tollFreeNumber => 'الرقم المجاني';
+
+  @override
+  String get mustAgreeToTerms => 'يجب الموافقة على الشروط والأحكام';
+
+  @override
+  String get requiredField => 'مطلوب';
+
+  @override
+  String get activationTitle => 'كود تفعيل حساب Ultimate Wallet';
+
+  @override
+  String activationSubtitle(String mobile) =>
+      'لقد أرسلنا رسالة نصية قصيرة تحتوي على رمز التفعيل إلى هاتفك $mobile';
+
+  @override
+  String get activationExpiresIn => 'رمز التأكيد سينتهي خلال';
+
+  @override
+  String get didntReceiveCode => 'لم تتلقَّ الكود؟';
+
+  @override
+  String get contactCustomerService => 'التواصل مع خدمة العملاء';
+
+  @override
+  String get activationConfirm => 'تأكيد';
+
+  @override
+  String get kycBannerText =>
+      'حسابك غير مؤكد — أكمل بياناتك ووثائقك لتفعيل محفظتك.';
+
+  @override
+  String get kycVerifyAccount => 'تأكيد حسابك';
+
+  @override
+  String get kycTitle => 'تأكيد الحساب';
+
+  @override
+  String get kycSubtitle => 'قم برفع صور وثائقك للتحقق من هويتك';
+
+  @override
+  String get kycIdFront => 'وجه البطاقة الشخصية';
+
+  @override
+  String get kycIdBack => 'ظهر البطاقة الشخصية';
+
+  @override
+  String get kycSelfie => 'صورة شخصية (سيلفي)';
+
+  @override
+  String get kycUploadHint => 'اضغط للرفع';
+
+  @override
+  String get kycCamera => 'الكاميرا';
+
+  @override
+  String get kycGallery => 'المعرض';
+
+  @override
+  String get kycSubmit => 'إرسال للتحقق';
+
+  @override
+  String get kycSubmitted => 'تم إرسال وثائقك، وستتم مراجعتها قريباً.';
 
   @override
   String get forgotPasswordTitle => 'نسيت كلمة المرور';

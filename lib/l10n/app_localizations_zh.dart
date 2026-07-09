@@ -2,9 +2,9 @@ import 'app_localizations.dart';
 
 class AppLocalizationsZh extends AppLocalizations {
   @override
-  String get appTitle => 'عَ الطاير';
+  String get appTitle => 'Ultimate Wallet';
 
-  // ── «عَ الطاير» wallet ──────────────────────────────────────────────
+  // ── «Ultimate Wallet» wallet ──────────────────────────────────────────────
   @override
   String get walletBalanceLabel => '钱包余额';
   @override
@@ -37,6 +37,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get walletNumberLabel => '钱包号码';
   @override
   String get walletRetry => '重试';
+  @override
+  String get walletMyWallets => '我的钱包';
+  @override
+  String get walletQuickAccessTitle => '快速访问';
+  @override
+  String get walletPromotionsTitle => '优惠活动';
+  @override
+  String get walletComingSoon => '即将推出';
+  @override
+  String get walletAddFavorite => '添加收藏';
+  @override
+  String get walletServiceInternet => '互联网';
+  @override
+  String get walletCurrencySar => '沙特里亚尔';
+  @override
+  String get walletCurrencyYer => '也门里亚尔';
+  @override
+  String get walletCurrencyUsd => '美元';
 
   @override
   String get navHome => '首页';
@@ -176,6 +194,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get helpSupportSubtitle => '联系客户服务';
+
+  @override
+  String get termsAndConditions => '条款和条件';
+
+  @override
+  String get termsAndConditionsSubtitle => '电子钱包账户政策';
+
+  @override
+  String get termsAndConditionsFooter => '本文件仅供参考，请以正式批准的版本为准。';
 
   @override
   String get supportTitle => '支持';
@@ -697,6 +724,109 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get alreadyHaveAccountSignIn => '已有账户？登录';
+
+  @override
+  String get registerWelcomeTitle => '欢迎来到 Ultimate Wallet';
+
+  @override
+  String get registerWelcomeSubtitle => '创建您的账户，加入 Ultimate Wallet 客户';
+
+  @override
+  String get registerNameAsIdHint => '请按身份证件填写姓名';
+
+  @override
+  String get firstName => '名字';
+
+  @override
+  String get secondName => '第二名字';
+
+  @override
+  String get thirdName => '第三名字';
+
+  @override
+  String get surname => '姓氏';
+
+  @override
+  String get genderMale => '男';
+
+  @override
+  String get genderFemale => '女';
+
+  @override
+  String get agreeToTerms => '我同意条款和条件';
+
+  @override
+  String get createAccountButton => '创建账户';
+
+  @override
+  String get customerService => '客户服务';
+
+  @override
+  String get servicePoints => '服务网点';
+
+  @override
+  String get tollFreeNumber => '免费电话';
+
+  @override
+  String get mustAgreeToTerms => '您必须同意条款和条件';
+
+  @override
+  String get requiredField => '必填';
+
+  @override
+  String get activationTitle => 'Ultimate Wallet 账户激活码';
+
+  @override
+  String activationSubtitle(String mobile) => '我们已向您的手机 $mobile 发送了包含激活码的短信';
+
+  @override
+  String get activationExpiresIn => '确认码将在以下时间后失效';
+
+  @override
+  String get didntReceiveCode => '没有收到验证码？';
+
+  @override
+  String get contactCustomerService => '联系客户服务';
+
+  @override
+  String get activationConfirm => '确认';
+
+  @override
+  String get kycBannerText =>
+      '您的账户尚未验证 — 请完善资料以激活钱包。';
+
+  @override
+  String get kycVerifyAccount => '验证账户';
+
+  @override
+  String get kycTitle => '账户验证';
+
+  @override
+  String get kycSubtitle => '上传您的证件照片以验证身份';
+
+  @override
+  String get kycIdFront => '身份证 — 正面';
+
+  @override
+  String get kycIdBack => '身份证 — 背面';
+
+  @override
+  String get kycSelfie => '自拍照';
+
+  @override
+  String get kycUploadHint => '点击上传';
+
+  @override
+  String get kycCamera => '相机';
+
+  @override
+  String get kycGallery => '相册';
+
+  @override
+  String get kycSubmit => '提交验证';
+
+  @override
+  String get kycSubmitted => '您的证件已提交，将尽快审核。';
 
   @override
   String get forgotPasswordTitle => '忘记密码';
