@@ -33,7 +33,7 @@ Future<void> _ensureAssets() async {
       pw.Font.ttf(await rootBundle.load('assets/fonts/Tajawal-Regular.ttf'));
   _boldCache ??=
       pw.Font.ttf(await rootBundle.load('assets/fonts/Tajawal-Bold.ttf'));
-  _logoCache ??= await rootBundle.loadString('assets/branding/ubs.svg');
+  _logoCache ??= await rootBundle.loadString('assets/branding/ultimate_wallet_light.svg');
 }
 
 /// Builds a bilingual (AR/EN) A4 account statement PDF from the transactions
@@ -55,7 +55,7 @@ Future<Uint8List> buildAccountStatementPdf({
   final issued = DateFormat('yyyy/MM/dd  -  hh:mm a').format(now);
   final balance = NumberFormat('#,##0.00').format(account.balance);
 
-  final doc = pw.Document(title: 'UBS Account Statement', author: 'UBS Mobile');
+  final doc = pw.Document(title: 'Ultimate Wallet Account Statement', author: 'Ultimate Wallet');
 
   doc.addPage(
     pw.MultiPage(
@@ -100,14 +100,14 @@ Future<void> shareAccountStatement({
   final safe = account.accountNumber.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '');
   await Printing.sharePdf(
     bytes: bytes,
-    filename: 'UBS_statement_${safe.isEmpty ? 'account' : safe}.pdf',
+    filename: 'UltimateWallet_statement_${safe.isEmpty ? 'account' : safe}.pdf',
   );
 }
 
 pw.Widget _header(String svgRaw) {
   final whiteSvg = svgRaw
-      .replaceAll(RegExp('#2119f3', caseSensitive: false), '#FFFFFF')
-      .replaceAll(RegExp('#1ba64a', caseSensitive: false), '#B8F5D0');
+      .replaceAll(RegExp('#0050b3', caseSensitive: false), '#FFFFFF')
+      .replaceAll(RegExp('#00ab4e', caseSensitive: false), '#B8F5D0');
   return pw.Container(
     padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     decoration: const pw.BoxDecoration(
@@ -288,7 +288,7 @@ pw.Widget _pageFooter(pw.Context context) {
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
         pw.Text(
-            'UBS Mobile — كشف إلكتروني صادر عبر التطبيق، لا يحتاج توقيعاً / system-generated, no signature required.',
+            'Ultimate Wallet — كشف إلكتروني صادر عبر التطبيق، لا يحتاج توقيعاً / system-generated, no signature required.',
             style: const pw.TextStyle(fontSize: 7, color: _muted)),
         pw.Text('${context.pageNumber} / ${context.pagesCount}',
             style: const pw.TextStyle(fontSize: 7, color: _muted)),

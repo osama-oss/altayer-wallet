@@ -227,6 +227,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               subtitle: l10n.helpSupportSubtitle,
               onTap: () => context.push('/support'),
             ),
+            DbSettingsTile(
+              icon: Icons.description_outlined,
+              title: l10n.termsAndConditions,
+              subtitle: l10n.termsAndConditionsSubtitle,
+              onTap: () => context.push('/terms'),
+            ),
           ],
         ),
         const SizedBox(height: 16),

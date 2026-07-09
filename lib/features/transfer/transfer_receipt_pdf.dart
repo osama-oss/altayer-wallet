@@ -29,7 +29,7 @@ Future<void> _ensureAssets() async {
       pw.Font.ttf(await rootBundle.load('assets/fonts/Tajawal-Regular.ttf'));
   _boldCache ??=
       pw.Font.ttf(await rootBundle.load('assets/fonts/Tajawal-Bold.ttf'));
-  _logoCache ??= await rootBundle.loadString('assets/branding/ubs.svg');
+  _logoCache ??= await rootBundle.loadString('assets/branding/ultimate_wallet_light.svg');
 }
 
 /// Builds a lightweight, bilingual (AR/EN) A5 transfer receipt PDF.
@@ -39,9 +39,9 @@ Future<Uint8List> buildTransferReceiptPdf(TransferReceipt r) async {
   final bold = _boldCache!;
   final svgRaw = _logoCache!;
 
-  final doc = pw.Document(title: 'UBS Transfer Receipt', author: 'UBS Mobile');
+  final doc = pw.Document(title: 'Ultimate Wallet Transfer Receipt', author: 'Ultimate Wallet');
   final dateStr = DateFormat('yyyy/MM/dd  -  hh:mm a').format(r.date);
-  final qrData = 'UBS Transfer Receipt\n'
+  final qrData = 'Ultimate Wallet Transfer Receipt\n'
       'Ref: ${r.reference}\n'
       'Amount: ${r.amount} ${r.currency}\n'
       'To: ${maskAccount(r.toAccount)}\n'
@@ -81,15 +81,15 @@ Future<void> shareTransferReceipt(TransferReceipt r) async {
   final ref = r.reference.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '');
   await Printing.sharePdf(
     bytes: bytes,
-    filename: 'UBS_transfer_${ref.isEmpty ? 'receipt' : ref}.pdf',
+    filename: 'UltimateWallet_transfer_${ref.isEmpty ? 'receipt' : ref}.pdf',
   );
 }
 
 pw.Widget _header(String svgRaw) {
   // Recolor the SVG paths to white + light green for the blue background
   final whiteSvg = svgRaw
-      .replaceAll(RegExp('#2119f3', caseSensitive: false), '#FFFFFF')
-      .replaceAll(RegExp('#1ba64a', caseSensitive: false), '#B8F5D0');
+      .replaceAll(RegExp('#0050b3', caseSensitive: false), '#FFFFFF')
+      .replaceAll(RegExp('#00ab4e', caseSensitive: false), '#B8F5D0');
   return pw.Container(
     padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     decoration: const pw.BoxDecoration(
@@ -256,7 +256,7 @@ pw.Widget _footer(String qrData) {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text('UBS Mobile — UBS Digital Banking',
+                pw.Text('Ultimate Wallet — Digital Banking',
                     style: const pw.TextStyle(
                         fontSize: 10,
                         fontWeight: pw.FontWeight.bold,
@@ -299,7 +299,7 @@ String transferReceiptText(TransferReceipt r) {
   final to = '${r.toName ?? ''} ${r.toAccount}'.trim();
   final date = DateFormat('yyyy-MM-dd  HH:mm').format(r.date);
   final lines = <String>[
-    'UBS — إيصال التحويل / Transfer Receipt',
+    'Ultimate Wallet — إيصال التحويل / Transfer Receipt',
     if (r.typeLabel != null && r.typeLabel!.isNotEmpty)
       'نوع الحوالة: ${r.typeLabel}',
     'المبلغ: ${r.amount} ${r.currency}',
@@ -314,5 +314,5 @@ String transferReceiptText(TransferReceipt r) {
 
 /// Opens the native share sheet with the receipt as plain text.
 Future<void> shareTransferReceiptText(TransferReceipt r) async {
-  await Share.share(transferReceiptText(r), subject: 'UBS Transfer Receipt');
+  await Share.share(transferReceiptText(r), subject: 'Ultimate Wallet Transfer Receipt');
 }
