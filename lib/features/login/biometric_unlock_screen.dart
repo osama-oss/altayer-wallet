@@ -195,7 +195,7 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
                     color: Colors.white,
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
-                    fontFamily: 'SFProArabic',
+                    fontFamily: 'Tajawal',
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -205,7 +205,7 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 13,
-                    fontFamily: 'SFProArabic',
+                    fontFamily: 'Tajawal',
                     height: 1.4,
                   ),
                 ),
@@ -274,7 +274,7 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF14152E),
-                      fontFamily: 'SFProArabic',
+                      fontFamily: 'Tajawal',
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -289,7 +289,7 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[500],
-                      fontFamily: 'SFProArabic',
+                      fontFamily: 'Tajawal',
                       fontWeight: FontWeight.w600,
                     ),
                     textAlign: TextAlign.center,
@@ -317,7 +317,7 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
                               color: Color(0xFFB91C1C),
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
-                              fontFamily: 'SFProArabic',
+                              fontFamily: 'Tajawal',
                             ),
                           ),
                         ],
@@ -342,7 +342,7 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
                       child: Text(
                         l10n.unlock, // فتح
                         style: TextStyle(
-                          fontFamily: 'SFProArabic',
+                          fontFamily: 'Tajawal',
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: busy ? Colors.grey[400] : Colors.white,
@@ -359,7 +359,7 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
                     child: Text(
                       l10n.usePasswordInstead, // استخدم كلمة المرور بدلاً من ذلك
                       style: TextStyle(
-                        fontFamily: 'SFProArabic',
+                        fontFamily: 'Tajawal',
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: busy ? Colors.grey[400] : const Color(0xFF5B2EE5),

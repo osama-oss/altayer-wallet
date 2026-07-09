@@ -395,7 +395,7 @@ class _SectionLabel extends StatelessWidget {
           fontSize: 13,
           fontWeight: FontWeight.bold,
           color: Color(0xFF64748B),
-          fontFamily: 'SFProArabic',
+          fontFamily: 'Tajawal',
         ),
       ),
     );

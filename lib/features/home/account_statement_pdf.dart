@@ -20,20 +20,19 @@ const _debit = PdfColor.fromInt(0xFFEB5757);
 
 // ── Asset cache ─────────────────────────────────────────────────────────────
 // PDF generation time is dominated by font work: the `pdf` package parses the
-// whole TTF and subsets it on every save. Re-parsing a ~1MB Arabic font on each
-// export is what made statements slow. Two fixes: (1) use the lightweight
-// LamaSans family (~150KB vs ~1MB SFProArabic) so parsing/subsetting is far
-// cheaper, and (2) load + parse the fonts and read the logo ONCE per session and
-// reuse them, so every export after the first is near-instant.
+// whole TTF and subsets it on every save. The app's single typeface — Tajawal —
+// is lightweight (~60KB per weight), so parsing/subsetting is cheap. We still
+// load + parse the fonts and read the logo ONCE per session and reuse them, so
+// every export after the first is near-instant.
 pw.Font? _regularCache;
 pw.Font? _boldCache;
 String? _logoCache;
 
 Future<void> _ensureAssets() async {
   _regularCache ??=
-      pw.Font.ttf(await rootBundle.load('assets/fonts/LamaSans-Regular.ttf'));
+      pw.Font.ttf(await rootBundle.load('assets/fonts/Tajawal-Regular.ttf'));
   _boldCache ??=
-      pw.Font.ttf(await rootBundle.load('assets/fonts/LamaSans-Bold.ttf'));
+      pw.Font.ttf(await rootBundle.load('assets/fonts/Tajawal-Bold.ttf'));
   _logoCache ??= await rootBundle.loadString('assets/branding/ubs.svg');
 }
 

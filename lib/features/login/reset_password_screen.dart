@@ -115,7 +115,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF14152E),
-                      fontFamily: 'SFProArabic',
+                      fontFamily: 'Tajawal',
                     ),
                   ),
                   const SizedBox(width: 40), // Spacer to balance
@@ -169,7 +169,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF14152E),
-                          fontFamily: 'SFProArabic',
+                          fontFamily: 'Tajawal',
                         ),
                       ),
                     ),
@@ -184,7 +184,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           fontSize: 13,
                           color: Colors.grey[500],
                           height: 1.4,
-                          fontFamily: 'SFProArabic',
+                          fontFamily: 'Tajawal',
                         ),
                       ),
                     ),
@@ -194,7 +194,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                     TextField(
                       controller: _mobile,
                       keyboardType: TextInputType.phone,
-                      style: const TextStyle(fontFamily: 'SFProArabic', fontSize: 15, fontWeight: FontWeight.w600),
+                      style: const TextStyle(fontFamily: 'Tajawal', fontSize: 15, fontWeight: FontWeight.w600),
                       decoration: uffInputDecoration(
                         context,
                         label: l10n.mobileNumber,
@@ -218,7 +218,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                           color: colors.success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(AppColors.radiusMd),
                         ),
-                        child: Text(_success!, style: TextStyle(color: colors.success, fontFamily: 'SFProArabic')),
+                        child: Text(_success!, style: TextStyle(color: colors.success, fontFamily: 'Tajawal')),
                       ),
                       const SizedBox(height: 16),
                     ],
@@ -244,7 +244,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                             : Text(
                                 l10n.requestReset, // طلب إعادة التعيين
                                 style: const TextStyle(
-                                  fontFamily: 'SFProArabic',
+                                  fontFamily: 'Tajawal',
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -264,7 +264,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   child: Text(
                     l10n.backToSignIn, // العودة لتسجيل الدخول
                     style: const TextStyle(
-                      fontFamily: 'SFProArabic',
+                      fontFamily: 'Tajawal',
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF5B2EE5),

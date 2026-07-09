@@ -1,22 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
 abstract final class AppTextStyles {
-  /// iOS-style typography: SF Pro Arabic primary, iOS15 Arabic as fallback.
+  /// Single app-wide typeface: Tajawal. Non-Latin/Arabic glyphs (e.g. CJK)
+  /// fall through to the platform's default font automatically.
   static TextStyle _sans({Color? color, String languageCode = 'en'}) {
-    if (languageCode == 'zh') {
-      return GoogleFonts.notoSansSc(color: color ?? AppColors.onSurface);
-    }
     return TextStyle(
-      fontFamily: 'SFProArabic',
-      fontFamilyFallback: const [
-        'iOS15Arabic',
-        'Segoe UI',
-        'Arial',
-        'sans-serif',
-      ],
+      fontFamily: 'Tajawal',
+      fontFamilyFallback: const ['Segoe UI', 'Arial', 'sans-serif'],
       color: color ?? AppColors.onSurface,
     );
   }
@@ -24,8 +16,13 @@ abstract final class AppTextStyles {
   static TextStyle inter({Color? color, String languageCode = 'en'}) =>
       _sans(color: color, languageCode: languageCode);
 
-  static TextStyle jetBrainsMono({Color? color}) =>
-      GoogleFonts.jetBrainsMono(color: color ?? AppColors.onSurface);
+  /// Tajawal with tabular (monospaced) figures so amounts/digits align in
+  /// columns — used for balances and numeric labels.
+  static TextStyle mono({Color? color}) => TextStyle(
+        fontFamily: 'Tajawal',
+        fontFeatures: const [FontFeature.tabularFigures()],
+        color: color ?? AppColors.onSurface,
+      );
 
   static TextStyle displayLgMobile({Color? color, String languageCode = 'en'}) =>
       _sans(color: color, languageCode: languageCode).copyWith(
@@ -44,7 +41,7 @@ abstract final class AppTextStyles {
         color: color,
       );
 
-  static TextStyle balanceDisplay({Color? color}) => jetBrainsMono(color: color).copyWith(
+  static TextStyle balanceDisplay({Color? color}) => mono(color: color).copyWith(
         fontSize: 32,
         fontWeight: FontWeight.w600,
         height: 40 / 32,
@@ -68,7 +65,7 @@ abstract final class AppTextStyles {
         color: color,
       );
 
-  static TextStyle monoLabel({Color? color}) => jetBrainsMono(color: color).copyWith(
+  static TextStyle monoLabel({Color? color}) => mono(color: color).copyWith(
         fontSize: 12,
         fontWeight: FontWeight.w500,
         height: 16 / 12,

@@ -165,7 +165,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
     final languageCode = Localizations.localeOf(context).languageCode;
     final isAr = languageCode == 'ar';
 
-    final textStyle = const TextStyle(fontFamily: 'SFProArabic');
+    final textStyle = const TextStyle(fontFamily: 'Tajawal');
 
     return Scaffold(
       backgroundColor: isDarkTheme ? const Color(0xFF0F1115) : const Color(0xFFF1F5F9),
@@ -583,7 +583,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                           Text(
                             key,
                             style: TextStyle(
-                              fontFamily: 'SFProArabic',
+                              fontFamily: 'Tajawal',
                               fontSize: 26,
                               fontWeight: FontWeight.w600,
                               color: isDarkTheme ? Colors.white : const Color(0xFF14152E),
@@ -594,7 +594,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                             Text(
                               label,
                               style: TextStyle(
-                                fontFamily: 'SFProArabic',
+                                fontFamily: 'Tajawal',
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,
                                 color: isDarkTheme ? Colors.grey[500] : const Color(0xFF94A3B8),

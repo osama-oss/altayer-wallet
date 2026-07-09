@@ -16,7 +16,7 @@ abstract final class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
-      fontFamily: 'SFProArabic',
+      fontFamily: 'Tajawal',
       brightness: isDark ? Brightness.dark : Brightness.light,
       scaffoldBackgroundColor: palette.background,
       colorScheme: isDark

@@ -192,7 +192,7 @@ class _ReloginSheetState extends State<ReloginSheet> {
               enabled: !_loading,
               autofocus: !_canBiometric,
               style: const TextStyle(
-                fontFamily: 'SFProArabic',
+                fontFamily: 'Tajawal',
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
               ),

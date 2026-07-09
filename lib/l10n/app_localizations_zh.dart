@@ -558,6 +558,39 @@ class AppLocalizationsZh extends AppLocalizations {
   String get newCustomerRegister => '新用户？立即注册';
 
   @override
+  String get loginTabCustomer => '客户';
+
+  @override
+  String get loginTabMerchant => '销售点';
+
+  @override
+  String get mobileNumberHint => '例如 777563940';
+
+  @override
+  String get enterMobileNumber => '请输入手机号码';
+
+  @override
+  String get signInAsCustomer => '以客户身份登录';
+
+  @override
+  String get dontHaveAccount => '没有账户？';
+
+  @override
+  String get createAccount => '创建账户';
+
+  @override
+  String get supportTollFree => '免费电话';
+
+  @override
+  String get supportServicePoints => '服务网点';
+
+  @override
+  String get supportCustomerService => '客户服务';
+
+  @override
+  String get merchantLoginComingSoon => '销售点登录即将推出。';
+
+  @override
   String get biometricSignIn => '生物识别登录';
 
   @override

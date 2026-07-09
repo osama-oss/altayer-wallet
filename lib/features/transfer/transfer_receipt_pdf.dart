@@ -17,7 +17,7 @@ const _line = PdfColor.fromInt(0xFFE2E8F0);
 const _successBg = PdfColor.fromInt(0xFFECFDF5);
 const _success = PdfColor.fromInt(0xFF10B981);
 
-// Cache parsed fonts/logo across exports — re-parsing the ~1MB Arabic TTF on
+// Cache parsed fonts/logo across exports — re-parsing the Tajawal TTF on
 // every tap is what makes the first (and every) receipt share feel stuck with
 // no feedback (see the same fix in account_statement_pdf.dart).
 pw.Font? _regularCache;
@@ -25,10 +25,10 @@ pw.Font? _boldCache;
 String? _logoCache;
 
 Future<void> _ensureAssets() async {
-  _regularCache ??= pw.Font.ttf(
-      await rootBundle.load('assets/fonts/SFProArabic-Regular.ttf'));
+  _regularCache ??=
+      pw.Font.ttf(await rootBundle.load('assets/fonts/Tajawal-Regular.ttf'));
   _boldCache ??=
-      pw.Font.ttf(await rootBundle.load('assets/fonts/SFProArabic-Bold.ttf'));
+      pw.Font.ttf(await rootBundle.load('assets/fonts/Tajawal-Bold.ttf'));
   _logoCache ??= await rootBundle.loadString('assets/branding/ubs.svg');
 }
 

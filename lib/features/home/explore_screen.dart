@@ -425,7 +425,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
           fontSize: 13,
           fontWeight: FontWeight.bold,
           color: Color(0xFF64748B), // slate-500
-          fontFamily: 'SFProArabic',
+          fontFamily: 'Tajawal',
         ),
       ),
     );
@@ -468,7 +468,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: isActive ? const Color(0xFF5B2EE5) : Colors.grey[500],
-                    fontFamily: 'SFProArabic',
+                    fontFamily: 'Tajawal',
                   ),
                 ),
               ],
@@ -524,7 +524,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: titleColor ?? const Color(0xFF14152E),
-                      fontFamily: 'SFProArabic',
+                      fontFamily: 'Tajawal',
                     ),
                   ),
                   if (subtitle != null) ...[
@@ -534,7 +534,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.grey[400],
-                        fontFamily: 'SFProArabic',
+                        fontFamily: 'Tajawal',
                       ),
                     ),
                   ],

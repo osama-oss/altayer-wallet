@@ -172,7 +172,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF14152E),
-                        fontFamily: 'SFProArabic',
+                        fontFamily: 'Tajawal',
                       ),
                     ),
                     const SizedBox(width: 40), // Spacer to balance
@@ -226,7 +226,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF14152E),
-                            fontFamily: 'SFProArabic',
+                            fontFamily: 'Tajawal',
                           ),
                         ),
                       ),
@@ -241,7 +241,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                             fontSize: 13,
                             color: Colors.grey[500],
                             height: 1.4,
-                            fontFamily: 'SFProArabic',
+                            fontFamily: 'Tajawal',
                           ),
                         ),
                       ),
@@ -254,7 +254,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                           keyboardType: TextInputType.text,
                           textInputAction: TextInputAction.done,
                           enabled: true,
-                          style: const TextStyle(fontFamily: 'SFProArabic', fontSize: 15, fontWeight: FontWeight.w600),
+                          style: const TextStyle(fontFamily: 'Tajawal', fontSize: 15, fontWeight: FontWeight.w600),
                           decoration: uffInputDecoration(
                             context,
                             label: l10n.coreCustomerId,
@@ -280,7 +280,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: Colors.grey[500],
-                                  fontFamily: 'SFProArabic',
+                                  fontFamily: 'Tajawal',
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -310,7 +310,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                                 : Text(
                                     l10n.fetchProfile, // جلب الملف الشخصي
                                     style: const TextStyle(
-                                      fontFamily: 'SFProArabic',
+                                      fontFamily: 'Tajawal',
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
@@ -360,7 +360,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF14152E),
-                            fontFamily: 'SFProArabic',
+                            fontFamily: 'Tajawal',
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -369,8 +369,8 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                           groupValue: _usernameMode,
                           activeColor: const Color(0xFF5B2EE5),
                           onChanged: (v) => setState(() => _usernameMode = v!),
-                          title: Text(l10n.coreCustomerIdOption, style: const TextStyle(fontFamily: 'SFProArabic', fontSize: 14, fontWeight: FontWeight.bold)),
-                          subtitle: Text(_customerId.text.trim(), style: const TextStyle(fontFamily: 'SFProArabic', fontSize: 13)),
+                          title: Text(l10n.coreCustomerIdOption, style: const TextStyle(fontFamily: 'Tajawal', fontSize: 14, fontWeight: FontWeight.bold)),
+                          subtitle: Text(_customerId.text.trim(), style: const TextStyle(fontFamily: 'Tajawal', fontSize: 13)),
                           contentPadding: EdgeInsets.zero,
                         ),
                         RadioListTile<String>(
@@ -378,14 +378,14 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                           groupValue: _usernameMode,
                           activeColor: const Color(0xFF5B2EE5),
                           onChanged: (v) => setState(() => _usernameMode = v!),
-                          title: Text(l10n.customUsername, style: const TextStyle(fontFamily: 'SFProArabic', fontSize: 14, fontWeight: FontWeight.bold)),
+                          title: Text(l10n.customUsername, style: const TextStyle(fontFamily: 'Tajawal', fontSize: 14, fontWeight: FontWeight.bold)),
                           contentPadding: EdgeInsets.zero,
                         ),
                         if (_usernameMode == 'CUSTOM') ...[
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _customUsername,
-                            style: const TextStyle(fontFamily: 'SFProArabic', fontSize: 15, fontWeight: FontWeight.w600),
+                            style: const TextStyle(fontFamily: 'Tajawal', fontSize: 15, fontWeight: FontWeight.w600),
                             decoration: uffInputDecoration(
                               context,
                               label: l10n.customUsername,
@@ -400,7 +400,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                             style: TextStyle(
                               fontSize: 11,
                               color: Colors.grey[500],
-                              fontFamily: 'SFProArabic',
+                              fontFamily: 'Tajawal',
                               height: 1.3,
                             ),
                           ),
@@ -425,7 +425,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                                   ),
                                   child: Text(
                                     l10n.changeId,
-                                    style: const TextStyle(fontFamily: 'SFProArabic', fontWeight: FontWeight.bold, fontSize: 14),
+                                    style: const TextStyle(fontFamily: 'Tajawal', fontWeight: FontWeight.bold, fontSize: 14),
                                   ),
                                 ),
                               ),
@@ -450,7 +450,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                                         )
                                       : Text(
                                           l10n.registerButton,
-                                          style: const TextStyle(fontFamily: 'SFProArabic', fontWeight: FontWeight.bold, fontSize: 14),
+                                          style: const TextStyle(fontFamily: 'Tajawal', fontWeight: FontWeight.bold, fontSize: 14),
                                         ),
                                 ),
                               ),
@@ -474,7 +474,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                     child: Text(
                       l10n.alreadyHaveAccountSignIn,
                       style: const TextStyle(
-                        fontFamily: 'SFProArabic',
+                        fontFamily: 'Tajawal',
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF5B2EE5),
@@ -511,7 +511,7 @@ class _PreviewRow extends StatelessWidget {
               fontSize: 13,
               fontWeight: FontWeight.bold,
               color: Colors.grey[600],
-              fontFamily: 'SFProArabic',
+              fontFamily: 'Tajawal',
             ),
           ),
         ),
@@ -522,7 +522,7 @@ class _PreviewRow extends StatelessWidget {
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: Color(0xFF14152E),
-              fontFamily: 'SFProArabic',
+              fontFamily: 'Tajawal',
             ),
           ),
         ),

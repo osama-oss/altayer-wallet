@@ -59,56 +59,18 @@ flutter:
 
 
   fonts:
-    - family: LamaSans
+    - family: Tajawal
       fonts:
-        - asset: assets/fonts/LamaSans-Regular.ttf
-        - asset: assets/fonts/LamaSans-RegularItalic.ttf
-          style: italic
-        - asset: assets/fonts/LamaSans-Light.ttf
+        - asset: assets/fonts/Tajawal-Light.ttf
           weight: 300
-        - asset: assets/fonts/LamaSans-LightItalic.ttf
-          weight: 300
-          style: italic
-        - asset: assets/fonts/LamaSans-Medium.ttf
+        - asset: assets/fonts/Tajawal-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Tajawal-Medium.ttf
           weight: 500
-        - asset: assets/fonts/LamaSans-MediumItalic.ttf
-          weight: 500
-          style: italic
-        - asset: assets/fonts/LamaSans-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/LamaSans-SemiBoldItalic.ttf
-          weight: 600
-          style: italic
-        - asset: assets/fonts/LamaSans-Bold.ttf
+        - asset: assets/fonts/Tajawal-Bold.ttf
           weight: 700
-        - asset: assets/fonts/LamaSans-BoldItalic.ttf
-          weight: 700
-          style: italic
-        - asset: assets/fonts/LamaSans-ExtraBold.ttf
+        - asset: assets/fonts/Tajawal-ExtraBold.ttf
           weight: 800
-        - asset: assets/fonts/LamaSans-ExtraBoldItalic.ttf
-          weight: 800
-          style: italic
-        - asset: assets/fonts/LamaSans-Black.ttf
+        - asset: assets/fonts/Tajawal-Black.ttf
           weight: 900
-        - asset: assets/fonts/LamaSans-BlackItalic.ttf
-          weight: 900
-          style: italic
-    - family: InstagramSansARA
-      fonts:
-        - asset: assets/fonts/Instagram Sans ARA.ttf
-        - asset: assets/fonts/Instagram Sans ARA Bold.ttf
-          weight: 700
-    - family: iOS15Arabic
-      fonts:
-        - asset: assets/fonts/iOS15-Arabic.ttf
-    - family: SFProArabic
-      fonts:
-        - asset: assets/fonts/SFProArabic-Regular.ttf
-        - asset: assets/fonts/SFProArabic-Light.ttf
-          weight: 300
-        - asset: assets/fonts/SFProArabic-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/SFProArabic-Bold.ttf
-          weight: 700
 

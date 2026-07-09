@@ -204,6 +204,18 @@ abstract class AppLocalizations {
   String get signInWithBiometrics;
   String get forgotPassword;
   String get newCustomerRegister;
+  // Jaib-style login screen
+  String get loginTabCustomer;
+  String get loginTabMerchant;
+  String get mobileNumberHint;
+  String get enterMobileNumber;
+  String get signInAsCustomer;
+  String get dontHaveAccount;
+  String get createAccount;
+  String get supportTollFree;
+  String get supportServicePoints;
+  String get supportCustomerService;
+  String get merchantLoginComingSoon;
   String get biometricSignIn;
   String get biometricSignInSubtitle;
   String get confirmYourIdentity;
@@ -1075,6 +1087,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get newCustomerRegister => 'New customer? Register';
+
+  @override
+  String get loginTabCustomer => 'Customer';
+
+  @override
+  String get loginTabMerchant => 'Point of sale';
+
+  @override
+  String get mobileNumberHint => 'e.g. 777563940';
+
+  @override
+  String get enterMobileNumber => 'Enter your mobile number';
+
+  @override
+  String get signInAsCustomer => 'Sign in as customer';
+
+  @override
+  String get dontHaveAccount => "Don't have an account?";
+
+  @override
+  String get createAccount => 'Create account';
+
+  @override
+  String get supportTollFree => 'Toll-free';
+
+  @override
+  String get supportServicePoints => 'Service points';
+
+  @override
+  String get supportCustomerService => 'Customer service';
+
+  @override
+  String get merchantLoginComingSoon => 'Point-of-sale sign-in is coming soon.';
 
   @override
   String get biometricSignIn => 'Biometric sign-in';
@@ -2299,6 +2344,39 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get newCustomerRegister => 'عميل جديد؟ سجّل الآن';
+
+  @override
+  String get loginTabCustomer => 'عميل';
+
+  @override
+  String get loginTabMerchant => 'نقطة مبيعات';
+
+  @override
+  String get mobileNumberHint => 'مثال: 777563940';
+
+  @override
+  String get enterMobileNumber => 'أدخل رقم الموبايل';
+
+  @override
+  String get signInAsCustomer => 'تسجيل الدخول كـ عميل';
+
+  @override
+  String get dontHaveAccount => 'لا تملك حساباً؟';
+
+  @override
+  String get createAccount => 'إنشاء حساب';
+
+  @override
+  String get supportTollFree => 'الرقم المجاني';
+
+  @override
+  String get supportServicePoints => 'نقاط الخدمة';
+
+  @override
+  String get supportCustomerService => 'خدمة العملاء';
+
+  @override
+  String get merchantLoginComingSoon => 'دخول نقطة المبيعات سيتوفّر قريباً.';
 
   @override
   String get biometricSignIn => 'الدخول بالبصمة';

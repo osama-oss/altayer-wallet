@@ -158,7 +158,7 @@ class TransferHubScreen extends StatelessWidget {
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: colors.primary,
-                    fontFamily: isAr ? 'SFProArabic' : null,
+                    fontFamily: isAr ? 'Tajawal' : null,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -228,7 +228,7 @@ class TransferHubScreen extends StatelessWidget {
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: colors.primary,
-                  fontFamily: isAr ? 'SFProArabic' : null,
+                  fontFamily: isAr ? 'Tajawal' : null,
                 ),
               ),
               const SizedBox(height: 16),
@@ -240,11 +240,11 @@ class TransferHubScreen extends StatelessWidget {
                 ),
                 title: Text(
                   context.l10n.cashBackTitle,
-                  style: TextStyle(fontWeight: FontWeight.w600, fontFamily: isAr ? 'SFProArabic' : null),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontFamily: isAr ? 'Tajawal' : null),
                 ),
                 subtitle: Text(
                   context.l10n.cashBackSubtitle,
-                  style: TextStyle(fontSize: 12, fontFamily: isAr ? 'SFProArabic' : null),
+                  style: TextStyle(fontSize: 12, fontFamily: isAr ? 'Tajawal' : null),
                 ),
               ),
               const Divider(),
@@ -256,11 +256,11 @@ class TransferHubScreen extends StatelessWidget {
                 ),
                 title: Text(
                   context.l10n.travelDiscountTitle,
-                  style: TextStyle(fontWeight: FontWeight.w600, fontFamily: isAr ? 'SFProArabic' : null),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontFamily: isAr ? 'Tajawal' : null),
                 ),
                 subtitle: Text(
                   context.l10n.travelDiscountSubtitle,
-                  style: TextStyle(fontSize: 12, fontFamily: isAr ? 'SFProArabic' : null),
+                  style: TextStyle(fontSize: 12, fontFamily: isAr ? 'Tajawal' : null),
                 ),
               ),
               const SizedBox(height: 16),
@@ -281,7 +281,7 @@ class TransferHubScreen extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(
             context.l10n.financeCalculatorTitle,
-            style: TextStyle(fontWeight: FontWeight.bold, fontFamily: isAr ? 'SFProArabic' : null),
+            style: TextStyle(fontWeight: FontWeight.bold, fontFamily: isAr ? 'Tajawal' : null),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -289,7 +289,7 @@ class TransferHubScreen extends StatelessWidget {
             children: [
               Text(
                 context.l10n.financeCalculatorSubtitle,
-                style: TextStyle(fontSize: 14, color: colors.onSurfaceVariant, fontFamily: isAr ? 'SFProArabic' : null),
+                style: TextStyle(fontSize: 14, color: colors.onSurfaceVariant, fontFamily: isAr ? 'Tajawal' : null),
               ),
               const SizedBox(height: 12),
               Container(
@@ -307,7 +307,7 @@ class TransferHubScreen extends StatelessWidget {
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                       color: colors.success,
-                      fontFamily: isAr ? 'SFProArabic' : null,
+                      fontFamily: isAr ? 'Tajawal' : null,
                     ),
                   ),
                 ),
@@ -315,7 +315,7 @@ class TransferHubScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 context.l10n.financeDisclaimer,
-                style: TextStyle(fontSize: 10, color: colors.outline, fontStyle: FontStyle.italic, fontFamily: isAr ? 'SFProArabic' : null),
+                style: TextStyle(fontSize: 10, color: colors.outline, fontStyle: FontStyle.italic, fontFamily: isAr ? 'Tajawal' : null),
               ),
             ],
           ),
@@ -324,7 +324,7 @@ class TransferHubScreen extends StatelessWidget {
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
                 context.l10n.closeButton,
-                style: TextStyle(fontWeight: FontWeight.bold, fontFamily: isAr ? 'SFProArabic' : null),
+                style: TextStyle(fontWeight: FontWeight.bold, fontFamily: isAr ? 'Tajawal' : null),
               ),
             ),
           ],
@@ -501,7 +501,7 @@ class _ServicesGrid extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: colors.primary,
                     height: 1.2,
-                    fontFamily: isAr ? 'SFProArabic' : null,
+                    fontFamily: isAr ? 'Tajawal' : null,
                   ),
                 ),
               ],
@@ -563,7 +563,7 @@ class _BillOptionRow extends StatelessWidget {
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: colors.primary,
-                    fontFamily: isAr ? 'SFProArabic' : null,
+                    fontFamily: isAr ? 'Tajawal' : null,
                   ),
                 ),
               ),
