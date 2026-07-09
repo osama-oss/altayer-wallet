@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="25.60 -38.40 460.80 332.80">
+  <g transform="translate(0, 384.00) scale(1, -1)">
+    <!-- Top & Bottom Bars: Light Grey #ECEFF4 -->
+    <path fill="#ECEFF4" d="M64 128H448V171H64V128ZM64 384V341H448V384H64Z"/>
+    <!-- Middle Accent Bar: Glowing Green #4C8CFF -->
+    <path fill="#4C8CFF" d="M64 235H448V277H64V235Z"/>
+  </g>
+</svg>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0.40 -42.60 511.20 448.20">
+  <g transform="translate(0, 448.00) scale(1, -1)">
+    <!-- Base Color: Light Grey #ECEFF4 -->
+    <path fill="#ECEFF4" d="M107 85H213V213H299V85H405V256H469L256 448L43 256H107V85Z"/>
+    <!-- Accent Door: Glowing Green #4C8CFF -->
+    <path fill="#4C8CFF" d="M213 85h86v128h-86z" fill-opacity="0.85"/>
+  </g>
+</svg>

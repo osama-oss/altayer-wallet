@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="24" height="24">
+  <!-- Investment Wallet Icon: Light Mode -->
+  <!-- Bars: Navy #090078 -->
+  <path d="m18 23.22v31.78h-7v-30.05c.33.03.66.05 1 .05 2.22 0 4.28-.65 6-1.78z" fill="#090078" fill-opacity="0.5"/>
+  <path d="m25 26.63v28.37h-7v-31.78c.66-.42 1.26-.92 1.8-1.47z" fill="#090078"/>
+  <path d="m32 33.19v21.81h-7v-28.37z" fill="#090078" fill-opacity="0.5"/>
+  <path d="m39 33v22h-7v-21.81l3 2.81z" fill="#090078"/>
+  <path d="m46 29.46v25.54h-7v-22l6-4.51z" fill="#090078" fill-opacity="0.5"/>
+  <path d="m60 43v12h-7v-18.77z" fill="#090078"/>
+  <path d="m53 36.23v18.77h-7v-25.54z" fill="#090078" fill-opacity="0.5"/>
+  <path d="m8 55h55v6h-55z" fill="#090078"/>
+
+  <!-- Trendline & Arrow: Green #13a438 -->
+  <path d="m53 36.23-7-6.77-1-.97-6 4.51-4 3-3-2.81-7-6.56-5.2-4.88c1.23-1.23 2.16-2.74 2.69-4.43l12.51 11.68 10-7 13 12v-7h5v14l-3 2z" fill="#13a438"/>
+
+  <!-- Dollar Coin detail: Green #13a438 -->
+  <circle cx="12" cy="14" fill="#13a438" r="11" fill-opacity="0.15"/>
+  <circle cx="12" cy="14" fill="#13a438" r="7"/>
+</svg>

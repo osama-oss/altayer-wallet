@@ -1,0 +1,26 @@
+{
+  "apiBaseUrl": "http://88.80.145.121:8083",
+  "sessionIdleMinutes": 10,
+  "keycloak": {
+    "issuer": "https://88.80.145.121:8085/realms/uff-digital-banking",
+    "clientId": "digital-banking-mobile",
+    "scopes": [
+      "openid",
+      "profile",
+      "email"
+    ],
+    "trustSelfSignedCerts": true
+  },
+  "security": {
+    "threatPolicy": "warn",
+    "watcherMail": "security@uff.example",
+    "androidSigningCertHashes": [],
+    "iosTeamId": "",
+    "iosBundleIds": [
+      "com.uff.altayer"
+    ]
+  },
+  "otp": {
+    "staticCode": "1234"
+  }
+}

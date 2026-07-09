@@ -1,0 +1,84 @@
+# ───────── Flutter / Dart ─────────
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+.pub-cache/
+.pub/
+.metadata
+**/doc/api/
+**/ios/Flutter/.last_build_id
+devtools_options.yaml
+
+# ───────── Firebase (API keys — never commit) ─────────
+**/android/app/google-services.json
+**/ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart
+
+# ───────── Android / Gradle / Kotlin ─────────
+.gradle/
+.kotlin/
+**/android/.kotlin/
+**/android/local.properties
+**/android/**/GeneratedPluginRegistrant.java
+**/android/key.properties
+*.jks
+
+# ───────── iOS / macOS build ─────────
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+
+# ───────── IDE ─────────
+*.iml
+.idea/
+.vscode/
+
+# ───────── Lock files ─────────
+*.lock
+
+# ───────── Logs / temp / backups ─────────
+*.log
+*.tmp
+*.bak
+debug.log
+flutter_*.log
+
+# ───────── OS / Office junk ─────────
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+
+# ───────── Agent / AI / Graphify ─────────
+.agents/
+.claude/
+CLAUDE.md
+.graphifyignore
+graphify-out/
+
+# ───────── Docs & Reference ─────────
+docs/
+
+# ───────── Project-specific ignores ─────────
+icon/
+mobile-service-scaffold/
+
+# ───────── Temporary & User-Specific ─────────
+New folder/
+new/
+الملفات/
+COMMIT_MSG.txt
+
+# ───────── Local scripts (not needed in repo) ─────────
+dev.ps1
+pub-get.ps1
+flutter.bat
+scripts/
+
+# ───────── Loose assets in root (already in assets/) ─────────
+APP_ICON_UBS.png
+UBS.svg
+*.svg.bak
