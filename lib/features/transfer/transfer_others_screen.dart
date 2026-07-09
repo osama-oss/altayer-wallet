@@ -8,10 +8,17 @@ import 'transfer_to_others_panel.dart';
 /// form. Reached from the transfer chooser ([TransferScreen]), from a
 /// favorite, or when re-running a recent transfer (prefilled beneficiary).
 class TransferOthersScreen extends StatelessWidget {
-  const TransferOthersScreen({super.key, this.initialBeneficiary});
+  const TransferOthersScreen({
+    super.key,
+    this.initialBeneficiary,
+    this.initialAmount,
+  });
 
   /// Pre-fills the beneficiary account on the panel.
   final String? initialBeneficiary;
+
+  /// Pre-fills the amount (e.g. carried over from the scan-review screen).
+  final String? initialAmount;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +32,10 @@ class TransferOthersScreen extends StatelessWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-          child: TransferToOthersPanel(initialBeneficiary: initialBeneficiary),
+          child: TransferToOthersPanel(
+            initialBeneficiary: initialBeneficiary,
+            initialAmount: initialAmount,
+          ),
         ),
       ),
     );

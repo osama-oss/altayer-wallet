@@ -29,10 +29,17 @@ import 'widgets/transfer_success_view.dart';
 import '../../core/widgets/uff_loader.dart';
 
 class TransferToOthersPanel extends ConsumerStatefulWidget {
-  const TransferToOthersPanel({super.key, this.initialBeneficiary});
+  const TransferToOthersPanel({
+    super.key,
+    this.initialBeneficiary,
+    this.initialAmount,
+  });
 
   /// Pre-fills the beneficiary account (e.g. "transfer again" from history).
   final String? initialBeneficiary;
+
+  /// Pre-fills the amount (e.g. carried over from the scan-review screen).
+  final String? initialAmount;
 
   @override
   ConsumerState<TransferToOthersPanel> createState() => _TransferToOthersPanelState();
@@ -73,6 +80,10 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
     final prefill = widget.initialBeneficiary?.trim();
     if (prefill != null && prefill.isNotEmpty) {
       _beneficiary.text = prefill;
+    }
+    final amountPrefill = widget.initialAmount?.trim();
+    if (amountPrefill != null && amountPrefill.isNotEmpty) {
+      _amount.text = amountPrefill;
     }
     _beneficiary.addListener(_scheduleQuote);
     _amount.addListener(_scheduleQuote);
