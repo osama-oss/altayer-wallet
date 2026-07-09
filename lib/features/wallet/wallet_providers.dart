@@ -4,6 +4,30 @@ import '../../core/models/account_transaction.dart';
 import '../../core/models/banking_account.dart';
 import '../../core/providers/app_providers.dart';
 
+/// Per-wallet-card balance visibility. Every wallet card owns its own eye
+/// toggle, so revealing/hiding the balance on one card (e.g. the YER wallet)
+/// must never touch the others. State is the set of *revealed* wallet keys
+/// (the card's account number); a key that is absent means the balance is
+/// obscured — the secure default when the screen first opens.
+final walletBalanceVisibilityProvider =
+    StateNotifierProvider<WalletBalanceVisibility, Set<String>>(
+  (ref) => WalletBalanceVisibility(),
+);
+
+class WalletBalanceVisibility extends StateNotifier<Set<String>> {
+  WalletBalanceVisibility() : super(const <String>{});
+
+  /// True when the wallet keyed by [walletKey] should hide its balance.
+  bool isObscured(String walletKey) => !state.contains(walletKey);
+
+  /// Flip a single wallet's visibility without disturbing any other card.
+  void toggle(String walletKey) {
+    final next = Set<String>.of(state);
+    if (!next.remove(walletKey)) next.add(walletKey);
+    state = next;
+  }
+}
+
 /// The customer's "wallet" is a real UFF account presented with a single-balance
 /// wallet UX. We pick the primary spending account: the first YER account when
 /// present (the local wallet currency), otherwise the first account returned by

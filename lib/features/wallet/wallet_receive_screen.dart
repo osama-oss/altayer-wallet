@@ -10,7 +10,7 @@ import '../../core/theme/bank_sync_colors.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Wallet "receive" screen — renders the customer's real account QR
-/// ([AccountQrPayload]) so another «عَ الطاير» / UFF user can scan it and pay
+/// ([AccountQrPayload]) so another «Ultimate Wallet» / UFF user can scan it and pay
 /// into this wallet. Uses the existing account-QR payload the transfer scanner
 /// already decodes, so receive ↔ scan interoperate out of the box.
 class WalletReceiveScreen extends StatelessWidget {
