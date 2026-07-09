@@ -607,5 +607,7 @@ class _ScannerOverlayPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ScannerOverlayPainter oldDelegate) =>
-      oldDelegate.cutout != cutout || oldDelegate.frameColor != frameColor;
+      oldDelegate.cutout != cutout ||
+      oldDelegate.frameColor != frameColor ||
+      oldDelegate.glow != glow;
 }

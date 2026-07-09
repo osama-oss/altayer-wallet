@@ -20,6 +20,7 @@ import '../../core/widgets/uff_loader.dart';
 import '../../l10n/app_localizations.dart';
 import '../home/transactions_screen.dart';
 import '../transfer/qr_scan_screen.dart';
+import '../transfer/scan_review_screen.dart';
 import 'wallet_providers.dart';
 import 'wallet_receive_screen.dart';
 
@@ -702,7 +703,12 @@ class _QuickActions extends StatelessWidget {
     final acct = await openQrScanScreen(context);
     if (acct == null || acct.isEmpty) return;
     if (!context.mounted) return;
-    context.push('/transfer/others?to=${Uri.encodeComponent(acct)}');
+    // Scanning never transfers directly — review the recipient first.
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ScanReviewScreen(account: acct),
+      ),
+    );
   }
 
   @override
