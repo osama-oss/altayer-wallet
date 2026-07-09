@@ -177,7 +177,7 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
             child: Column(
               children: [
                 SvgPicture.asset(
-                  'assets/branding/ubs.svg',
+                  'assets/branding/ultimate_wallet_light.svg',
                   height: 20,
                   colorFilter: const ColorFilter.mode(
                     Colors.white,

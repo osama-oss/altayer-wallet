@@ -238,7 +238,7 @@ class AuthService {
   Future<bool> enableBiometricLogin(String transactionPin) async {
     if (!await _biometricAuth.isBiometricAvailable()) return false;
     final ok = await _biometricAuth.authenticate(
-      reason: 'تفعيل تسجيل الدخول بالبصمة في محفظة عَ الطاير',
+      reason: 'تفعيل تسجيل الدخول بالبصمة في محفظة Ultimate Wallet',
     );
     if (!ok) return false;
 

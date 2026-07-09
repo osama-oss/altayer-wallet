@@ -17,10 +17,10 @@ import '../../l10n/app_localizations.dart';
 import '../../router/app_router.dart';
 import '../../core/widgets/uff_loader.dart';
 
-/// Brand palette — kept as UFF purple (the Jaib reference is red; we adopt its
-/// *layout*, not its colour). Deep + bright indigo used across the app.
-const Color _brandDeep = Color(0xFF3A1D9E);
-const Color _brandBright = Color(0xFF5B2EE5);
+/// Brand palette — Ultimate Wallet trust blue (deep + bright), used across the
+/// login screen accents.
+const Color _brandDeep = Color(0xFF003D8F);
+const Color _brandBright = Color(0xFF0050B3);
 const Color _screenBg = Color(0xFFF4F5F8);
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -122,18 +122,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       builder: (context) => CupertinoAlertDialog(
         title: Text(
           l10n.enableFingerprintTitle,
-          style: const TextStyle(fontFamily: 'SFProArabic', fontWeight: FontWeight.bold),
+          style: const TextStyle(fontFamily: 'Tajawal', fontWeight: FontWeight.bold),
         ),
         content: Text(
           l10n.enableFingerprintMessage,
-          style: const TextStyle(fontFamily: 'SFProArabic'),
+          style: const TextStyle(fontFamily: 'Tajawal'),
         ),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
               l10n.okButton,
-              style: const TextStyle(fontFamily: 'SFProArabic'),
+              style: const TextStyle(fontFamily: 'Tajawal'),
             ),
           ),
         ],
@@ -164,6 +164,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
+  /// Larger, more legible floating label for the two credential fields only.
+  /// Mirrors [uffInputDecoration]'s colour logic and motion — the only change
+  /// is a bigger [fontSize] (15 vs the shared 13.5).
+  TextStyle _floatingLabelStyle(BankSyncColors colors) {
+    return WidgetStateTextStyle.resolveWith((states) {
+      final Color ink;
+      if (states.contains(WidgetState.error)) {
+        ink = colors.error;
+      } else if (states.contains(WidgetState.focused)) {
+        ink = colors.secondary;
+      } else {
+        ink = colors.onSurface;
+      }
+      return AppTextStyles.labelSm(color: ink).copyWith(
+        fontSize: 15,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.2,
+        height: 1,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.bankColors;
@@ -186,37 +208,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 alignment: AlignmentDirectional.centerEnd,
                 child: _buildLanguagePill(context, locale, l10n),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
 
-              // Brand logo, centred.
-              SvgPicture.asset(
-                'assets/branding/ubs.svg',
-                height: 46,
-                colorFilter: const ColorFilter.mode(_brandDeep, BlendMode.srcIn),
-              ),
-              const SizedBox(height: 32),
-
-              // Welcome title + subtitle (start-aligned → right in RTL).
-              Text(
-                l10n.welcomeBack,
-                style: const TextStyle(
-                  color: Color(0xFF1A1230),
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  fontFamily: 'SFProArabic',
+              // Brand logo — enlarged so it reads as a core identity element.
+              Center(
+                child: SvgPicture.asset(
+                  'assets/branding/ultimate_wallet_light.svg',
+                  width: 170,
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                l10n.signInWithUsernamePassword,
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'SFProArabic',
-                ),
+              const SizedBox(height: 26),
+
+              // Welcome title (start-aligned → right in RTL) with animated waving hand.
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    l10n.welcomeBack,
+                    style: const TextStyle(
+                      color: Color(0xFF1A1230),
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      fontFamily: 'Tajawal',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const _WavingHandIcon(),
+                ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 18),
 
               // Role toggle: Customer / Point of sale.
               _buildRoleToggle(l10n),
@@ -237,7 +257,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ]')),
                       ],
                       style: const TextStyle(
-                        fontFamily: 'SFProArabic',
+                        fontFamily: 'Tajawal',
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -248,7 +268,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         prefixIcon: Icon(Icons.phone_iphone_rounded,
                             color: Colors.grey[500], size: 20),
                         fillColor: Colors.white,
-                      ),
+                      ).copyWith(floatingLabelStyle: _floatingLabelStyle(colors)),
                       validator: (v) => _merchant
                           ? null
                           : (v == null || v.trim().isEmpty ? l10n.enterMobileNumber : null),
@@ -262,7 +282,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       obscureText: _obscure,
                       enabled: !_merchant,
                       style: const TextStyle(
-                        fontFamily: 'SFProArabic',
+                        fontFamily: 'Tajawal',
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -293,7 +313,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           onPressed: () => setState(() => _obscure = !_obscure),
                         ),
                         fillColor: Colors.white,
-                      ),
+                      ).copyWith(floatingLabelStyle: _floatingLabelStyle(colors)),
                       onFieldSubmitted: (_) => _login(),
                       validator: (v) => _merchant
                           ? null
@@ -313,7 +333,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: Text(
                           l10n.forgotPassword,
                           style: const TextStyle(
-                            fontFamily: 'SFProArabic',
+                            fontFamily: 'Tajawal',
                             fontSize: 12.5,
                             fontWeight: FontWeight.bold,
                             color: _brandBright,
@@ -369,7 +389,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     ? l10n.loginTabMerchant
                                     : l10n.signInAsCustomer,
                                 style: const TextStyle(
-                                  fontFamily: 'SFProArabic',
+                                  fontFamily: 'Tajawal',
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -458,7 +478,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Text(
                 label,
                 style: TextStyle(
-                  fontFamily: 'SFProArabic',
+                  fontFamily: 'Tajawal',
                   fontSize: 13.5,
                   fontWeight: FontWeight.bold,
                   color: selected ? _brandDeep : Colors.grey[600],
@@ -488,7 +508,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Text(
               l10n.merchantLoginComingSoon,
               style: const TextStyle(
-                fontFamily: 'SFProArabic',
+                fontFamily: 'Tajawal',
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
                 color: _brandDeep,
@@ -506,7 +526,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       behavior: HitTestBehavior.opaque,
       child: RichText(
         text: TextSpan(
-          style: const TextStyle(fontFamily: 'SFProArabic', fontSize: 12.5),
+          style: const TextStyle(fontFamily: 'Tajawal', fontSize: 12.5),
           children: [
             TextSpan(
               text: '${l10n.dontHaveAccount} ',
@@ -578,7 +598,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             Text(
               label,
               style: TextStyle(
-                fontFamily: 'SFProArabic',
+                fontFamily: 'Tajawal',
                 fontSize: 11.5,
                 fontWeight: FontWeight.w600,
                 color: Colors.grey[700],
@@ -611,7 +631,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             color: _brandDeep,
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            fontFamily: 'SFProArabic',
+            fontFamily: 'Tajawal',
           ),
           selectedItemBuilder: (context) {
             return const [Locale('en'), Locale('ar'), Locale('zh')].map((value) {
@@ -629,7 +649,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     label,
                     style: const TextStyle(
                       color: _brandDeep,
-                      fontFamily: 'SFProArabic',
+                      fontFamily: 'Tajawal',
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
@@ -642,17 +662,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             DropdownMenuItem(
               value: const Locale('en'),
               child: Text(l10n.languageEnglish,
-                  style: const TextStyle(fontFamily: 'SFProArabic', fontSize: 13)),
+                  style: const TextStyle(fontFamily: 'Tajawal', fontSize: 13)),
             ),
             DropdownMenuItem(
               value: const Locale('ar'),
               child: Text(l10n.languageArabic,
-                  style: const TextStyle(fontFamily: 'SFProArabic', fontSize: 13)),
+                  style: const TextStyle(fontFamily: 'Tajawal', fontSize: 13)),
             ),
             DropdownMenuItem(
               value: const Locale('zh'),
               child: Text(l10n.languageChinese,
-                  style: const TextStyle(fontFamily: 'SFProArabic', fontSize: 13)),
+                  style: const TextStyle(fontFamily: 'Tajawal', fontSize: 13)),
             ),
           ],
           onChanged: (value) {
@@ -660,6 +680,74 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ref.read(localeProvider.notifier).setLocale(value);
             }
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _WavingHandIcon extends StatefulWidget {
+  const _WavingHandIcon();
+
+  @override
+  State<_WavingHandIcon> createState() => _WavingHandIconState();
+}
+
+class _WavingHandIconState extends State<_WavingHandIcon>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+
+    _animation = Tween<double>(begin: -0.15, end: 0.15).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    // Wave 3 times (back and forth) then settle at upright position
+    _wave();
+  }
+
+  Future<void> _wave() async {
+    for (int i = 0; i < 3; i++) {
+      await _controller.forward();
+      await _controller.reverse();
+    }
+    _controller.animateTo(0.5); // go to 0 rotation (upright)
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<BankSyncColors>() ?? BankSyncColors.light;
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Transform.rotate(
+          angle: _animation.value,
+          child: child,
+        );
+      },
+      child: SvgPicture.string(
+        '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28">
+          <path fill="#FFFFFF" d="M12,2A3,3,0,0,0,9,5V13.5L7.5,12a1.5,1.5,0,0,0-2.12,0,1.5,1.5,0,0,0,0,2.12L10.5,19.25A6,6,0,0,0,15,21h3a4,4,0,0,0,4-4V11a2,2,0,0,0-2-2,2,2,0,0,0-2,2v.5L18,7.5a2,2,0,0,0-4,0V5A3,3,0,0,0,12,2Z"/>
+        </svg>''',
+        width: 28,
+        height: 28,
+        colorFilter: ColorFilter.mode(
+          colors.secondary,
+          BlendMode.srcIn,
         ),
       ),
     );
