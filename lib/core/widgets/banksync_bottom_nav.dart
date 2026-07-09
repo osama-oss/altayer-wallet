@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:banksync_app/core/widgets/phosphor_icons_bold.dart';
 import 'brand_logo.dart';
 
+import '../../features/transfer/qr_scan_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../providers/app_providers.dart';
 import '../theme/app_colors.dart';
@@ -43,9 +44,12 @@ class BankSyncBottomNav extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
       child: SafeArea(
         top: false,
-        // Even distribution: each tab claims an equal slice with a full-width
-        // tap target — icon sits directly above its label, no crop / overlap.
+        // Even distribution: five equal slices. The four real tabs sit 2 + 2
+        // around a raised central scan action. Labels share one baseline
+        // (crossAxisAlignment.end) so the bigger centre button lifts upward on
+        // its own — icon directly above its label, no crop / overlap.
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
               child: _NavItem(
@@ -63,6 +67,7 @@ class BankSyncBottomNav extends StatelessWidget {
                 onTap: () => onTabSelected(BankSyncTab.transfers),
               ),
             ),
+            const Expanded(child: _ScanFab()),
             Expanded(
               child: _NavItem(
                 icon: Icons.account_balance_wallet_rounded,
@@ -82,6 +87,74 @@ class BankSyncBottomNav extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Raised central action — mirrors the reference layout's prominent middle
+/// button, in Ultimate Wallet blue. Opens the QR scanner and, on a valid
+/// account QR, routes into the transfer flow (same behaviour as the home
+/// quick-action). Bigger than the side tabs so it lifts above them.
+class _ScanFab extends StatelessWidget {
+  const _ScanFab();
+
+  Future<void> _scanAndPay(BuildContext context) async {
+    final acct = await openQrScanScreen(context);
+    if (acct == null || acct.isEmpty) return;
+    if (!context.mounted) return;
+    context.push('/transfer/others?to=${Uri.encodeComponent(acct)}');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.bankColors;
+    final languageCode = Localizations.localeOf(context).languageCode;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkResponse(
+            onTap: () => _scanAndPay(context),
+            radius: 34,
+            child: Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: AppColors.brandGradient,
+                boxShadow: [
+                  BoxShadow(
+                    color: colors.secondary.withValues(alpha: 0.38),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.qr_code_scanner_rounded,
+                size: 26,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          context.l10n.scanQr,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: AppTextStyles.labelSm(
+            color: colors.secondary,
+            languageCode: languageCode,
+          ).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
+        ),
+      ],
     );
   }
 }
