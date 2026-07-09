@@ -28,16 +28,23 @@ class QrScanScreen extends StatefulWidget {
 }
 
 class _QrScanScreenState extends State<QrScanScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.normal,
     facing: CameraFacing.back,
   );
   final _picker = ImagePicker();
 
+  // Sweeping scan beam (bounces smoothly between the top and bottom of the frame).
   late final AnimationController _lineController = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 2200),
+    duration: const Duration(milliseconds: 2400),
+  )..repeat(reverse: true);
+
+  // Gentle breathing glow on the corner brackets.
+  late final AnimationController _glowController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1600),
   )..repeat(reverse: true);
 
   bool _handled = false;
@@ -47,6 +54,7 @@ class _QrScanScreenState extends State<QrScanScreen>
   @override
   void dispose() {
     _lineController.dispose();
+    _glowController.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -133,16 +141,20 @@ class _QrScanScreenState extends State<QrScanScreen>
           // ── Dimmed scrim with a clear cut-out + glowing blue corners ──
           Positioned.fill(
             child: IgnorePointer(
-              child: CustomPaint(
-                painter: _ScannerOverlayPainter(
-                  cutout: cutout,
-                  frameColor: AppColors.walletBrandAlt,
+              child: AnimatedBuilder(
+                animation: _glowController,
+                builder: (context, _) => CustomPaint(
+                  painter: _ScannerOverlayPainter(
+                    cutout: cutout,
+                    frameColor: AppColors.walletBrandAlt,
+                    glow: Curves.easeInOut.transform(_glowController.value),
+                  ),
                 ),
               ),
             ),
           ),
 
-          // ── Smooth scan-line sweep, clipped to the frame ─────────────
+          // ── Smooth scan-beam sweep, clipped to the frame ─────────────
           Positioned.fromRect(
             rect: cutout,
             child: IgnorePointer(
@@ -154,27 +166,7 @@ class _QrScanScreenState extends State<QrScanScreen>
                     final t = Curves.easeInOut.transform(_lineController.value);
                     return Align(
                       alignment: Alignment(0, (t * 2) - 1),
-                      child: Container(
-                        height: 2.5,
-                        margin: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0x0038BDF8),
-                              AppColors.walletBrandAlt,
-                              Color(0x0038BDF8),
-                            ],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.walletBrandAlt
-                                  .withValues(alpha: 0.6),
-                              blurRadius: 12,
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: const _ScanBeam(color: AppColors.walletBrandAlt),
                     );
                   },
                 ),
@@ -455,13 +447,79 @@ class _NoQrFoundSheet extends StatelessWidget {
   }
 }
 
-/// Paints the dark scrim with a rounded transparent cut-out and four softly
-/// glowing blue corner brackets around the scan area.
+/// The sweeping scan beam: a soft symmetric halo with a crisp bright core line,
+/// both fading toward the edges so the sweep reads as a polished laser band
+/// rather than a flat rule. Symmetric on purpose so the up/down bounce looks
+/// identical in both directions.
+class _ScanBeam extends StatelessWidget {
+  const _ScanBeam({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 72,
+      width: double.infinity,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Soft vertical halo trailing the beam.
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  color.withValues(alpha: 0.0),
+                  color.withValues(alpha: 0.26),
+                  color.withValues(alpha: 0.0),
+                ],
+                stops: const [0.0, 0.5, 1.0],
+              ),
+            ),
+          ),
+          // Crisp bright core, feathered at the horizontal edges.
+          Container(
+            height: 2.5,
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              gradient: LinearGradient(
+                colors: [
+                  color.withValues(alpha: 0.0),
+                  color,
+                  color.withValues(alpha: 0.0),
+                ],
+                stops: const [0.0, 0.5, 1.0],
+              ),
+              boxShadow: [
+                BoxShadow(color: color.withValues(alpha: 0.6), blurRadius: 12),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Paints the dark scrim with a rounded transparent cut-out, a faint framing
+/// border and four softly (breathing) glowing blue corner brackets around the
+/// scan area.
 class _ScannerOverlayPainter extends CustomPainter {
-  _ScannerOverlayPainter({required this.cutout, required this.frameColor});
+  _ScannerOverlayPainter({
+    required this.cutout,
+    required this.frameColor,
+    this.glow = 0.5,
+  });
 
   final Rect cutout;
   final Color frameColor;
+
+  /// 0..1 breathing factor that modulates the corner-bracket glow intensity.
+  final double glow;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -473,15 +531,27 @@ class _ScannerOverlayPainter extends CustomPainter {
       ..addRect(Offset.zero & size)
       ..addRRect(rrect)
       ..fillType = PathFillType.evenOdd;
-    canvas.drawPath(scrim, Paint()..color = Colors.black.withValues(alpha: 0.55));
+    canvas.drawPath(scrim, Paint()..color = Colors.black.withValues(alpha: 0.58));
 
-    // Glow pass, then a crisp stroke, for the corner brackets.
-    final glow = Paint()
-      ..color = frameColor.withValues(alpha: 0.5)
+    // Faint full-frame border so the cut-out reads as a crisp, deliberate frame.
+    canvas.drawRRect(
+      rrect,
+      Paint()
+        ..color = frameColor.withValues(alpha: 0.22)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.4,
+    );
+
+    // Glow pass, then a crisp stroke, for the corner brackets. The glow's
+    // strength and blur breathe with [glow] for a subtle "alive" feel.
+    final glowAlpha = 0.35 + 0.30 * glow;
+    final glowBlur = 5.0 + 4.0 * glow;
+    final glowPaint = Paint()
+      ..color = frameColor.withValues(alpha: glowAlpha)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 6
       ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, glowBlur);
     final stroke = Paint()
       ..color = frameColor
       ..style = PaintingStyle.stroke
@@ -489,9 +559,9 @@ class _ScannerOverlayPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
-    const arm = 30.0;
+    const arm = 32.0;
     const r = 22.0;
-    for (final paint in [glow, stroke]) {
+    for (final paint in [glowPaint, stroke]) {
       // top-left
       canvas.drawPath(
         Path()
