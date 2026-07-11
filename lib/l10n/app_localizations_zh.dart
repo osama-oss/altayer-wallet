@@ -45,6 +45,97 @@ class AppLocalizationsZh extends AppLocalizations {
   String get walletPromotionsTitle => '优惠活动';
   @override
   String get walletComingSoon => '即将推出';
+
+  @override
+  String get svcGroupTransfers => '转账';
+  @override
+  String get svcGroupPayments => '支付';
+  @override
+  String get svcGroupRechargeBills => '充值与账单';
+  @override
+  String get svcGroupWalletServices => '钱包服务';
+  @override
+  String get svcGroupOther => '其他金融服务';
+  @override
+  String get svcSendToWallet => '转账到钱包';
+  @override
+  String get svcBetweenAccounts => '我的账户之间';
+  @override
+  String get svcMobileTopup => '话费充值';
+  @override
+  String get svcPurchases => '购物';
+  @override
+  String get svcExchange => '货币兑换';
+  @override
+  String get svcInternetCards => '上网卡';
+  @override
+  String get svcCashWithdrawal => '现金提取';
+  @override
+  String get svcRewardsStore => '积分商城';
+  @override
+  String get svcServicePoints => '代理与服务点';
+  @override
+  String get comingSoonSheetMessage => '此服务即将推出。';
+  @override
+  String get svcPurchasesDesc => '直接用钱包购物付款。';
+  @override
+  String get svcExchangeDesc => '在应用内以实时汇率兑换货币。';
+  @override
+  String get svcInternetCardsDesc => '即时购买预付费上网卡。';
+  @override
+  String get svcCashWithdrawalDesc => '在授权的服务点和代理处提取现金。';
+  @override
+  String get svcRewardsStoreDesc => '用积分兑换奖励和专属优惠。';
+  @override
+  String get svcServicePointsDesc => '在地图上查找最近的代理或服务点。';
+
+  @override
+  String get svcMoneyTransfers => '转账汇款';
+  @override
+  String get svcWithdrawFunds => '现金提取';
+  @override
+  String get svcRechargeAndPay => '充值与缴费';
+  @override
+  String get svcPurchasePayment => '购物支付';
+  @override
+  String get svcOtherBanksWallets => '其他银行和钱包';
+  @override
+  String get svcOtherBanksWalletsDesc => '转账至其他银行和钱包 — 即将推出。';
+  @override
+  String get svcTransferToSubscriber => '转账给用户';
+  @override
+  String get svcTransferToSubscriberDesc => '即时向其他钱包用户汇款。';
+  @override
+  String get svcPayBillsFull => '缴纳账单';
+  @override
+  String get svcPayBillsDesc => '缴纳水电、通信和政府账单。';
+  @override
+  String get svcRechargeBalance => '余额充值';
+  @override
+  String get svcRechargeBalanceDesc => '充值话费和流量套餐。';
+  @override
+  String get svcPayMerchant => '向商户付款';
+  @override
+  String get svcPayMerchantDesc => '直接从钱包向认证商户付款。';
+  @override
+  String get svcScanToPay => '扫描二维码 / 条形码';
+  @override
+  String get svcScanToPayDesc => '扫描支付码完成购物。';
+  @override
+  String get svcFavoriteMerchants => '收藏商户';
+  @override
+  String get svcFavoriteMerchantsDesc => '一键支付给收藏的商户。';
+  @override
+  String get merchantNumberLabel => '商户或钱包号码';
+  @override
+  String get noteOptionalLabel => '备注（可选）';
+  @override
+  String get merchantPayContinue => '继续支付';
+  @override
+  String get favoriteMerchantsEmptyTitle => '暂无收藏商户';
+  @override
+  String get favoriteMerchantsEmpty => '添加常用商户，下次付款更快捷。';
+
   @override
   String get walletAddFavorite => '添加收藏';
   @override
@@ -792,8 +883,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get activationConfirm => '确认';
 
   @override
-  String get kycBannerText =>
-      '您的账户尚未验证 — 请完善资料以激活钱包。';
+  String get kycBannerText => '您的账户尚未验证 — 请完善资料以激活钱包。';
 
   @override
   String get kycVerifyAccount => '验证账户';
@@ -827,6 +917,165 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get kycSubmitted => '您的证件已提交，将尽快审核。';
+
+  @override
+  String get kycStatusUnverifiedTitle => '未验证';
+  @override
+  String get kycStatusUnverifiedDesc => '验证身份以解锁全部钱包功能。';
+  @override
+  String get kycStatusIncompleteTitle => '未完成';
+  @override
+  String get kycStatusIncompleteDesc => '还差几步 — 请完成证件上传。';
+  @override
+  String get kycStatusPendingTitle => '审核中';
+  @override
+  String get kycStatusPendingDesc => '我们正在审核您的证件，通常很快完成。';
+  @override
+  String get kycStatusVerifiedTitle => '已验证';
+  @override
+  String get kycStatusVerifiedDesc => '您的身份已确认，所有钱包功能均已启用。';
+  @override
+  String get kycStatusRejectedTitle => '验证被拒';
+  @override
+  String get kycStatusRejectedDesc => '无法验证您的证件，请检查后重新提交。';
+
+  @override
+  String kycStepProgress(int current, int total) => '第 $current 步，共 $total 步';
+  @override
+  String get kycChooseSource => '添加照片';
+  @override
+  String get kycRetake => '重新拍摄';
+  @override
+  String get kycUsePhoto => '使用照片';
+  @override
+  String get kycPreviewTitle => '检查照片';
+  @override
+  String get kycPreviewHint => '请确保所有细节清晰、光线充足并完全位于取景框内。';
+  @override
+  String get kycIdFrontGuide => '将证件正面置于取景框内，避免反光和阴影。';
+  @override
+  String get kycIdBackGuide => '现在拍摄证件背面，保持所有文字清晰可读。';
+  @override
+  String get kycSelfieGuide => '在良好光线下以自然表情自拍。';
+  @override
+  String get kycUploaded => '已上传';
+  @override
+  String get kycUploading => '上传中…';
+  @override
+  String get kycDocsIntro => '请提供三张清晰照片，以便我们验证您的身份。';
+  @override
+  String get kycAllReadyHint => '一切就绪 — 提交您的证件以供审核。';
+  @override
+  String get kycIdType => '证件类型';
+  @override
+  String get kycIdTypeNationalId => '身份证';
+  @override
+  String get kycIdTypePassport => '护照';
+  @override
+  String get kycPassport => '护照';
+  @override
+  String get kycPassportGuide => '将护照资料页放入取景框内，保持所有文字清晰可读。';
+  @override
+  String get kycCameraLightingHint => '光线充足 · 无反光 · 保持稳定';
+  @override
+  String get kycProcessing => '处理中…';
+  @override
+  String get kycCameraUnavailable => '相机不可用';
+  @override
+  String get kycCameraUnavailableBody => '无法启动相机。请确认没有其他应用正在使用它，然后重试。';
+
+  @override
+  String get kycCameraPermissionTitle => '需要相机权限';
+  @override
+  String get kycCameraPermissionBody => '允许访问相机以拍摄您的证件，您可在设置中启用。';
+  @override
+  String get kycOpenSettings => '打开设置';
+  @override
+  String get kycUploadFailed => '照片上传失败，请重试。';
+  @override
+  String get kycSubmitFailed => '证件提交失败，请重试。';
+  @override
+  String get kycServiceUnavailable => '验证服务暂时不可用，请稍后再试。';
+  @override
+  String get kycRetry => '重试';
+  @override
+  String get kycCancel => '取消';
+
+  @override
+  String get kycPendingHeadline => '证件已提交';
+  @override
+  String get kycPendingBody => '您的身份证件正在审核中，完成后我们会通知您。';
+  @override
+  String get kycVerifiedHeadline => '您已通过验证';
+  @override
+  String get kycVerifiedBody => '您的身份已确认，所有钱包功能均已解锁。';
+  @override
+  String get kycRejectedHeadline => '验证被拒';
+  @override
+  String get kycRejectionReasonLabel => '原因';
+  @override
+  String get kycResubmit => '重新提交证件';
+  @override
+  String get kycBackToHome => '返回首页';
+
+  @override
+  String get kycBannerPendingText => '您的证件正在审核中 — 我们会尽快更新。';
+  @override
+  String get kycBannerRejectedText => '验证被拒 — 点击查看并重新提交。';
+
+  @override
+  String get kycDataIntro => '请确认您证件上的信息，然后继续附上照片。';
+  @override
+  String get kycSectionIdentity => '身份信息';
+  @override
+  String get kycSectionResidence => '居住信息';
+  @override
+  String get kycFieldIdNumber => '身份证号码';
+  @override
+  String get kycFieldPassportNumber => '护照号码';
+  @override
+  String get kycFieldIssuingAuthority => '证件签发机关';
+  @override
+  String get kycFieldIssueDate => '签发日期';
+  @override
+  String get kycFieldExpiryDate => '到期日期';
+  @override
+  String get kycFieldPlaceOfBirth => '出生地';
+  @override
+  String get kycFieldDateOfBirth => '出生日期';
+  @override
+  String get kycFieldCountry => '国家';
+  @override
+  String get kycFieldCity => '城市';
+  @override
+  String get kycFieldDistrict => '区县';
+  @override
+  String get kycFieldRegion => '地区';
+  @override
+  String get kycFieldAddress => '当前居住地址';
+  @override
+  String get kycFieldSelectDate => '选择日期';
+  @override
+  String get kycFieldRequired => '必填';
+  @override
+  String get kycFieldExpiryBeforeIssue => '到期日期必须晚于签发日期';
+  @override
+  String get kycContinue => '继续';
+  @override
+  String get kycFinalStepTitle => '最后一步';
+  @override
+  String get kycFinalStepSubtitle => '请附上您的身份照片和证明文件。';
+  @override
+  String get kycConfirmAccount => '确认账户';
+  @override
+  String get kycBack => '返回';
+
+  @override
+  String get profileVerified => '已验证';
+  @override
+  String get profileVerificationStatus => '验证';
+  @override
+  String get profileCompleteVerification => '完成验证';
 
   @override
   String get forgotPasswordTitle => '忘记密码';
@@ -990,7 +1239,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get verifyNewAccount => '验证新账户';
 
-
   @override
   String get methodAccount => '账号';
   @override
@@ -1129,13 +1377,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enterCustomerIdHint => '输入您在银行系统中的客户 ID';
 
   // Notifications
-  @override String get notificationsTitle => '通知';
-  @override String get notificationSettingsTitle => '通知设置';
-  @override String get notificationsAllow => '允许通知';
-  @override String get notificationsTransfers => '转账';
-  @override String get notificationsGeneral => '通用更新';
-  @override String get notificationsSecurityAlerts => '安全提醒';
-  @override String get notificationsComingSoon => '敬请期待';
+  @override
+  String get notificationsTitle => '通知';
+  @override
+  String get notificationSettingsTitle => '通知设置';
+  @override
+  String get notificationsAllow => '允许通知';
+  @override
+  String get notificationsTransfers => '转账';
+  @override
+  String get notificationsGeneral => '通用更新';
+  @override
+  String get notificationsSecurityAlerts => '安全提醒';
+  @override
+  String get notificationsComingSoon => '敬请期待';
   @override
   String get securityBlockedTitle => '设备不安全';
   @override

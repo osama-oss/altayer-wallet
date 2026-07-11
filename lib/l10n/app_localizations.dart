@@ -34,6 +34,55 @@ abstract class AppLocalizations {
   String get walletQuickAccessTitle;
   String get walletPromotionsTitle;
   String get walletComingSoon;
+
+  // ─── Home services: group titles, "coming soon" services & sheet ───
+  String get svcGroupTransfers;
+  String get svcGroupPayments;
+  String get svcGroupRechargeBills;
+  String get svcGroupWalletServices;
+  String get svcGroupOther;
+  String get svcSendToWallet;
+  String get svcBetweenAccounts;
+  String get svcMobileTopup;
+  String get svcPurchases;
+  String get svcExchange;
+  String get svcInternetCards;
+  String get svcCashWithdrawal;
+  String get svcRewardsStore;
+  String get svcServicePoints;
+  String get comingSoonSheetMessage;
+  String get svcPurchasesDesc;
+  String get svcExchangeDesc;
+  String get svcInternetCardsDesc;
+  String get svcCashWithdrawalDesc;
+  String get svcRewardsStoreDesc;
+  String get svcServicePointsDesc;
+
+  // ─── Home services (reorganised grid + grouped option sheets) ───
+  String get svcMoneyTransfers;
+  String get svcWithdrawFunds;
+  String get svcRechargeAndPay;
+  String get svcPurchasePayment;
+  String get svcOtherBanksWallets;
+  String get svcOtherBanksWalletsDesc;
+  String get svcTransferToSubscriber;
+  String get svcTransferToSubscriberDesc;
+  String get svcPayBillsFull;
+  String get svcPayBillsDesc;
+  String get svcRechargeBalance;
+  String get svcRechargeBalanceDesc;
+  String get svcPayMerchant;
+  String get svcPayMerchantDesc;
+  String get svcScanToPay;
+  String get svcScanToPayDesc;
+  String get svcFavoriteMerchants;
+  String get svcFavoriteMerchantsDesc;
+  String get merchantNumberLabel;
+  String get noteOptionalLabel;
+  String get merchantPayContinue;
+  String get favoriteMerchantsEmptyTitle;
+  String get favoriteMerchantsEmpty;
+
   String get walletAddFavorite;
   String get walletServiceInternet;
   String get walletCurrencySar;
@@ -298,6 +347,90 @@ abstract class AppLocalizations {
   String get kycGallery;
   String get kycSubmit;
   String get kycSubmitted;
+  // ── KYC status ─────────────────────────────────────────────────────────
+  String get kycStatusUnverifiedTitle;
+  String get kycStatusUnverifiedDesc;
+  String get kycStatusIncompleteTitle;
+  String get kycStatusIncompleteDesc;
+  String get kycStatusPendingTitle;
+  String get kycStatusPendingDesc;
+  String get kycStatusVerifiedTitle;
+  String get kycStatusVerifiedDesc;
+  String get kycStatusRejectedTitle;
+  String get kycStatusRejectedDesc;
+  // ── KYC capture flow ───────────────────────────────────────────────────
+  String kycStepProgress(int current, int total);
+  String get kycChooseSource;
+  String get kycRetake;
+  String get kycUsePhoto;
+  String get kycPreviewTitle;
+  String get kycPreviewHint;
+  String get kycIdFrontGuide;
+  String get kycIdBackGuide;
+  String get kycSelfieGuide;
+  String get kycUploaded;
+  String get kycUploading;
+  String get kycDocsIntro;
+  String get kycAllReadyHint;
+  // ── KYC identity type + custom camera ──────────────────────────────────
+  String get kycIdType;
+  String get kycIdTypeNationalId;
+  String get kycIdTypePassport;
+  String get kycPassport;
+  String get kycPassportGuide;
+  String get kycCameraLightingHint;
+  String get kycProcessing;
+  String get kycCameraUnavailable;
+  String get kycCameraUnavailableBody;
+  // ── KYC permissions & errors ───────────────────────────────────────────
+  String get kycCameraPermissionTitle;
+  String get kycCameraPermissionBody;
+  String get kycOpenSettings;
+  String get kycUploadFailed;
+  String get kycSubmitFailed;
+  String get kycServiceUnavailable;
+  String get kycRetry;
+  String get kycCancel;
+  // ── KYC result states ──────────────────────────────────────────────────
+  String get kycPendingHeadline;
+  String get kycPendingBody;
+  String get kycVerifiedHeadline;
+  String get kycVerifiedBody;
+  String get kycRejectedHeadline;
+  String get kycRejectionReasonLabel;
+  String get kycResubmit;
+  String get kycBackToHome;
+  // ── KYC banner variants ────────────────────────────────────────────────
+  String get kycBannerPendingText;
+  String get kycBannerRejectedText;
+  // ── KYC data-entry form (account confirmation) ─────────────────────────
+  String get kycDataIntro;
+  String get kycSectionIdentity;
+  String get kycSectionResidence;
+  String get kycFieldIdNumber;
+  String get kycFieldPassportNumber;
+  String get kycFieldIssuingAuthority;
+  String get kycFieldIssueDate;
+  String get kycFieldExpiryDate;
+  String get kycFieldPlaceOfBirth;
+  String get kycFieldDateOfBirth;
+  String get kycFieldCountry;
+  String get kycFieldCity;
+  String get kycFieldDistrict;
+  String get kycFieldRegion;
+  String get kycFieldAddress;
+  String get kycFieldSelectDate;
+  String get kycFieldRequired;
+  String get kycFieldExpiryBeforeIssue;
+  String get kycContinue;
+  String get kycFinalStepTitle;
+  String get kycFinalStepSubtitle;
+  String get kycConfirmAccount;
+  String get kycBack;
+  // ── Profile verification ───────────────────────────────────────────────
+  String get profileVerified;
+  String get profileVerificationStatus;
+  String get profileCompleteVerification;
   String get forgotPasswordTitle;
   String get resetPasswordHeading;
   String get resetPasswordDescription;
@@ -606,6 +739,108 @@ class AppLocalizationsEn extends AppLocalizations {
   String get walletPromotionsTitle => 'Offers for you';
   @override
   String get walletComingSoon => 'Soon';
+
+  @override
+  String get svcGroupTransfers => 'Transfers';
+  @override
+  String get svcGroupPayments => 'Payments';
+  @override
+  String get svcGroupRechargeBills => 'Recharge & Bills';
+  @override
+  String get svcGroupWalletServices => 'Wallet Services';
+  @override
+  String get svcGroupOther => 'Other Financial Services';
+  @override
+  String get svcSendToWallet => 'Send to Wallet';
+  @override
+  String get svcBetweenAccounts => 'Between My Accounts';
+  @override
+  String get svcMobileTopup => 'Mobile Top-up';
+  @override
+  String get svcPurchases => 'Purchases';
+  @override
+  String get svcExchange => 'Currency Exchange';
+  @override
+  String get svcInternetCards => 'Internet Cards';
+  @override
+  String get svcCashWithdrawal => 'Cash Withdrawal';
+  @override
+  String get svcRewardsStore => 'Rewards Store';
+  @override
+  String get svcServicePoints => 'Agents & Service Points';
+  @override
+  String get comingSoonSheetMessage => 'This service will be available soon.';
+  @override
+  String get svcPurchasesDesc =>
+      'Shop and pay for your purchases directly from your wallet.';
+  @override
+  String get svcExchangeDesc =>
+      'Convert between currencies at live rates inside the app.';
+  @override
+  String get svcInternetCardsDesc => 'Buy prepaid internet cards instantly.';
+  @override
+  String get svcCashWithdrawalDesc =>
+      'Withdraw cash from approved service points and agents.';
+  @override
+  String get svcRewardsStoreDesc =>
+      'Redeem your points for rewards and exclusive offers.';
+  @override
+  String get svcServicePointsDesc =>
+      'Find the nearest agent or service point on the map.';
+
+  @override
+  String get svcMoneyTransfers => 'Money Transfers';
+  @override
+  String get svcWithdrawFunds => 'Cash Withdrawal';
+  @override
+  String get svcRechargeAndPay => 'Recharge & Pay';
+  @override
+  String get svcPurchasePayment => 'Pay for Purchases';
+  @override
+  String get svcOtherBanksWallets => 'Banks & Wallets';
+  @override
+  String get svcOtherBanksWalletsDesc =>
+      'Transfer to other banks and wallets — coming soon.';
+  @override
+  String get svcTransferToSubscriber => 'Transfer to Subscriber';
+  @override
+  String get svcTransferToSubscriberDesc =>
+      'Send money instantly to another wallet subscriber.';
+  @override
+  String get svcPayBillsFull => 'Pay Bills';
+  @override
+  String get svcPayBillsDesc =>
+      'Settle utility, telecom and government bills.';
+  @override
+  String get svcRechargeBalance => 'Recharge Balance';
+  @override
+  String get svcRechargeBalanceDesc => 'Top up mobile credit and data bundles.';
+  @override
+  String get svcPayMerchant => 'Pay a Merchant';
+  @override
+  String get svcPayMerchantDesc =>
+      'Pay an approved merchant from your wallet.';
+  @override
+  String get svcScanToPay => 'Scan QR / Barcode';
+  @override
+  String get svcScanToPayDesc => 'Scan a payment code to complete a purchase.';
+  @override
+  String get svcFavoriteMerchants => 'Favorite Merchants';
+  @override
+  String get svcFavoriteMerchantsDesc =>
+      'Pay your favorite merchants in one tap.';
+  @override
+  String get merchantNumberLabel => 'Merchant or wallet number';
+  @override
+  String get noteOptionalLabel => 'Note (optional)';
+  @override
+  String get merchantPayContinue => 'Continue payment';
+  @override
+  String get favoriteMerchantsEmptyTitle => 'No favorite merchants yet';
+  @override
+  String get favoriteMerchantsEmpty =>
+      'Add merchants you pay often for faster payments next time.';
+
   @override
   String get walletAddFavorite => 'Add favorite';
   @override
@@ -666,7 +901,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessionTimeout => 'Session timeout';
 
   @override
-  String get sessionTimeoutSubtitle => 'Sign out automatically after inactivity';
+  String get sessionTimeoutSubtitle =>
+      'Sign out automatically after inactivity';
 
   @override
   String get sessionTimeoutUpdated => 'Session timeout updated';
@@ -1420,6 +1656,187 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your documents were submitted and will be reviewed soon.';
 
   @override
+  String get kycStatusUnverifiedTitle => 'Not verified';
+  @override
+  String get kycStatusUnverifiedDesc =>
+      'Verify your identity to unlock the full wallet.';
+  @override
+  String get kycStatusIncompleteTitle => 'Incomplete';
+  @override
+  String get kycStatusIncompleteDesc =>
+      'A few steps left — finish uploading your documents.';
+  @override
+  String get kycStatusPendingTitle => 'Under review';
+  @override
+  String get kycStatusPendingDesc =>
+      'We\'re reviewing your documents. This usually takes a short while.';
+  @override
+  String get kycStatusVerifiedTitle => 'Verified';
+  @override
+  String get kycStatusVerifiedDesc =>
+      'Your identity is confirmed. All wallet features are active.';
+  @override
+  String get kycStatusRejectedTitle => 'Verification declined';
+  @override
+  String get kycStatusRejectedDesc =>
+      'We couldn\'t verify your documents. Please review and resubmit.';
+
+  @override
+  String kycStepProgress(int current, int total) => 'Step $current of $total';
+  @override
+  String get kycChooseSource => 'Add photo';
+  @override
+  String get kycRetake => 'Retake';
+  @override
+  String get kycUsePhoto => 'Use photo';
+  @override
+  String get kycPreviewTitle => 'Review photo';
+  @override
+  String get kycPreviewHint =>
+      'Make sure all details are sharp, well-lit and fully inside the frame.';
+  @override
+  String get kycIdFrontGuide =>
+      'Place the front of your ID inside the frame. Avoid glare and shadows.';
+  @override
+  String get kycIdBackGuide =>
+      'Now capture the back of your ID. Keep all text readable.';
+  @override
+  String get kycSelfieGuide =>
+      'Take a selfie in good lighting with a neutral expression.';
+  @override
+  String get kycUploaded => 'Uploaded';
+  @override
+  String get kycUploading => 'Uploading…';
+  @override
+  String get kycDocsIntro =>
+      'Provide three clear photos so we can verify your identity.';
+  @override
+  String get kycAllReadyHint => 'All set — submit your documents for review.';
+  @override
+  String get kycIdType => 'ID type';
+  @override
+  String get kycIdTypeNationalId => 'National ID';
+  @override
+  String get kycIdTypePassport => 'Passport';
+  @override
+  String get kycPassport => 'Passport';
+  @override
+  String get kycPassportGuide =>
+      'Place the passport data page inside the frame. Keep all text readable.';
+  @override
+  String get kycCameraLightingHint => 'Good light · no glare · hold steady';
+  @override
+  String get kycProcessing => 'Processing…';
+  @override
+  String get kycCameraUnavailable => 'Camera unavailable';
+  @override
+  String get kycCameraUnavailableBody =>
+      'We couldn\'t start the camera. Make sure no other app is using it and try again.';
+
+  @override
+  String get kycCameraPermissionTitle => 'Camera access needed';
+  @override
+  String get kycCameraPermissionBody =>
+      'Allow camera access to photograph your documents. You can enable it in Settings.';
+  @override
+  String get kycOpenSettings => 'Open settings';
+  @override
+  String get kycUploadFailed => 'Couldn\'t upload the photo. Please try again.';
+  @override
+  String get kycSubmitFailed =>
+      'Couldn\'t submit your documents. Please try again.';
+  @override
+  String get kycServiceUnavailable =>
+      'Verification isn\'t available right now. Please try again later.';
+  @override
+  String get kycRetry => 'Retry';
+  @override
+  String get kycCancel => 'Cancel';
+
+  @override
+  String get kycPendingHeadline => 'Documents submitted';
+  @override
+  String get kycPendingBody =>
+      'Your identity documents are under review. We\'ll notify you once it\'s done.';
+  @override
+  String get kycVerifiedHeadline => 'You\'re verified';
+  @override
+  String get kycVerifiedBody =>
+      'Your identity is confirmed and every wallet feature is unlocked.';
+  @override
+  String get kycRejectedHeadline => 'Verification declined';
+  @override
+  String get kycRejectionReasonLabel => 'Reason';
+  @override
+  String get kycResubmit => 'Resubmit documents';
+  @override
+  String get kycBackToHome => 'Back to home';
+
+  @override
+  String get kycBannerPendingText =>
+      'Your documents are under review — we\'ll update you shortly.';
+  @override
+  String get kycBannerRejectedText =>
+      'Verification was declined — tap to review and resubmit.';
+
+  @override
+  String get kycDataIntro =>
+      'Confirm the details printed on your identity document, then continue to attach your photos.';
+  @override
+  String get kycSectionIdentity => 'Identity details';
+  @override
+  String get kycSectionResidence => 'Residence details';
+  @override
+  String get kycFieldIdNumber => 'ID card number';
+  @override
+  String get kycFieldPassportNumber => 'Passport number';
+  @override
+  String get kycFieldIssuingAuthority => 'Issuing authority';
+  @override
+  String get kycFieldIssueDate => 'Issue date';
+  @override
+  String get kycFieldExpiryDate => 'Expiry date';
+  @override
+  String get kycFieldPlaceOfBirth => 'Place of birth';
+  @override
+  String get kycFieldDateOfBirth => 'Date of birth';
+  @override
+  String get kycFieldCountry => 'Country';
+  @override
+  String get kycFieldCity => 'City';
+  @override
+  String get kycFieldDistrict => 'District';
+  @override
+  String get kycFieldRegion => 'Region';
+  @override
+  String get kycFieldAddress => 'Current address';
+  @override
+  String get kycFieldSelectDate => 'Select date';
+  @override
+  String get kycFieldRequired => 'Required';
+  @override
+  String get kycFieldExpiryBeforeIssue =>
+      'Expiry must be after the issue date';
+  @override
+  String get kycContinue => 'Continue';
+  @override
+  String get kycFinalStepTitle => 'Final step';
+  @override
+  String get kycFinalStepSubtitle =>
+      'Attach your identity photos and supporting documents.';
+  @override
+  String get kycConfirmAccount => 'Confirm account';
+  @override
+  String get kycBack => 'Back';
+
+  @override
+  String get profileVerified => 'Verified';
+  @override
+  String get profileVerificationStatus => 'Verification';
+  @override
+  String get profileCompleteVerification => 'Complete verification';
+
+  @override
   String get forgotPasswordTitle => 'Forgot password';
 
   @override
@@ -1579,7 +1996,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get editBeneficiarySubtitle => 'Update beneficiary details';
   @override
-  String get beneficiaryUpdatedSuccessfully => 'Beneficiary updated successfully';
+  String get beneficiaryUpdatedSuccessfully =>
+      'Beneficiary updated successfully';
   @override
   String get saveChanges => 'Save Changes';
   @override
@@ -1729,13 +2147,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter your customer ID in the banking system';
 
   // Notifications
-  @override String get notificationsTitle => 'Notifications';
-  @override String get notificationSettingsTitle => 'Notification Settings';
-  @override String get notificationsAllow => 'Allow Notifications';
-  @override String get notificationsTransfers => 'Transfers';
-  @override String get notificationsGeneral => 'General Updates';
-  @override String get notificationsSecurityAlerts => 'Security Alerts';
-  @override String get notificationsComingSoon => 'Coming soon';
+  @override
+  String get notificationsTitle => 'Notifications';
+  @override
+  String get notificationSettingsTitle => 'Notification Settings';
+  @override
+  String get notificationsAllow => 'Allow Notifications';
+  @override
+  String get notificationsTransfers => 'Transfers';
+  @override
+  String get notificationsGeneral => 'General Updates';
+  @override
+  String get notificationsSecurityAlerts => 'Security Alerts';
+  @override
+  String get notificationsComingSoon => 'Coming soon';
   @override
   String get securityBlockedTitle => 'Device not secure';
   @override
@@ -1894,7 +2319,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get unMoneyReceive => 'Receive money';
   @override
-  String get unMoneyReceiveSubtitle => 'Credit a received transfer to your account';
+  String get unMoneyReceiveSubtitle =>
+      'Credit a received transfer to your account';
   @override
   String get unMoneyHistory => 'Transfers history';
   @override
@@ -1941,7 +2367,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get referenceNumberHint => 'Please enter the reference number';
   @override
-  String get depositNoteLine1 => '1- The entered data must match the transfer data.';
+  String get depositNoteLine1 =>
+      '1- The entered data must match the transfer data.';
   @override
   String get depositNoteLine2 =>
       "2- The recipient's data in the transfer must match your account data.";
@@ -1989,7 +2416,8 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get walletReceiveTitle => 'استلام الأموال';
   @override
-  String get walletReceiveShareHint => 'شارك هذا الرمز لاستلام الأموال في محفظتك';
+  String get walletReceiveShareHint =>
+      'شارك هذا الرمز لاستلام الأموال في محفظتك';
   @override
   String get walletNumberLabel => 'رقم المحفظة';
   @override
@@ -2002,6 +2430,101 @@ class AppLocalizationsAr extends AppLocalizations {
   String get walletPromotionsTitle => 'عروض تهمّك';
   @override
   String get walletComingSoon => 'قريباً';
+
+  @override
+  String get svcGroupTransfers => 'التحويلات';
+  @override
+  String get svcGroupPayments => 'المدفوعات';
+  @override
+  String get svcGroupRechargeBills => 'الشحن والفواتير';
+  @override
+  String get svcGroupWalletServices => 'خدمات المحفظة';
+  @override
+  String get svcGroupOther => 'خدمات مالية أخرى';
+  @override
+  String get svcSendToWallet => 'تحويل لمحفظة';
+  @override
+  String get svcBetweenAccounts => 'بين حساباتي';
+  @override
+  String get svcMobileTopup => 'شحن رصيد';
+  @override
+  String get svcPurchases => 'المشتريات';
+  @override
+  String get svcExchange => 'مصارفة العملات';
+  @override
+  String get svcInternetCards => 'بطاقات الإنترنت';
+  @override
+  String get svcCashWithdrawal => 'سحب نقدي';
+  @override
+  String get svcRewardsStore => 'متجر النقاط';
+  @override
+  String get svcServicePoints => 'الوكلاء ونقاط الخدمة';
+  @override
+  String get comingSoonSheetMessage => 'هذه الخدمة ستكون متاحة قريبًا';
+  @override
+  String get svcPurchasesDesc => 'تسوّق وادفع مشترياتك مباشرة من محفظتك.';
+  @override
+  String get svcExchangeDesc => 'حوّل بين العملات بأسعار محدّثة داخل التطبيق.';
+  @override
+  String get svcInternetCardsDesc => 'اشترِ بطاقات إنترنت مسبقة الدفع بسرعة.';
+  @override
+  String get svcCashWithdrawalDesc =>
+      'اسحب نقدًا من نقاط الخدمة والوكلاء المعتمدين.';
+  @override
+  String get svcRewardsStoreDesc => 'استبدل نقاطك بمكافآت وعروض حصرية.';
+  @override
+  String get svcServicePointsDesc =>
+      'اعثر على أقرب وكيل أو نقطة خدمة على الخريطة.';
+
+  @override
+  String get svcMoneyTransfers => 'التحويلات المالية';
+  @override
+  String get svcWithdrawFunds => 'سحب الأموال';
+  @override
+  String get svcRechargeAndPay => 'الشحن والسداد';
+  @override
+  String get svcPurchasePayment => 'دفع المشتريات';
+  @override
+  String get svcOtherBanksWallets => 'بنوك ومحافظ أخرى';
+  @override
+  String get svcOtherBanksWalletsDesc => 'حوّل إلى بنوك ومحافظ أخرى — قريبًا.';
+  @override
+  String get svcTransferToSubscriber => 'تحويل إلى مشترك';
+  @override
+  String get svcTransferToSubscriberDesc =>
+      'أرسل الأموال فوراً إلى محفظة مشترك آخر.';
+  @override
+  String get svcPayBillsFull => 'سداد الفواتير';
+  @override
+  String get svcPayBillsDesc => 'سدّد فواتير الخدمات والاتصالات والجهات الحكومية.';
+  @override
+  String get svcRechargeBalance => 'شحن الرصيد';
+  @override
+  String get svcRechargeBalanceDesc => 'اشحن رصيد هاتفك وباقات الإنترنت.';
+  @override
+  String get svcPayMerchant => 'دفع لتاجر';
+  @override
+  String get svcPayMerchantDesc => 'ادفع لتاجر معتمد مباشرة من محفظتك.';
+  @override
+  String get svcScanToPay => 'مسح QR / الباركود';
+  @override
+  String get svcScanToPayDesc => 'امسح رمز الدفع لإتمام عملية الشراء.';
+  @override
+  String get svcFavoriteMerchants => 'التجار المفضلون';
+  @override
+  String get svcFavoriteMerchantsDesc => 'ادفع لتجّارك المفضلين بلمسة واحدة.';
+  @override
+  String get merchantNumberLabel => 'رقم التاجر أو المحفظة';
+  @override
+  String get noteOptionalLabel => 'ملاحظة (اختياري)';
+  @override
+  String get merchantPayContinue => 'متابعة الدفع';
+  @override
+  String get favoriteMerchantsEmptyTitle => 'لا يوجد تجار مفضلون بعد';
+  @override
+  String get favoriteMerchantsEmpty =>
+      'أضف تجّارك المعتادين لتدفع لهم بسرعة في المرة القادمة.';
+
   @override
   String get walletAddFavorite => 'أضف مفضّلة';
   @override
@@ -2706,7 +3229,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get registerWelcomeTitle => 'مرحباً بك في Ultimate Wallet';
 
   @override
-  String get registerWelcomeSubtitle => 'قم بإنشاء حسابك، وانضم إلى عملاء Ultimate Wallet';
+  String get registerWelcomeSubtitle =>
+      'قم بإنشاء حسابك، وانضم إلى عملاء Ultimate Wallet';
 
   @override
   String get registerNameAsIdHint => 'قم بإدخال الاسم كما في الهوية';
@@ -2805,6 +3329,182 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get kycSubmitted => 'تم إرسال وثائقك، وستتم مراجعتها قريباً.';
+
+  @override
+  String get kycStatusUnverifiedTitle => 'غير موثّق';
+  @override
+  String get kycStatusUnverifiedDesc =>
+      'وثّق هويتك للاستفادة من كامل مزايا المحفظة.';
+  @override
+  String get kycStatusIncompleteTitle => 'غير مكتمل';
+  @override
+  String get kycStatusIncompleteDesc => 'بقيت خطوات قليلة — أكمل رفع وثائقك.';
+  @override
+  String get kycStatusPendingTitle => 'قيد المراجعة';
+  @override
+  String get kycStatusPendingDesc =>
+      'نقوم بمراجعة وثائقك، ويستغرق ذلك وقتاً قصيراً عادةً.';
+  @override
+  String get kycStatusVerifiedTitle => 'موثّق';
+  @override
+  String get kycStatusVerifiedDesc =>
+      'تم تأكيد هويتك، وجميع مزايا المحفظة مُفعّلة.';
+  @override
+  String get kycStatusRejectedTitle => 'تم رفض التوثيق';
+  @override
+  String get kycStatusRejectedDesc =>
+      'تعذّر التحقق من وثائقك. يُرجى المراجعة وإعادة الإرسال.';
+
+  @override
+  String kycStepProgress(int current, int total) => 'الخطوة $current من $total';
+  @override
+  String get kycChooseSource => 'إضافة صورة';
+  @override
+  String get kycRetake => 'إعادة التصوير';
+  @override
+  String get kycUsePhoto => 'استخدام الصورة';
+  @override
+  String get kycPreviewTitle => 'مراجعة الصورة';
+  @override
+  String get kycPreviewHint =>
+      'تأكد من وضوح كل التفاصيل وإضاءتها الجيدة ووقوعها بالكامل داخل الإطار.';
+  @override
+  String get kycIdFrontGuide =>
+      'ضع وجه البطاقة داخل الإطار، وتجنّب الانعكاسات والظلال.';
+  @override
+  String get kycIdBackGuide =>
+      'صوّر الآن ظهر البطاقة مع إبقاء جميع النصوص واضحة للقراءة.';
+  @override
+  String get kycSelfieGuide => 'التقط صورة سيلفي في إضاءة جيدة وبتعبير طبيعي.';
+  @override
+  String get kycUploaded => 'تم الرفع';
+  @override
+  String get kycUploading => 'جارٍ الرفع…';
+  @override
+  String get kycDocsIntro =>
+      'قدّم ثلاث صور واضحة حتى نتمكن من التحقق من هويتك.';
+  @override
+  String get kycAllReadyHint => 'كل شيء جاهز — أرسل وثائقك للمراجعة.';
+  @override
+  String get kycIdType => 'نوع الهوية';
+  @override
+  String get kycIdTypeNationalId => 'بطاقة شخصية';
+  @override
+  String get kycIdTypePassport => 'جواز سفر';
+  @override
+  String get kycPassport => 'جواز السفر';
+  @override
+  String get kycPassportGuide =>
+      'ضع صفحة بيانات الجواز داخل الإطار مع إبقاء جميع النصوص واضحة.';
+  @override
+  String get kycCameraLightingHint => 'إضاءة جيدة · بدون انعكاس · ثبّت يدك';
+  @override
+  String get kycProcessing => 'جارٍ المعالجة…';
+  @override
+  String get kycCameraUnavailable => 'الكاميرا غير متاحة';
+  @override
+  String get kycCameraUnavailableBody =>
+      'تعذّر تشغيل الكاميرا. تأكد من عدم استخدامها في تطبيق آخر وحاول مجدداً.';
+
+  @override
+  String get kycCameraPermissionTitle => 'مطلوب إذن الكاميرا';
+  @override
+  String get kycCameraPermissionBody =>
+      'اسمح بالوصول إلى الكاميرا لتصوير وثائقك. يمكنك تفعيله من الإعدادات.';
+  @override
+  String get kycOpenSettings => 'فتح الإعدادات';
+  @override
+  String get kycUploadFailed => 'تعذّر رفع الصورة. يُرجى المحاولة مرة أخرى.';
+  @override
+  String get kycSubmitFailed => 'تعذّر إرسال وثائقك. يُرجى المحاولة مرة أخرى.';
+  @override
+  String get kycServiceUnavailable =>
+      'خدمة التوثيق غير متاحة حالياً. يُرجى المحاولة لاحقاً.';
+  @override
+  String get kycRetry => 'إعادة المحاولة';
+  @override
+  String get kycCancel => 'إلغاء';
+
+  @override
+  String get kycPendingHeadline => 'تم إرسال الوثائق';
+  @override
+  String get kycPendingBody =>
+      'وثائق هويتك قيد المراجعة، وسنُعلمك فور الانتهاء.';
+  @override
+  String get kycVerifiedHeadline => 'تم توثيق حسابك';
+  @override
+  String get kycVerifiedBody => 'تم تأكيد هويتك وتفعيل جميع مزايا المحفظة.';
+  @override
+  String get kycRejectedHeadline => 'تم رفض التوثيق';
+  @override
+  String get kycRejectionReasonLabel => 'السبب';
+  @override
+  String get kycResubmit => 'إعادة إرسال الوثائق';
+  @override
+  String get kycBackToHome => 'العودة للرئيسية';
+
+  @override
+  String get kycBannerPendingText =>
+      'وثائقك قيد المراجعة — سنوافيك بالتحديث قريباً.';
+  @override
+  String get kycBannerRejectedText =>
+      'تم رفض التوثيق — اضغط للمراجعة وإعادة الإرسال.';
+
+  @override
+  String get kycDataIntro =>
+      'تحقق من البيانات المدوّنة في وثيقة هويتك، ثم تابع لإرفاق صورك.';
+  @override
+  String get kycSectionIdentity => 'بيانات الهوية';
+  @override
+  String get kycSectionResidence => 'بيانات الإقامة';
+  @override
+  String get kycFieldIdNumber => 'رقم البطاقة الشخصية';
+  @override
+  String get kycFieldPassportNumber => 'رقم جواز السفر';
+  @override
+  String get kycFieldIssuingAuthority => 'جهة إصدار الهوية';
+  @override
+  String get kycFieldIssueDate => 'تاريخ إصدار الهوية';
+  @override
+  String get kycFieldExpiryDate => 'تاريخ إنتهاء الهوية';
+  @override
+  String get kycFieldPlaceOfBirth => 'مكان الميلاد';
+  @override
+  String get kycFieldDateOfBirth => 'تاريخ الميلاد';
+  @override
+  String get kycFieldCountry => 'الدولة';
+  @override
+  String get kycFieldCity => 'المدينة';
+  @override
+  String get kycFieldDistrict => 'المديرية';
+  @override
+  String get kycFieldRegion => 'المنطقة';
+  @override
+  String get kycFieldAddress => 'عنوان الإقامة الحالي';
+  @override
+  String get kycFieldSelectDate => 'اختر التاريخ';
+  @override
+  String get kycFieldRequired => 'مطلوب';
+  @override
+  String get kycFieldExpiryBeforeIssue =>
+      'تاريخ الإنتهاء يجب أن يكون بعد تاريخ الإصدار';
+  @override
+  String get kycContinue => 'استمرار';
+  @override
+  String get kycFinalStepTitle => 'الخطوة الأخيرة';
+  @override
+  String get kycFinalStepSubtitle => 'قم بإرفاق صور وأوراق الإثباتات';
+  @override
+  String get kycConfirmAccount => 'تأكيد الحساب';
+  @override
+  String get kycBack => 'رجوع';
+
+  @override
+  String get profileVerified => 'موثّق';
+  @override
+  String get profileVerificationStatus => 'التوثيق';
+  @override
+  String get profileCompleteVerification => 'إكمال التوثيق';
 
   @override
   String get forgotPasswordTitle => 'نسيت كلمة المرور';
@@ -3115,13 +3815,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enterCustomerIdHint => 'أدخل معرف العميل في النظام المصرفي';
 
   // Notifications
-  @override String get notificationsTitle => 'الإشعارات';
-  @override String get notificationSettingsTitle => 'إعدادات الإشعارات';
-  @override String get notificationsAllow => 'السماح بالإشعارات';
-  @override String get notificationsTransfers => 'التحويلات';
-  @override String get notificationsGeneral => 'التحديثات العامة';
-  @override String get notificationsSecurityAlerts => 'التنبيهات الأمنية';
-  @override String get notificationsComingSoon => 'قريباً';
+  @override
+  String get notificationsTitle => 'الإشعارات';
+  @override
+  String get notificationSettingsTitle => 'إعدادات الإشعارات';
+  @override
+  String get notificationsAllow => 'السماح بالإشعارات';
+  @override
+  String get notificationsTransfers => 'التحويلات';
+  @override
+  String get notificationsGeneral => 'التحديثات العامة';
+  @override
+  String get notificationsSecurityAlerts => 'التنبيهات الأمنية';
+  @override
+  String get notificationsComingSoon => 'قريباً';
   @override
   String get securityBlockedTitle => 'الجهاز غير آمن';
   @override
@@ -3161,7 +3868,8 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get onlinePayments => 'الدفع عبر الإنترنت';
   @override
-  String get onlinePaymentsSubtitle => 'الشراء من المتاجر الإلكترونية والتطبيقات';
+  String get onlinePaymentsSubtitle =>
+      'الشراء من المتاجر الإلكترونية والتطبيقات';
   @override
   String get contactlessPayments => 'الدفع اللاتلامسي';
   @override
@@ -3327,9 +4035,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get referenceNumberHint => 'الرجاء ادخال رقم المرجع';
   @override
-  String get depositNoteLine1 => '1- يجب ان تكون البيانات المدخلة هنا مطابقة لبيانات الحوالة';
+  String get depositNoteLine1 =>
+      '1- يجب ان تكون البيانات المدخلة هنا مطابقة لبيانات الحوالة';
   @override
-  String get depositNoteLine2 => '2- يجب ان تكون بيانات المسلم في الحوالة مطابقة لبيانات حسابك';
+  String get depositNoteLine2 =>
+      '2- يجب ان تكون بيانات المسلم في الحوالة مطابقة لبيانات حسابك';
   @override
   String get transferNumberHint => 'ادخل رقم الحوالة';
   @override
