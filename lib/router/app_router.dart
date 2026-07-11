@@ -32,6 +32,8 @@ import 'package:banksync_app/features/notifications/notification_settings_screen
 import 'package:banksync_app/features/transfer/transfer_own_accounts_screen.dart';
 import 'package:banksync_app/features/transfer/transfer_others_screen.dart';
 import 'package:banksync_app/features/transfer/favorites_screen.dart';
+import 'package:banksync_app/features/transfer/merchant_payment_screen.dart';
+import 'package:banksync_app/features/transfer/favorite_merchants_screen.dart';
 import 'package:banksync_app/features/accounts/add_account_screen.dart';
 import 'package:banksync_app/features/bill_payments/biller_list_screen.dart';
 import 'package:banksync_app/features/bill_payments/telecom_payment_screen.dart';
@@ -128,7 +130,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         if (location == '/login') {
           return '/biometric-unlock';
         }
-        if (_protectedRoutes.contains(location) || location.startsWith('/support/')) {
+        if (_protectedRoutes.contains(location) ||
+            location.startsWith('/support/')) {
           // Remember where the user was so the unlock screen can send them
           // straight back instead of dumping them on /home.
           return '/biometric-unlock?from=${Uri.encodeComponent(state.uri.toString())}';
@@ -136,7 +139,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
-      if (_protectedRoutes.contains(location) || location.startsWith('/support/')) {
+      if (_protectedRoutes.contains(location) ||
+          location.startsWith('/support/')) {
         return '/login';
       }
 
@@ -155,7 +159,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           transitionDuration: const Duration(milliseconds: 600),
         ),
       ),
-      GoRoute(path: '/register', builder: (_, __) => const RegistrationScreen()),
+      GoRoute(
+          path: '/register', builder: (_, __) => const RegistrationScreen()),
       GoRoute(
         path: '/register/verify',
         builder: (_, state) => AccountActivationScreen(
@@ -168,7 +173,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           returnTo: state.uri.queryParameters['from'],
         ),
       ),
-      GoRoute(path: '/biometric-enroll', builder: (_, __) => const BiometricEnrollScreen()),
+      GoRoute(
+          path: '/biometric-enroll',
+          builder: (_, __) => const BiometricEnrollScreen()),
       GoRoute(
         path: '/set-initial-password',
         builder: (_, state) {
@@ -214,8 +221,22 @@ final routerProvider = Provider<GoRouter>((ref) {
           initialAmount: state.uri.queryParameters['amount'],
         ),
       ),
+      // Pay-a-merchant reuses the transfer pipeline (a merchant is a payee);
+      // no balances shown until the account sheet, so kept screenshot-able.
+      GoRoute(
+        path: '/merchant-payment',
+        builder: (_, state) => MerchantPaymentScreen(
+          initialMerchant: state.uri.queryParameters['to'],
+        ),
+      ),
+      GoRoute(
+        path: '/favorite-merchants',
+        builder: (_, __) => const FavoriteMerchantsScreen(),
+      ),
       GoRoute(path: '/favorites', builder: (_, __) => const FavoritesScreen()),
-      GoRoute(path: '/beneficiaries', builder: (_, __) => const BeneficiariesListScreen()),
+      GoRoute(
+          path: '/beneficiaries',
+          builder: (_, __) => const BeneficiariesListScreen()),
       // Add-beneficiary is a form with no balances — keep it screenshot-able
       // even though the home tab stays mounted underneath (suspend protection).
       GoRoute(
@@ -255,19 +276,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/bills/landline',
-        builder: (_, __) => const FixedLinePaymentScreen(kind: FixedLineKind.landline),
+        builder: (_, __) =>
+            const FixedLinePaymentScreen(kind: FixedLineKind.landline),
       ),
       GoRoute(
         path: '/bills/internet',
-        builder: (_, __) => const FixedLinePaymentScreen(kind: FixedLineKind.internet),
+        builder: (_, __) =>
+            const FixedLinePaymentScreen(kind: FixedLineKind.internet),
       ),
       GoRoute(
         path: '/bills/yemen4g',
-        builder: (_, __) => const PackageBillPaymentScreen(kind: PackageBillerKind.yemen4g),
+        builder: (_, __) =>
+            const PackageBillPaymentScreen(kind: PackageBillerKind.yemen4g),
       ),
       GoRoute(
         path: '/bills/adennet',
-        builder: (_, __) => const PackageBillPaymentScreen(kind: PackageBillerKind.adenNet),
+        builder: (_, __) =>
+            const PackageBillPaymentScreen(kind: PackageBillerKind.adenNet),
       ),
       GoRoute(
         path: '/bills/starlink',
@@ -292,7 +317,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/terms', builder: (_, __) => const TermsScreen()),
       GoRoute(path: '/kyc', builder: (_, __) => const KycScreen()),
       GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
-      GoRoute(path: '/guest-support', builder: (_, __) => const GuestSupportScreen()),
+      GoRoute(
+          path: '/guest-support',
+          builder: (_, __) => const GuestSupportScreen()),
       GoRoute(
         path: '/guest-support/lookup',
         builder: (_, state) => GuestSupportLookupScreen(
@@ -316,7 +343,8 @@ void notifyRouterAuthChanged(WidgetRef ref) {
   ref.read(routerRefreshProvider).notifyAuthChanged();
 }
 
-void navigateAfterLogin(BuildContext context, WidgetRef ref, LoginResult result) {
+void navigateAfterLogin(
+    BuildContext context, WidgetRef ref, LoginResult result) {
   // Fresh (possibly different) user → never serve another session's cache.
   ref.invalidate(accountsProvider);
   ref.invalidate(accountPreferencesProvider);

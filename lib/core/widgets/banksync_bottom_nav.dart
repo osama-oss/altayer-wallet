@@ -14,7 +14,14 @@ import '../theme/bank_sync_colors.dart';
 
 enum BankSyncTab { home, transfers, payments, explore }
 
-final dashboardTabProvider = StateProvider<BankSyncTab>((ref) => BankSyncTab.home);
+final dashboardTabProvider =
+    StateProvider<BankSyncTab>((ref) => BankSyncTab.home);
+
+/// Diameter of the floating centre scan action, and how far it lifts above the
+/// bar's top edge. Kept in sync so the button reads as "partially outside" the
+/// bar (a floating action) without exaggeration.
+const double _kFabSize = 62;
+const double _kFabOverhang = 26;
 
 class BankSyncBottomNav extends StatelessWidget {
   const BankSyncBottomNav({
@@ -30,10 +37,15 @@ class BankSyncBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final colors = context.bankColors;
-    return Container(
+
+    // Elegant white bar with softly rounded top corners. The four tabs sit
+    // 2 + 2 around an empty centre slot; the raised scan action floats over it.
+    // Labels share one baseline (crossAxisAlignment.end) so every icon sits
+    // directly above its label.
+    final bar = Container(
       decoration: BoxDecoration(
         color: colors.surfaceContainerLowest,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
             color: colors.cardShadow,
@@ -42,13 +54,9 @@ class BankSyncBottomNav extends StatelessWidget {
           ),
         ],
       ),
-      padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
+      padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
       child: SafeArea(
         top: false,
-        // Even distribution: five equal slices. The four real tabs sit 2 + 2
-        // around a raised central scan action. Labels share one baseline
-        // (crossAxisAlignment.end) so the bigger centre button lifts upward on
-        // its own — icon directly above its label, no crop / overlap.
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
@@ -68,7 +76,8 @@ class BankSyncBottomNav extends StatelessWidget {
                 onTap: () => onTabSelected(BankSyncTab.transfers),
               ),
             ),
-            const Expanded(child: _ScanFab()),
+            // Reserved slot beneath the floating centre action.
+            const Expanded(child: SizedBox()),
             Expanded(
               child: _NavItem(
                 icon: Icons.account_balance_wallet_rounded,
@@ -89,21 +98,41 @@ class BankSyncBottomNav extends StatelessWidget {
         ),
       ),
     );
+
+    // The centre button rises `_kFabOverhang` above the bar's top edge for a
+    // floating-action look, yet stays within the widget's own bounds (top: 0)
+    // so the whole button remains tappable and nothing is clipped. A partially
+    // Positioned child (only `top`) is centred horizontally by the Stack's
+    // alignment, so it lands over the reserved centre slot.
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topCenter,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: _kFabOverhang),
+          child: bar,
+        ),
+        const Positioned(top: 0, child: _ScanFab()),
+      ],
+    );
   }
 }
 
-/// Raised central action — mirrors the reference layout's prominent middle
-/// button, in Ultimate Wallet blue. Opens the QR scanner and, on a valid
-/// account QR, routes into the transfer flow (same behaviour as the home
-/// quick-action). Bigger than the side tabs so it lifts above them.
+/// Raised central action — the most prominent element in the bar, in Ultimate
+/// Wallet blue. A larger circular button that floats above the bar's top edge
+/// (see [_kFabOverhang]) with a soft professional shadow and a bar-coloured ring
+/// so it reads as "lifted out" of the bar in both light and dark themes. Opens
+/// the QR scanner and, on a valid account QR, routes into the transfer flow
+/// (same behaviour as the home quick-action).
 class _ScanFab extends StatelessWidget {
   const _ScanFab();
 
   Future<void> _scanAndPay(BuildContext context) async {
     final acct = await openQrScanScreen(context);
-    if (acct == null || acct.isEmpty) return;
     if (!context.mounted) return;
-    // Scanning never transfers directly — review the recipient first.
+    // Scanning never transfers directly — always land on the review screen.
+    // A successful scan pre-fills the account; backing out without scanning
+    // opens the same screen empty for manual entry.
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => ScanReviewScreen(account: acct),
@@ -114,53 +143,44 @@ class _ScanFab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.bankColors;
-    final languageCode = Localizations.localeOf(context).languageCode;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Material(
-          color: Colors.transparent,
-          shape: const CircleBorder(),
-          clipBehavior: Clip.antiAlias,
-          child: InkResponse(
-            onTap: () => _scanAndPay(context),
-            radius: 34,
-            child: Container(
-              width: 54,
-              height: 54,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: AppColors.brandGradient,
-                boxShadow: [
-                  BoxShadow(
-                    color: colors.secondary.withValues(alpha: 0.38),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+    return Semantics(
+      button: true,
+      label: context.l10n.scanQr,
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        child: InkResponse(
+          onTap: () => _scanAndPay(context),
+          radius: _kFabSize / 2,
+          child: Container(
+            width: _kFabSize,
+            height: _kFabSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: AppColors.brandGradient,
+              // Ring in the bar's own colour so the button looks cut out of and
+              // lifted above the bar; the light halo shows only where it floats.
+              border: Border.all(
+                color: colors.surfaceContainerLowest,
+                width: 4,
               ),
-              child: const Icon(
-                Icons.qr_code_scanner_rounded,
-                size: 26,
-                color: Colors.white,
-              ),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.secondary.withValues(alpha: 0.40),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.qr_code_scanner_rounded,
+              size: 27,
+              color: Colors.white,
             ),
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          context.l10n.scanQr,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.labelSm(
-            color: colors.secondary,
-            languageCode: languageCode,
-          ).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -269,17 +289,15 @@ class BankSyncTopBar extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
-            if (leading != null)
-              leading!
-            else
-              const SizedBox(width: 40),
+            if (leading != null) leading! else const SizedBox(width: 40),
             Expanded(
               child: Text(
                 centerTitle!,
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.headlineMd(color: colors.primary, languageCode: languageCode)
+                style: AppTextStyles.headlineMd(
+                        color: colors.primary, languageCode: languageCode)
                     .copyWith(fontSize: 20, fontWeight: FontWeight.w800),
               ),
             ),
@@ -355,7 +373,8 @@ class _ProfileQrButton extends StatelessWidget {
                 width: 1,
               ),
             ),
-            child: Icon(Icons.person_rounded, size: 22, color: colors.secondary),
+            child:
+                Icon(Icons.person_rounded, size: 22, color: colors.secondary),
           ),
         ),
       ),
@@ -372,7 +391,8 @@ class _NotificationBellIcon extends ConsumerStatefulWidget {
   final BankSyncColors colors;
 
   @override
-  ConsumerState<_NotificationBellIcon> createState() => _NotificationBellIconState();
+  ConsumerState<_NotificationBellIcon> createState() =>
+      _NotificationBellIconState();
 }
 
 class _NotificationBellIconState extends ConsumerState<_NotificationBellIcon> {
@@ -385,7 +405,8 @@ class _NotificationBellIconState extends ConsumerState<_NotificationBellIcon> {
 
   Future<void> _fetchUnreadCount() async {
     try {
-      final count = await ref.read(notificationRepositoryProvider).getUnreadCount();
+      final count =
+          await ref.read(notificationRepositoryProvider).getUnreadCount();
       if (mounted) {
         ref.read(unreadNotificationCountProvider.notifier).state = count;
       }
