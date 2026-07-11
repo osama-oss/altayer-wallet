@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/auth/otp_service.dart';
 import '../../core/theme/bank_sync_colors.dart';
 import '../../core/widgets/brand_logo.dart';
+import '../../core/widgets/uff_loader.dart';
 import '../../l10n/app_localizations.dart';
 
 /// شاشة إدخال «كود تفعيل الحساب» ضمن تدفّق التسجيل الجديد.
@@ -24,13 +26,15 @@ class AccountActivationScreen extends StatefulWidget {
 }
 
 class _AccountActivationScreenState extends State<AccountActivationScreen> {
-  static const int _codeLength = 6;
+  static const int _codeLength = 4;
   static const int _expirySeconds = 600; // 10:00
 
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focus = FocusNode();
   Timer? _timer;
   int _remaining = _expirySeconds;
+  bool _verifying = false;
+  String? _error;
 
   @override
   void initState() {
@@ -67,10 +71,38 @@ class _AccountActivationScreenState extends State<AccountActivationScreen> {
 
   bool get _complete => _controller.text.length == _codeLength;
 
-  void _confirm() {
-    if (!_complete) return;
-    // ربط التحقق بالكور لاحقاً — الآن ننتقل لتسجيل الدخول.
+  Future<void> _confirm() async {
+    if (!_complete || _verifying) return;
+    setState(() {
+      _verifying = true;
+      _error = null;
+    });
+    // TEMPORARY: no SMS provider yet — verify the entered code against the
+    // fixed activation code (1234) from config via OtpService. Swap the body of
+    // OtpService.verify for the real backend verify endpoint later.
+    final valid = await OtpService().verify(_controller.text.trim());
+    if (!mounted) return;
+    if (!valid) {
+      setState(() {
+        _verifying = false;
+        _controller.clear();
+        _error = _invalidCodeMessage(context);
+      });
+      return;
+    }
+    setState(() => _verifying = false);
     context.go('/login');
+  }
+
+  String _invalidCodeMessage(BuildContext context) {
+    switch (Localizations.localeOf(context).languageCode) {
+      case 'ar':
+        return 'رمز التفعيل غير صحيح';
+      case 'zh':
+        return '激活码不正确';
+      default:
+        return 'Invalid activation code';
+    }
   }
 
   @override
@@ -123,7 +155,7 @@ class _AccountActivationScreenState extends State<AccountActivationScreen> {
                 length: _codeLength,
                 colors: colors,
                 onChanged: () {
-                  setState(() {});
+                  setState(() => _error = null);
                   if (_complete) _focus.unfocus();
                 },
               ),
@@ -184,12 +216,25 @@ class _AccountActivationScreenState extends State<AccountActivationScreen> {
                   ),
                 ],
               ),
+              if (_error != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _error!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFDC2626),
+                  ),
+                ),
+              ],
               const SizedBox(height: 28),
 
               SizedBox(
                 height: 54,
                 child: FilledButton(
-                  onPressed: _complete ? _confirm : null,
+                  onPressed: (_complete && !_verifying) ? _confirm : null,
                   style: FilledButton.styleFrom(
                     backgroundColor: colors.secondary,
                     foregroundColor: colors.onSecondary,
@@ -198,14 +243,16 @@ class _AccountActivationScreenState extends State<AccountActivationScreen> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: Text(
-                    l10n.activationConfirm,
-                    style: const TextStyle(
-                      fontFamily: 'Tajawal',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
+                  child: _verifying
+                      ? const UffLoader(size: 22, color: Colors.white)
+                      : Text(
+                          l10n.activationConfirm,
+                          style: const TextStyle(
+                            fontFamily: 'Tajawal',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -240,12 +287,12 @@ class _CodeBoxes extends StatelessWidget {
         Directionality(
           textDirection: TextDirection.ltr,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: List.generate(length, (i) {
               final filled = i < code.length;
               final isCurrent = i == code.length && focus.hasFocus;
               return Container(
-                width: 48,
+                width: 56,
                 height: 56,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
@@ -285,6 +332,10 @@ class _CodeBoxes extends StatelessWidget {
             style: const TextStyle(color: Colors.transparent, height: 1),
             decoration: const InputDecoration(
               counterText: '',
+              filled: false,
+              fillColor: Colors.transparent,
+              isCollapsed: true,
+              contentPadding: EdgeInsets.zero,
               border: InputBorder.none,
               focusedBorder: InputBorder.none,
               enabledBorder: InputBorder.none,
