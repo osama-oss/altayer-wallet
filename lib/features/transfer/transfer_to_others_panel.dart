@@ -13,19 +13,19 @@ import '../../core/network/api_error_message.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/wallet_account_id.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/bank_sync_colors.dart';
+import '../../core/widgets/uff_ui.dart';
 import '../../l10n/app_localizations.dart';
 import 'qr_scan_screen.dart';
-import 'transfer_flow.dart';
 import 'transfer_helpers.dart';
-import 'transfer_receipt.dart';
+import 'transfer_review_screen.dart';
 import 'widgets/transfer_account_tile.dart';
 import 'widgets/transfer_amount_field.dart';
 import 'widgets/transfer_buttons.dart';
 import 'widgets/transfer_error.dart';
 import 'widgets/transfer_rate_card.dart';
-import 'widgets/transfer_success_view.dart';
 import '../../core/widgets/uff_loader.dart';
 
 class TransferToOthersPanel extends ConsumerStatefulWidget {
@@ -42,18 +42,15 @@ class TransferToOthersPanel extends ConsumerStatefulWidget {
   final String? initialAmount;
 
   @override
-  ConsumerState<TransferToOthersPanel> createState() => _TransferToOthersPanelState();
+  ConsumerState<TransferToOthersPanel> createState() =>
+      _TransferToOthersPanelState();
 }
 
 class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
   final _beneficiary = TextEditingController();
   final _amount = TextEditingController();
 
-  bool _loading = false;
   bool _loadingAccounts = true;
-  bool _success = false;
-  Map<String, dynamic>? _result;
-  Map<String, dynamic>? _validation;
   List<BankingAccount> _accounts = [];
   String? _debitAccount;
   String _currency = 'YER';
@@ -114,7 +111,8 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
     try {
       final token = await ref.read(authServiceProvider).readToken();
       if (token == null) return;
-      final data = await ref.read(apiClientProvider).validateTransfer(token, _payload);
+      final data =
+          await ref.read(apiClientProvider).validateTransfer(token, _payload);
       if (!mounted || seq != _quoteSeq) return;
       final quote = parseTransferQuote(data, debitCurrency: _currency);
       setState(() {
@@ -143,7 +141,8 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
         _accounts = accounts;
         if (accounts.isNotEmpty) {
           final defaultDebit = resolveDefaultAccount(accounts, preferences);
-          _debitAccount = defaultDebit?.accountNumber ?? accounts.first.accountNumber;
+          _debitAccount =
+              defaultDebit?.accountNumber ?? accounts.first.accountNumber;
           _currency = defaultDebit?.currency ?? accounts.first.currency;
         }
         _loadingAccounts = false;
@@ -163,7 +162,9 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
 
   Map<String, dynamic> get _payload => transferPayload(
         debitAccount: _debitAccount ?? '',
-        creditAccount: _beneficiary.text.trim(),
+        // Recipient is entered as a phone; the wallet id is "<phone>_<currency>"
+        // with the currency taken from the selected debit account.
+        creditAccount: walletAccountId(_beneficiary.text.trim(), _currency),
         amountText: _amount.text,
       );
 
@@ -171,7 +172,9 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
     showTransferErrorNotice(context, message);
   }
 
-  Future<void> _reviewTransfer() async {
+  /// Validates the inputs then moves to the read-only review screen, which
+  /// runs `TRANSFER-TO-ACC-VALIDATE`, PIN entry and the confirm call.
+  void _continueToReview() {
     final l10n = context.l10n;
     if ((_debitAccount ?? '').isEmpty ||
         _beneficiary.text.trim().isEmpty ||
@@ -179,64 +182,33 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
       _showError(l10n.chooseDebitBeneficiaryAmount);
       return;
     }
-    setState(() => _loading = true);
-    try {
-      final token = await ref.read(authServiceProvider).readToken();
-      if (token == null) return;
-      final data = await ref.read(apiClientProvider).validateTransfer(token, _payload);
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _validation = data;
-      });
-      await confirmTransferWithPin(
-        context: context,
-        ref: ref,
-        payload: _payload,
-        amount: _amount.text.trim(),
-        currency: _currency,
-        validation: data,
-        summaryRows: () => [
-          (l10n.fromLabel, _debitAccount ?? '—'),
-          (l10n.toLabel, _beneficiary.text.trim()),
-        ],
-        onLoadingChanged: () {
-          if (mounted) setState(() => _loading = true);
-        },
-        onSuccess: (result) {
-          if (!mounted) return;
-          setState(() {
-            _result = result;
-            _success = true;
-            _loading = false;
-          });
-        },
-        onError: (message) {
-          if (!mounted) return;
-          setState(() => _loading = false);
-          _showError(message);
-        },
-      );
-    } on ApiException catch (e) {
-      _showError(e.message);
-      setState(() => _loading = false);
-    } catch (e) {
-      _showError(formatThrowableMessage(e));
-      setState(() => _loading = false);
+    if ((num.tryParse(_amount.text.trim()) ?? 0) <= 0) {
+      _showError(l10n.chooseDebitBeneficiaryAmount);
+      return;
     }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TransferReviewScreen(
+          account: walletAccountId(_beneficiary.text.trim(), _currency),
+          amount: _amount.text.trim(),
+          currency: _currency,
+          debitAccount: _accountByNumber(_debitAccount),
+        ),
+      ),
+    );
   }
 
   Future<void> _scanQr() async {
     final account = await openQrScanScreen(context);
     if (account != null && account.isNotEmpty) {
-      setState(() => _beneficiary.text = account);
+      setState(() => _beneficiary.text = walletPhonePart(account));
     }
   }
 
   Future<void> _pickBeneficiary() async {
     final selectedAccount = await context.push<String>('/beneficiaries');
     if (selectedAccount != null && selectedAccount.isNotEmpty) {
-      setState(() => _beneficiary.text = selectedAccount);
+      setState(() => _beneficiary.text = walletPhonePart(selectedAccount));
     }
   }
 
@@ -262,15 +234,6 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
     _scheduleQuote();
   }
 
-  void _resetForm() {
-    setState(() {
-      _success = false;
-      _result = null;
-      _beneficiary.clear();
-      _amount.clear();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -283,29 +246,12 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
     if (_accounts.isEmpty) {
       return Text(
         l10n.noAccountsForTransfer,
-        style: AppTextStyles.bodyMd(color: colors.onSurfaceVariant, languageCode: languageCode),
+        style: AppTextStyles.bodyMd(
+            color: colors.onSurfaceVariant, languageCode: languageCode),
       );
     }
-    if (_success) {
-      return TransferSuccessView(
-        reference: transferResultReference(_result),
-        onNewTransfer: _resetForm,
-        receipt: TransferReceipt(
-          typeLabel: 'حوالة صادرة',
-          amount: _amount.text.trim(),
-          currency: _currency,
-          fromName: _accountByNumber(_debitAccount)?.label,
-          fromAccount: _debitAccount ?? '—',
-          toName: transferCounterpartyName(_validation) ??
-              transferCounterpartyName(_result),
-          toAccount: _beneficiary.text.trim(),
-          reference: transferResultReference(_result),
-          date: DateTime.now(),
-        ),
-      );
-    }
-
     final debit = _accountByNumber(_debitAccount);
+    final isAr = languageCode == 'ar';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -314,14 +260,17 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
         TransferAccountTile(
           label: l10n.debitAccount,
           icon: Icons.account_balance_wallet_rounded,
-          iconColors: [colors.secondary, colors.secondary.withValues(alpha: 0.7)],
+          iconColors: [
+            colors.secondary,
+            colors.secondary.withValues(alpha: 0.7)
+          ],
           account: debit,
           currencyOverride: _currency,
           onTap: _pickDebitAccount,
         ),
         const SizedBox(height: 16),
         _FavoritesStrip(
-          onPick: (account) => setState(() => _beneficiary.text = account),
+          onPick: (account) => setState(() => _beneficiary.text = walletPhonePart(account)),
         ),
         _BeneficiaryField(
           controller: _beneficiary,
@@ -339,10 +288,9 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
         TransferRateCard(quote: _quote, loading: _loadingQuote),
         const SizedBox(height: 32),
         TransferPrimaryButton(
-          label: l10n.reviewTransfer,
-          loading: _loading,
+          label: isAr ? 'متابعة التحويل' : 'Continue',
           icon: Icons.arrow_forward_rounded,
-          onPressed: _reviewTransfer,
+          onPressed: _continueToReview,
         ),
       ],
     );
@@ -403,7 +351,8 @@ class _FavoritesStrip extends ConsumerWidget {
     final l10n = context.l10n;
     final lang = Localizations.localeOf(context).languageCode;
     final colors = context.bankColors;
-    final suffix = Theme.of(context).brightness == Brightness.dark ? 'dark' : 'light';
+    final suffix =
+        Theme.of(context).brightness == Brightness.dark ? 'dark' : 'light';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -442,8 +391,10 @@ class _FavoritesStrip extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     child: Row(
                       children: [
-                        SvgPicture.asset('assets/icons/ic_favorite_star_$suffix.svg',
-                            width: 15, height: 15),
+                        SvgPicture.asset(
+                            'assets/icons/ic_favorite_star_$suffix.svg',
+                            width: 15,
+                            height: 15),
                         const SizedBox(width: 6),
                         Text(
                           favorite.displayName,
@@ -487,55 +438,36 @@ class _BeneficiaryField extends StatelessWidget {
     final lang = Localizations.localeOf(context).languageCode;
     final isAr = lang == 'ar';
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(color: colors.cardShadow, blurRadius: 10, offset: const Offset(0, 4)),
-        ],
-        border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.5)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Row(
-        children: [
-          Icon(Icons.person_search_rounded, color: colors.secondary, size: 24),
-          const SizedBox(width: 14),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              textDirection: TextDirection.ltr,
-              textAlign: isAr ? TextAlign.right : TextAlign.left,
-              style: AppTextStyles.monoLabel(color: colors.onSurface)
-                  .copyWith(fontSize: 16, fontWeight: FontWeight.w600),
-              decoration: InputDecoration(
-                isCollapsed: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 20),
-                border: InputBorder.none,
-                hintText: context.l10n.hintBeneficiaryAccountOrIban,
-                hintStyle: AppTextStyles.bodyMd(color: colors.onSurfaceVariant, languageCode: lang)
-                    .copyWith(fontWeight: FontWeight.w500, fontSize: 14),
-              ),
+    return TextField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      textDirection: TextDirection.ltr,
+      textAlign: isAr ? TextAlign.right : TextAlign.left,
+      style: AppTextStyles.monoLabel(color: colors.onSurface)
+          .copyWith(fontSize: 15, fontWeight: FontWeight.w700),
+      decoration: uffInputDecoration(
+        context,
+        label: isAr ? 'رقم جوال المستلم' : 'Recipient mobile number',
+        placeholder: context.l10n.hintBeneficiaryAccountOrIban,
+        prefixIcon:
+            Icon(Icons.account_balance_wallet_outlined, color: colors.outline, size: 20),
+        suffixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _CircularIconButton(
+              icon: Icons.qr_code_scanner_rounded,
+              onPressed: onScanQr,
+              tooltip: scanTooltip,
             ),
-          ),
-          const SizedBox(width: 8),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _CircularIconButton(
-                icon: Icons.qr_code_scanner_rounded,
-                onPressed: onScanQr,
-                tooltip: scanTooltip,
-              ),
-              const SizedBox(width: 8),
-              _CircularIconButton(
-                icon: Icons.people_alt_rounded,
-                onPressed: onPickBeneficiary,
-                tooltip: beneficiariesTooltip,
-              ),
-            ],
-          ),
-        ],
+            _CircularIconButton(
+              icon: Icons.people_alt_rounded,
+              onPressed: onPickBeneficiary,
+              tooltip: beneficiariesTooltip,
+            ),
+            const SizedBox(width: 6),
+          ],
+        ),
+        suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
       ),
     );
   }
@@ -557,19 +489,19 @@ class _CircularIconButton extends StatelessWidget {
     final colors = context.bankColors;
     return Tooltip(
       message: tooltip,
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: colors.secondary.withValues(alpha: 0.08),
-          shape: BoxShape.circle,
-        ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 3),
         child: Material(
-          color: Colors.transparent,
+          color: colors.secondary.withValues(alpha: 0.08),
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
           child: InkWell(
-            customBorder: const CircleBorder(),
             onTap: onPressed,
-            child: Icon(icon, color: colors.secondary, size: 20),
+            child: SizedBox(
+              width: 36,
+              height: 36,
+              child: Icon(icon, color: colors.secondary, size: 19),
+            ),
           ),
         ),
       ),

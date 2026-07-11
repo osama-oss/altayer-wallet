@@ -3,10 +3,11 @@ import 'package:flutter/services.dart';
 
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/bank_sync_colors.dart';
+import '../../../core/widgets/uff_ui.dart';
 
-/// Light, airy amount card: a clean amount + currency pill, with the "Max"
-/// shortcut moved up to a subtle link beside the label (nothing inside the
-/// card but the number itself).
+/// Amount input in the shared field language ([uffInputDecoration]): one soft
+/// outline, theme surface, currency shown inside as a suffix, with a subtle
+/// "Max" link beside the label. No card-in-card boxing.
 class TransferAmountField extends StatelessWidget {
   const TransferAmountField({
     super.key,
@@ -41,7 +42,7 @@ class TransferAmountField extends StatelessWidget {
                 ).copyWith(fontWeight: FontWeight.w600),
               ),
             ),
-            // Subtle "Max" link — keeps the card itself uncluttered.
+            // Subtle "Max" link — keeps the field itself uncluttered.
             Material(
               color: Colors.transparent,
               child: InkWell(
@@ -69,49 +70,19 @@ class TransferAmountField extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: colors.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: colors.outlineVariant),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                decoration: BoxDecoration(
-                  color: colors.secondary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  currency,
-                  style: AppTextStyles.labelSm(color: colors.secondary, languageCode: lang)
-                      .copyWith(fontSize: 14, fontWeight: FontWeight.w700),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
-                  textDirection: TextDirection.ltr,
-                  textAlign: isAr ? TextAlign.right : TextAlign.left,
-                  style: AppTextStyles.balanceDisplay(color: colors.onSurface)
-                      .copyWith(fontSize: 30, fontWeight: FontWeight.w700),
-                  decoration: InputDecoration(
-                    isCollapsed: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 6),
-                    border: InputBorder.none,
-                    hintText: '0.00',
-                    hintStyle: AppTextStyles.balanceDisplay(
-                      color: colors.onSurfaceVariant.withValues(alpha: 0.25),
-                    ).copyWith(fontSize: 30, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-            ],
+        TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
+          textDirection: TextDirection.ltr,
+          textAlign: isAr ? TextAlign.right : TextAlign.left,
+          style: AppTextStyles.balanceDisplay(color: colors.onSurface)
+              .copyWith(fontSize: 24, fontWeight: FontWeight.w800),
+          decoration: uffInputDecoration(
+            context,
+            placeholder: '0.00',
+            prefixIcon: Icon(Icons.payments_outlined, color: colors.outline, size: 20),
+            suffixText: currency.trim().isEmpty ? null : currency.trim().toUpperCase(),
           ),
         ),
       ],

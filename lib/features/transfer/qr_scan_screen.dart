@@ -531,7 +531,8 @@ class _ScannerOverlayPainter extends CustomPainter {
       ..addRect(Offset.zero & size)
       ..addRRect(rrect)
       ..fillType = PathFillType.evenOdd;
-    canvas.drawPath(scrim, Paint()..color = Colors.black.withValues(alpha: 0.58));
+    canvas.drawPath(
+        scrim, Paint()..color = Colors.black.withValues(alpha: 0.58));
 
     // Faint full-frame border so the cut-out reads as a crisp, deliberate frame.
     canvas.drawRRect(

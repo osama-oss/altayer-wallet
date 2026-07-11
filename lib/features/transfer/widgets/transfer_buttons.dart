@@ -21,16 +21,19 @@ class TransferPrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.bankColors;
+    final lang = Localizations.localeOf(context).languageCode;
     return SizedBox(
       width: double.infinity,
+      height: 56,
       child: FilledButton(
         onPressed: loading ? null : onPressed,
         style: FilledButton.styleFrom(
           backgroundColor: colors.secondary,
           foregroundColor: colors.onSecondary,
           disabledBackgroundColor: colors.secondary.withValues(alpha: 0.45),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: const StadiumBorder(),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           elevation: 0,
         ),
         child: loading
@@ -43,10 +46,16 @@ class TransferPrimaryButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(label, style: AppTextStyles.labelSm(color: colors.onSecondary)),
+                  Text(
+                    label,
+                    style: AppTextStyles.labelSm(
+                      color: colors.onSecondary,
+                      languageCode: lang,
+                    ).copyWith(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
                   if (icon != null) ...[
                     const SizedBox(width: 8),
-                    Icon(icon, size: 20),
+                    Icon(icon, size: 18),
                   ],
                 ],
               ),
