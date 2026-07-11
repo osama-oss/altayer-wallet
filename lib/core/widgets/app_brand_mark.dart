@@ -10,12 +10,19 @@ class AppBrandMark extends StatelessWidget {
     this.showTitle = true,
     this.logoHeight = 48,
     this.titleColor,
+    this.logoColor,
     this.compact = false,
   });
 
   final bool showTitle;
   final double logoHeight;
   final Color? titleColor;
+
+  /// When set, the logo is flattened to this single colour (via a source-in
+  /// filter). Use it on coloured backgrounds — e.g. white on the blue auth
+  /// header — where the two-tone mark's blue elements would otherwise blend
+  /// into the surface and only the green letters would read.
+  final Color? logoColor;
   final bool compact;
 
   static String logoAsset(BuildContext context) {
@@ -36,12 +43,16 @@ class AppBrandMark extends StatelessWidget {
             .copyWith(fontSize: compact ? 20 : 24, fontWeight: FontWeight.w800);
 
     final assetPath = logoAsset(context);
+    final colorFilter = logoColor != null
+        ? ColorFilter.mode(logoColor!, BlendMode.srcIn)
+        : null;
 
     if (!showTitle) {
       return SvgPicture.asset(
         assetPath,
         height: logoHeight,
         fit: BoxFit.contain,
+        colorFilter: colorFilter,
       );
     }
 
@@ -52,6 +63,7 @@ class AppBrandMark extends StatelessWidget {
           assetPath,
           height: logoHeight,
           fit: BoxFit.contain,
+          colorFilter: colorFilter,
         ),
         if (!compact) const SizedBox(height: 12),
         if (compact) const SizedBox(height: 8),
@@ -67,10 +79,15 @@ class AppBrandMarkRow extends StatelessWidget {
     super.key,
     this.logoHeight = 36,
     this.titleColor,
+    this.logoColor,
   });
 
   final double logoHeight;
   final Color? titleColor;
+
+  /// Flattens the logo to a single colour on coloured backgrounds — see
+  /// [AppBrandMark.logoColor].
+  final Color? logoColor;
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +101,9 @@ class AppBrandMarkRow extends StatelessWidget {
           assetPath,
           height: logoHeight,
           fit: BoxFit.contain,
+          colorFilter: logoColor != null
+              ? ColorFilter.mode(logoColor!, BlendMode.srcIn)
+              : null,
         ),
         const SizedBox(width: 10),
         Flexible(

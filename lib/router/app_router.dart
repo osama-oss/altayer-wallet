@@ -45,6 +45,7 @@ import 'package:banksync_app/features/bill_payments/un_money/un_money_hub_screen
 import 'package:banksync_app/features/transfer_hub/network_transfers_screen.dart';
 import 'package:banksync_app/features/cards/my_cards_screen.dart';
 import 'package:banksync_app/features/legal/terms_screen.dart';
+import 'package:banksync_app/features/kyc/kyc_providers.dart';
 import 'package:banksync_app/features/kyc/kyc_screen.dart';
 import 'package:banksync_app/features/profile/profile_screen.dart';
 
@@ -95,6 +96,34 @@ const _preAuthFlowRoutes = {
   '/otp-verification',
 };
 
+/// TEMP: the verification gate is DISABLED while the KYC backend isn't wired.
+/// Right now every customer resolves to "unverified", which would block ALL
+/// operations (including the integration testing in progress). Flip to `true`
+/// to enforce the gate once KYC is live — the logic below and
+/// [walletVerifiedProvider] are already complete.
+const bool _verificationGateEnabled = false;
+
+/// Routes that move money or change financial state — blocked until the
+/// customer's identity is verified. View/prep routes (/profile, /cards,
+/// /beneficiaries, /notifications, /bills/history, /favorites and /kyc itself)
+/// stay open so an unverified customer can still browse and complete KYC.
+const _verifiedOnlyRoutes = {
+  '/transfer',
+  '/transfer/own',
+  '/transfer/others',
+  '/add-account',
+  '/network-transfers',
+  '/unmoney',
+  '/merchant-payment',
+  '/bills/providers',
+  '/bills/telecom',
+  '/bills/landline',
+  '/bills/internet',
+  '/bills/yemen4g',
+  '/bills/adennet',
+  '/bills/starlink',
+};
+
 final routerProvider = Provider<GoRouter>((ref) {
   final refresh = ref.watch(routerRefreshProvider);
   final auth = ref.read(authServiceProvider);
@@ -115,6 +144,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
         if (_guestOnlyRoutes.contains(location)) {
           return await auth.postRestoreRoute() ?? '/home';
+        }
+        // Verification gate: money operations require a verified account. An
+        // unverified customer is routed to KYC to complete it first. Gated
+        // behind [_verificationGateEnabled] so it doesn't block testing while
+        // the KYC backend isn't live yet.
+        if (_verificationGateEnabled &&
+            _verifiedOnlyRoutes.contains(location) &&
+            !ref.read(walletVerifiedProvider)) {
+          return '/kyc';
         }
         return null;
       }

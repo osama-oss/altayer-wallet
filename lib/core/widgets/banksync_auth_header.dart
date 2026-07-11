@@ -32,7 +32,11 @@ class BankSyncAuthHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AppBrandMarkRow(logoHeight: 32, titleColor: Colors.white),
+          const AppBrandMarkRow(
+            logoHeight: 32,
+            titleColor: Colors.white,
+            logoColor: Colors.white,
+          ),
           const SizedBox(height: 20),
           Text(
             title,

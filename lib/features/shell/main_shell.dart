@@ -5,8 +5,8 @@ import '../../core/security/screen_security.dart';
 import '../../core/widgets/banksync_bottom_nav.dart';
 import '../../l10n/app_localizations.dart';
 import '../home/explore_screen.dart';
+import '../reports/reports_screen.dart';
 import '../transfer_hub/transfer_hub_screen.dart';
-import '../utility_payments/utility_payments_screen.dart';
 import '../wallet/wallet_home_screen.dart';
 
 class MainShell extends ConsumerStatefulWidget {
@@ -72,7 +72,7 @@ class _MainShellState extends ConsumerState<MainShell> {
                 children: const [
                   WalletHomeScreen(),
                   TransferHubScreen(),
-                  UtilityPaymentsScreen(),
+                  ReportsScreen(),
                   ExploreScreen(),
                 ],
               ),

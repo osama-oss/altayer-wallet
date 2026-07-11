@@ -12,7 +12,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/bank_sync_colors.dart';
 
-enum BankSyncTab { home, transfers, payments, explore }
+enum BankSyncTab { home, transfers, reports, explore }
 
 final dashboardTabProvider =
     StateProvider<BankSyncTab>((ref) => BankSyncTab.home);
@@ -80,10 +80,10 @@ class BankSyncBottomNav extends StatelessWidget {
             const Expanded(child: SizedBox()),
             Expanded(
               child: _NavItem(
-                icon: Icons.account_balance_wallet_rounded,
-                label: l10n.navPayments,
-                selected: currentTab == BankSyncTab.payments,
-                onTap: () => onTabSelected(BankSyncTab.payments),
+                icon: Icons.bar_chart_rounded,
+                label: l10n.navReports,
+                selected: currentTab == BankSyncTab.reports,
+                onTap: () => onTabSelected(BankSyncTab.reports),
               ),
             ),
             Expanded(
