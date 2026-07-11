@@ -2,41 +2,38 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
-import '../../core/models/account_transaction.dart';
 import '../../core/models/banking_account.dart';
-import '../../core/models/favorite_transfer.dart';
+import '../../core/qr/account_qr_payload.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/security/screen_security.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/bank_sync_colors.dart';
-import '../../core/widgets/transaction_tile.dart';
+import '../../core/widgets/app_bottom_sheet.dart';
 import '../../core/widgets/uff_loader.dart';
 import '../../l10n/app_localizations.dart';
 import '../home/transactions_screen.dart';
+import '../kyc/kyc_providers.dart';
+import '../kyc/kyc_status.dart';
 import '../transfer/qr_scan_screen.dart';
 import '../transfer/scan_review_screen.dart';
+import 'card_qr_sheet.dart';
 import 'wallet_providers.dart';
-import 'wallet_receive_screen.dart';
 
-const _positiveAmount = Color(0xFF27AE60);
-const _negativeAmount = Color(0xFFEB5757);
-
-/// «Ultimate Wallet» wallet home — a multi-currency wallet dashboard: a
-/// horizontal carousel of the customer's wallets (SAR / YER / USD), primary
-/// quick actions (send / receive / top-up / scan), a favorites quick-access
-/// strip, an organised services grid (real routes + "coming soon"
-/// placeholders), a promo banner carousel and a recent-activity preview.
+/// «Ultimate Wallet» wallet home — a streamlined multi-currency dashboard: a
+/// horizontal carousel of the customer's wallets (SAR / YER / USD), an
+/// organised services grid (real routes + "coming soon" placeholders) and a
+/// promo banner carousel.
 ///
-/// Every balance comes from the real UFF integrations (accountsProvider +
-/// ACCOUNT-LAST-TEN-TXN) and favorites from favoritesProvider; nothing here is
-/// mocked. When data is unavailable the widgets fall back to loading / empty
-/// states instead of placeholder numbers.
+/// Every balance comes from the real UFF integrations (accountsProvider);
+/// nothing here is mocked. When data is unavailable the widgets fall back to
+/// loading / empty states instead of placeholder numbers.
 class WalletHomeScreen extends ConsumerStatefulWidget {
   const WalletHomeScreen({super.key});
 
@@ -45,8 +42,10 @@ class WalletHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _WalletHomeScreenState extends ConsumerState<WalletHomeScreen> {
+  // 0.87 leaves room for a clean slice of BOTH neighbouring cards to peek while
+  // the active card stays centred (see [_WalletsCarousel]).
   final PageController _walletPageController =
-      PageController(viewportFraction: 0.9);
+      PageController(viewportFraction: 0.87);
   int _activeIndex = 0;
 
   @override
@@ -55,28 +54,11 @@ class _WalletHomeScreenState extends ConsumerState<WalletHomeScreen> {
     super.dispose();
   }
 
+  /// Pull-to-refresh and per-card refresh both re-read the wallet balances
+  /// source. The dashboard no longer shows favorites or a recent-activity
+  /// preview, so only the accounts source needs invalidating.
   Future<void> _refresh() async {
-    final accounts =
-        ref.read(accountsProvider).valueOrNull ?? const <BankingAccount>[];
     ref.invalidate(accountsProvider);
-    ref.invalidate(favoritesProvider);
-    if (accounts.isNotEmpty) {
-      final idx = _activeIndex.clamp(0, accounts.length - 1);
-      ref.invalidate(
-          walletRecentActivityProvider(accounts[idx].accountNoForIntegration));
-    }
-    try {
-      await ref.read(accountsProvider.future);
-    } catch (_) {}
-  }
-
-  /// Refresh triggered by a single card's refresh button. It only re-reads the
-  /// balances source and that card's own recent activity — nothing tied to the
-  /// other wallets is invalidated.
-  Future<void> _refreshAccount(BankingAccount account) async {
-    ref.invalidate(accountsProvider);
-    ref.invalidate(
-        walletRecentActivityProvider(account.accountNoForIntegration));
     try {
       await ref.read(accountsProvider.future);
     } catch (_) {}
@@ -97,8 +79,8 @@ class _WalletHomeScreenState extends ConsumerState<WalletHomeScreen> {
     if (loading) {
       body = const SizedBox(height: 340, child: Center(child: UffLoader()));
     } else if (hasError) {
-      body =
-          _ErrorState(onRetry: _refresh, colors: colors, l10n: l10n, lang: lang);
+      body = _ErrorState(
+          onRetry: _refresh, colors: colors, l10n: l10n, lang: lang);
     } else if (accounts.isEmpty) {
       body = _EmptyWalletState(colors: colors, l10n: l10n, lang: lang);
     } else {
@@ -108,9 +90,7 @@ class _WalletHomeScreenState extends ConsumerState<WalletHomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _KycBanner(colors: colors, l10n: l10n),
-          const SizedBox(height: 18),
-          _SectionHeader(
-              title: l10n.walletMyWallets, lang: lang),
+          _SectionHeader(title: l10n.walletMyWallets, lang: lang),
           const SizedBox(height: 12),
           _WalletsCarousel(
             accounts: accounts,
@@ -120,7 +100,7 @@ class _WalletHomeScreenState extends ConsumerState<WalletHomeScreen> {
             l10n: l10n,
             lang: lang,
             onPageChanged: (i) => setState(() => _activeIndex = i),
-            onRefresh: _refreshAccount,
+            onRefresh: (_) => _refresh(),
           ),
           const SizedBox(height: 12),
           _CarouselDots(
@@ -128,51 +108,15 @@ class _WalletHomeScreenState extends ConsumerState<WalletHomeScreen> {
             active: activeIndex,
             colors: colors,
           ),
-          const SizedBox(height: 22),
-          _QuickActions(account: active, colors: colors, l10n: l10n, lang: lang),
           const SizedBox(height: 26),
-          _SectionHeader(
-              title: l10n.walletQuickAccessTitle, lang: lang),
+          _SectionHeader(title: l10n.walletServicesTitle, lang: lang),
           const SizedBox(height: 12),
-          const _FavoritesStrip(),
+          _ServicesGrid(
+              account: active, colors: colors, l10n: l10n, lang: lang),
           const SizedBox(height: 26),
-          _SectionHeader(
-              title: l10n.walletServicesTitle, lang: lang),
-          const SizedBox(height: 12),
-          _ServicesGrid(colors: colors, l10n: l10n, lang: lang),
-          const SizedBox(height: 26),
-          _SectionHeader(
-              title: l10n.walletPromotionsTitle, lang: lang),
+          _SectionHeader(title: l10n.walletPromotionsTitle, lang: lang),
           const SizedBox(height: 12),
           _PromoCarousel(colors: colors, l10n: l10n, lang: lang),
-          const SizedBox(height: 26),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.walletRecentActivity,
-                style: AppTextStyles.headlineMd(languageCode: lang)
-                    .copyWith(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) =>
-                        SecureScreen(child: TransactionsScreen(account: active)),
-                  ),
-                ),
-                child: Text(
-                  l10n.viewAll,
-                  style: AppTextStyles.labelSm(
-                          color: colors.secondary, languageCode: lang)
-                      .copyWith(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          _RecentActivityList(
-              account: active, colors: colors, l10n: l10n, lang: lang),
         ],
       );
     }
@@ -206,66 +150,90 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-/// بانر أعلى الرئيسية يدعو العميل غير المُوثَّق لإكمال التحقق (KYC).
-class _KycBanner extends StatelessWidget {
+/// بانر أعلى الرئيسية يعكس حالة التوثيق (KYC): يظهر للعميل غير المُوثَّق أو
+/// المرفوض كدعوة لإكمال/إعادة التحقق، ويظهر بشكل معلوماتي أثناء المراجعة،
+/// ويختفي تماماً عند التوثيق. الحالة تُقرأ من [kycStatusProvider].
+class _KycBanner extends ConsumerWidget {
   const _KycBanner({required this.colors, required this.l10n});
 
   final BankSyncColors colors;
   final AppLocalizations l10n;
 
   @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => context.push('/kyc'),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: colors.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: colors.error.withValues(alpha: 0.35)),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.gpp_maybe_outlined, color: colors.error, size: 20),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                l10n.kycBannerText,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontFamily: 'Tajawal',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  height: 1.35,
-                  color: colors.onSurface,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  l10n.kycVerifyAccount,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = ref.watch(kycStatusProvider).valueOrNull?.status ??
+        KycStatus.unverified;
+    // Verified customers see no banner at all.
+    if (status == KycStatus.verified) return const SizedBox.shrink();
+
+    final bool pending = status == KycStatus.pending;
+    final bool rejected = status == KycStatus.rejected;
+    final Color accent = pending ? colors.secondary : colors.error;
+    final String text = rejected
+        ? l10n.kycBannerRejectedText
+        : pending
+            ? l10n.kycBannerPendingText
+            : l10n.kycBannerText;
+    final IconData leadingIcon =
+        pending ? Icons.hourglass_top_rounded : Icons.gpp_maybe_outlined;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: InkWell(
+        onTap: () => context.push('/kyc'),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: colors.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: accent.withValues(alpha: 0.35)),
+          ),
+          child: Row(
+            children: [
+              Icon(leadingIcon, color: accent, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  text,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontFamily: 'Tajawal',
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w800,
-                    color: colors.error,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    height: 1.35,
+                    color: colors.onSurface,
                   ),
                 ),
-                Icon(
-                  Directionality.of(context) == ui.TextDirection.rtl
-                      ? Icons.chevron_left_rounded
-                      : Icons.chevron_right_rounded,
-                  color: colors.error,
-                  size: 18,
-                ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(width: 8),
+              // Actionable states (unverified / incomplete / rejected) show a
+              // call to action; while under review just a chevron into status.
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!pending)
+                    Text(
+                      l10n.kycVerifyAccount,
+                      style: TextStyle(
+                        fontFamily: 'Tajawal',
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        color: accent,
+                      ),
+                    ),
+                  Icon(
+                    Directionality.of(context) == ui.TextDirection.rtl
+                        ? Icons.chevron_left_rounded
+                        : Icons.chevron_right_rounded,
+                    color: accent,
+                    size: 18,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -274,9 +242,11 @@ class _KycBanner extends StatelessWidget {
 
 // ─── Wallets carousel ───────────────────────────────────────────────────────
 
-/// Horizontal carousel of the customer's wallets. The active card renders in
-/// full while a slice of the next card peeks at the trailing edge (LTR right /
-/// RTL left, handled automatically by [PageView]'s directionality).
+/// Horizontal carousel of the customer's wallets. The active card sits centred
+/// and full-size while a clean slice of BOTH neighbours peeks on either side
+/// (RTL/LTR handled automatically by [PageView]). Depth comes from a paint-only
+/// scale tied to the scroll offset — never a layout resize — so a peeking card
+/// can no longer overflow its box and bleed a stray coloured sliver at the edge.
 class _WalletsCarousel extends StatelessWidget {
   const _WalletsCarousel({
     required this.accounts,
@@ -300,10 +270,11 @@ class _WalletsCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // A lone wallet needs no peek/scroll — render it flush.
+    // A lone wallet needs no peek/scroll — render it flush. Its rounded clip
+    // lives inside [_WalletCard], so the edges stay crisp here too.
     if (accounts.length == 1) {
       return SizedBox(
-        height: 182,
+        height: 188,
         child: _WalletCard(
           account: accounts.first,
           active: true,
@@ -315,30 +286,71 @@ class _WalletsCarousel extends StatelessWidget {
       );
     }
     return SizedBox(
-      height: 182,
+      height: 188,
       child: PageView.builder(
         controller: controller,
-        padEnds: false,
+        // padEnds:true (the default) keeps every page centred in the viewport,
+        // so the active card is centred and both neighbours peek symmetrically.
         onPageChanged: onPageChanged,
         itemCount: accounts.length,
         itemBuilder: (context, index) {
-          final active = index == activeIndex;
-          return Padding(
-            padding: const EdgeInsetsDirectional.only(end: 12),
-            child: AnimatedPadding(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOut,
-              padding: EdgeInsets.symmetric(vertical: active ? 0 : 10),
-              child: _WalletCard(
-                account: accounts[index],
-                active: active,
-                colors: colors,
-                l10n: l10n,
-                lang: lang,
-                onRefresh: onRefresh,
-              ),
+          return _WalletCardSlide(
+            controller: controller,
+            index: index,
+            fallbackPage: activeIndex.toDouble(),
+            child: _WalletCard(
+              account: accounts[index],
+              active: index == activeIndex,
+              colors: colors,
+              l10n: l10n,
+              lang: lang,
+              onRefresh: onRefresh,
             ),
           );
+        },
+      ),
+    );
+  }
+}
+
+/// Positions one wallet card inside the carousel. A fixed 6px gutter on each
+/// side forms the clean gap between cards, and a scale driven continuously by
+/// the [PageController]'s scroll offset lets the centred card grow to full size
+/// while its neighbours recede. The scale is a paint-only [Transform] — it never
+/// changes the card's layout box, so the card can never be squeezed below its
+/// content height and trip the overflow indicator (the yellow/black hazard
+/// stripes that used to leak from the peeking card while swiping).
+class _WalletCardSlide extends StatelessWidget {
+  const _WalletCardSlide({
+    required this.controller,
+    required this.index,
+    required this.fallbackPage,
+    required this.child,
+  });
+
+  final PageController controller;
+  final int index;
+
+  /// Page value to assume before the controller is attached to the viewport
+  /// (so the very first frame already scales the settled card correctly).
+  final double fallbackPage;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: AnimatedBuilder(
+        animation: controller,
+        child: child,
+        builder: (context, child) {
+          final page = controller.hasClients
+              ? (controller.page ?? fallbackPage)
+              : fallbackPage;
+          // t: 1 when this card is dead-centre, 0 when a full page away.
+          final t = (1.0 - (page - index).abs()).clamp(0.0, 1.0);
+          final scale = 0.92 + 0.08 * t; // recedes to 0.92, grows to 1.0
+          return Transform.scale(scale: scale, child: child);
         },
       ),
     );
@@ -448,6 +460,10 @@ class _WalletCardState extends ConsumerState<_WalletCard> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
+      // Clip content to the rounded rect so nothing paints past the card's
+      // corners — crisp edges, no leaked pixels. The drop shadow paints behind
+      // and is unaffected by the child clip.
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         gradient: _gradient(),
         borderRadius: BorderRadius.circular(AppColors.radiusLg),
@@ -582,24 +598,89 @@ class _WalletCardState extends ConsumerState<_WalletCard> {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              InkResponse(
-                onTap: () {
-                  Clipboard.setData(ClipboardData(text: account.accountNumber));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.copied)),
-                  );
-                },
-                radius: 20,
-                child: Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Icon(Icons.content_copy_rounded,
-                      color: Colors.white.withValues(alpha: 0.85), size: 16),
-                ),
-              ),
+              const SizedBox(width: 10),
+              // Per-card receive QR — a soft white tile that never crowds the
+              // balance / number; tap opens the large QR sheet (share/save/copy).
+              _MiniCardQr(account: account),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// This card's own account QR, integrated into the card as a soft frosted-glass
+/// tile rather than a pasted-on white sticker. Tapping opens the full receive-QR
+/// sheet for the same account.
+///
+/// Colours come entirely from the design system's on-card glass tokens
+/// ([BankSyncColors.glassPanelFill] / [glassPanelBorder]) plus [onSurface] for
+/// the modules — nothing hardcoded. Because the tokens flip with the active
+/// theme (light frost + dark ink in light mode; dark frost + light ink in dark
+/// mode), the QR keeps strong module/background contrast — and stays
+/// scannable — automatically in both themes, while the panel's translucency
+/// lets the card gradient bleed through so it belongs to the card.
+class _MiniCardQr extends StatelessWidget {
+  const _MiniCardQr({required this.account});
+
+  final BankingAccount account;
+
+  // Tile geometry. The code itself is 40px; the surrounding [_quietZone] frost
+  // is the QR quiet zone (~4 modules for a compact account payload), so the
+  // camera keeps a clean margin even though there is no white box.
+  static const double _codeSize = 40;
+  static const double _quietZone = 6;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.bankColors;
+    final l10n = context.l10n;
+
+    final data = AccountQrPayload(
+      accountNumber: account.accountNumber,
+      currency: account.currency,
+      label: account.label,
+    ).encode();
+
+    // Panel = translucent glass (theme-driven), modules = onSurface so they read
+    // dark on the light frost and light on the dark frost. The modules paint on
+    // a transparent QR background, letting the glass fill serve as one uniform
+    // quiet zone between and around them.
+    final moduleColor = colors.onSurface;
+
+    return Semantics(
+      button: true,
+      label: l10n.walletActionReceive,
+      child: InkWell(
+        onTap: () => showCardQrSheet(context, account),
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.all(_quietZone),
+          decoration: BoxDecoration(
+            color: colors.glassPanelFill,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: colors.glassPanelBorder, width: 1),
+          ),
+          child: SizedBox(
+            width: _codeSize,
+            height: _codeSize,
+            child: QrImageView(
+              data: data,
+              version: QrVersions.auto,
+              padding: EdgeInsets.zero,
+              backgroundColor: Colors.transparent,
+              eyeStyle: QrEyeStyle(
+                eyeShape: QrEyeShape.square,
+                color: moduleColor,
+              ),
+              dataModuleStyle: QrDataModuleStyle(
+                dataModuleShape: QrDataModuleShape.square,
+                color: moduleColor,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -642,8 +723,7 @@ class _CircleIconButton extends StatelessWidget {
                       Colors.white.withValues(alpha: 0.95)),
                 ),
               )
-            : Icon(icon,
-                color: Colors.white.withValues(alpha: 0.95), size: 17),
+            : Icon(icon, color: Colors.white.withValues(alpha: 0.95), size: 17),
       ),
     );
   }
@@ -684,10 +764,36 @@ class _CarouselDots extends StatelessWidget {
   }
 }
 
-// ─── Primary actions ────────────────────────────────────────────────────────
+// ─── Services grid ──────────────────────────────────────────────────────────
 
-class _QuickActions extends StatelessWidget {
-  const _QuickActions({
+/// One service tile in the reorganised "الخدمات" grid. A tile either navigates
+/// to a real route, opens a grouped [showServiceOptionsSheet] for its
+/// sub-services, or is surfaced honestly as [comingSoon]. The [onTap] closure
+/// encodes whichever behaviour applies; [comingSoon] only drives the badge.
+class _ServiceData {
+  const _ServiceData({
+    required this.svg,
+    required this.label,
+    required this.onTap,
+    this.comingSoon = false,
+  });
+
+  /// Path to this service's colourful, self-tinted SVG under assets/icons.
+  /// The glyph carries its own brand colours (no ColorFilter), so a single
+  /// asset reads correctly on both the light and dark tile surfaces.
+  final String svg;
+  final String label;
+  final VoidCallback onTap;
+  final bool comingSoon;
+}
+
+/// The reorganised "الخدمات" area — a single, balanced 3-per-row grid of the
+/// primary wallet services. Services with sub-actions open a grouped bottom
+/// sheet (same chrome as the rest of the app); not-yet-built ones open the
+/// shared "coming soon" sheet. Real services keep their existing routes — no
+/// new backend or fake data.
+class _ServicesGrid extends StatelessWidget {
+  const _ServicesGrid({
     required this.account,
     required this.colors,
     required this.l10n,
@@ -699,417 +805,211 @@ class _QuickActions extends StatelessWidget {
   final AppLocalizations l10n;
   final String lang;
 
-  Future<void> _scanAndPay(BuildContext context) async {
+  // Cohesive on-brand accents for the sub-service bottom sheets (the grid tiles
+  // themselves now use self-coloured SVG glyphs). Blue/green are theme-aware so
+  // they stay legible in dark mode; the sky is a fixed brand tint.
+  Color get _blue => colors.secondary;
+  Color get _green => colors.success;
+  Color get _sky => AppColors.walletBrandAlt;
+
+  /// Same behaviour as the home "scan" quick-action: scan an account QR, then
+  /// always land on the review screen (never a silent transfer).
+  Future<void> _scanAndReview(BuildContext context) async {
     final acct = await openQrScanScreen(context);
-    if (acct == null || acct.isEmpty) return;
     if (!context.mounted) return;
-    // Scanning never transfers directly — review the recipient first.
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => ScanReviewScreen(account: acct),
-      ),
+      MaterialPageRoute<void>(builder: (_) => ScanReviewScreen(account: acct)),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        _ActionItem(
-          icon: Icons.arrow_upward_rounded,
-          label: l10n.walletActionSend,
-          colors: colors,
-          lang: lang,
+  void _openTransfers(BuildContext context) {
+    showServiceOptionsSheet(
+      context,
+      title: l10n.svcMoneyTransfers,
+      icon: Icons.swap_horiz_rounded,
+      options: [
+        ServiceSheetOption(
+          icon: Icons.send_rounded,
+          title: l10n.svcTransferToSubscriber,
+          subtitle: l10n.svcTransferToSubscriberDesc,
+          accent: _blue,
           onTap: () => context.push('/transfer/others'),
         ),
-        _ActionItem(
-          icon: Icons.qr_code_2_rounded,
-          label: l10n.walletActionReceive,
-          colors: colors,
-          lang: lang,
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => WalletReceiveScreen(account: account),
-            ),
-          ),
-        ),
-        _ActionItem(
-          icon: Icons.add_rounded,
-          label: l10n.walletActionTopUp,
-          colors: colors,
-          lang: lang,
+        ServiceSheetOption(
+          icon: Icons.currency_exchange_rounded,
+          title: l10n.svcExchange,
+          subtitle: l10n.svcExchangeDesc,
+          accent: _green,
+          // Currency exchange = a transfer between the customer's own accounts
+          // in different currencies (the "إلى حساباتي" screen handles the FX).
           onTap: () => context.push('/transfer/own'),
         ),
-        _ActionItem(
+      ],
+    );
+  }
+
+  void _openRechargePay(BuildContext context) {
+    showServiceOptionsSheet(
+      context,
+      title: l10n.svcRechargeAndPay,
+      icon: Icons.bolt_rounded,
+      options: [
+        ServiceSheetOption(
+          icon: Icons.receipt_long_rounded,
+          title: l10n.svcPayBillsFull,
+          subtitle: l10n.svcPayBillsDesc,
+          accent: _blue,
+          onTap: () => context.push('/bills/providers'),
+        ),
+        ServiceSheetOption(
+          icon: Icons.smartphone_rounded,
+          title: l10n.svcRechargeBalance,
+          subtitle: l10n.svcRechargeBalanceDesc,
+          accent: _green,
+          onTap: () => context.push('/bills/telecom'),
+        ),
+      ],
+    );
+  }
+
+  void _openPurchases(BuildContext context) {
+    showServiceOptionsSheet(
+      context,
+      title: l10n.svcPurchasePayment,
+      icon: Icons.shopping_bag_rounded,
+      options: [
+        ServiceSheetOption(
+          icon: Icons.storefront_rounded,
+          title: l10n.svcPayMerchant,
+          subtitle: l10n.svcPayMerchantDesc,
+          accent: _blue,
+          onTap: () => context.push('/merchant-payment'),
+        ),
+        ServiceSheetOption(
           icon: Icons.qr_code_scanner_rounded,
-          label: l10n.walletActionScan,
-          colors: colors,
-          lang: lang,
-          onTap: () => _scanAndPay(context),
+          title: l10n.svcScanToPay,
+          subtitle: l10n.svcScanToPayDesc,
+          accent: _green,
+          onTap: () => _scanAndReview(context),
+        ),
+        ServiceSheetOption(
+          icon: Icons.star_rounded,
+          title: l10n.svcFavoriteMerchants,
+          subtitle: l10n.svcFavoriteMerchantsDesc,
+          accent: _sky,
+          onTap: () => context.push('/favorite-merchants'),
         ),
       ],
     );
   }
-}
 
-class _ActionItem extends StatelessWidget {
-  const _ActionItem({
-    required this.icon,
-    required this.label,
-    required this.colors,
-    required this.lang,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final BankSyncColors colors;
-  final String lang;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Column(
-            children: [
-              Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  color: colors.secondary.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: colors.secondary, size: 26),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.labelSm(
-                        color: colors.onSurface, languageCode: lang)
-                    .copyWith(fontWeight: FontWeight.w600, fontSize: 12),
-              ),
-            ],
+  List<_ServiceData> _services(BuildContext context) => [
+        _ServiceData(
+          svg: 'assets/icons/ic_svc_transfers.svg',
+          label: l10n.svcMoneyTransfers,
+          onTap: () => _openTransfers(context),
+        ),
+        _ServiceData(
+          svg: 'assets/icons/ic_svc_withdraw.svg',
+          label: l10n.svcWithdrawFunds,
+          comingSoon: true,
+          onTap: () => showComingSoonSheet(
+            context,
+            serviceName: l10n.svcWithdrawFunds,
+            description: l10n.svcCashWithdrawalDesc,
+            icon: Icons.payments_rounded,
           ),
         ),
-      ),
-    );
-  }
-}
-
-// ─── Favorites quick-access ─────────────────────────────────────────────────
-
-/// Four-slot favorites strip. Real server-side favorites fill the slots (tap →
-/// prefilled transfer); empty slots show an "add favorite" affordance that opens
-/// the beneficiaries screen. Uses the shared [favoritesProvider] — no mock data.
-class _FavoritesStrip extends ConsumerWidget {
-  const _FavoritesStrip();
-
-  static const int _slots = 4;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.bankColors;
-    final lang = Localizations.localeOf(context).languageCode;
-    final l10n = context.l10n;
-    final favoritesAsync = ref.watch(favoritesProvider);
-
-    final favorites =
-        favoritesAsync.valueOrNull ?? const <FavoriteTransfer>[];
-    final loading = favoritesAsync.isLoading && !favoritesAsync.hasValue;
-
-    return Row(
-      children: [
-        for (var i = 0; i < _slots; i++) ...[
-          if (i > 0) const SizedBox(width: 10),
-          Expanded(
-            child: loading
-                ? _FavoriteSkeleton(colors: colors)
-                : (i < favorites.length
-                    ? _FavoriteChip(
-                        favorite: favorites[i],
-                        colors: colors,
-                        lang: lang,
-                        onTap: () => context.push(
-                          '/transfer/others?to=${Uri.encodeComponent(favorites[i].targetAccountNumber)}',
-                        ),
-                      )
-                    : _AddFavoriteSlot(
-                        colors: colors,
-                        lang: lang,
-                        label: l10n.walletAddFavorite,
-                        onTap: () => context.push('/beneficiaries'),
-                      )),
+        _ServiceData(
+          svg: 'assets/icons/ic_svc_recharge.svg',
+          label: l10n.svcRechargeAndPay,
+          onTap: () => _openRechargePay(context),
+        ),
+        _ServiceData(
+          svg: 'assets/icons/ic_svc_purchases.svg',
+          label: l10n.svcPurchasePayment,
+          onTap: () => _openPurchases(context),
+        ),
+        _ServiceData(
+          svg: 'assets/icons/ic_svc_banks.svg',
+          label: l10n.svcOtherBanksWallets,
+          comingSoon: true,
+          onTap: () => showComingSoonSheet(
+            context,
+            serviceName: l10n.svcOtherBanksWallets,
+            description: l10n.svcOtherBanksWalletsDesc,
+            icon: Icons.account_balance_rounded,
           ),
-        ],
-      ],
-    );
-  }
-}
-
-class _FavoriteChip extends StatelessWidget {
-  const _FavoriteChip({
-    required this.favorite,
-    required this.colors,
-    required this.lang,
-    required this.onTap,
-  });
-
-  final FavoriteTransfer favorite;
-  final BankSyncColors colors;
-  final String lang;
-  final VoidCallback onTap;
-
-  String get _initial {
-    final name = favorite.displayName.trim();
-    if (name.isEmpty) return '#';
-    return name.substring(0, 1).toUpperCase();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Column(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: colors.secondary.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-              border: Border.all(
-                  color: colors.secondary.withValues(alpha: 0.25), width: 1),
-            ),
-            child: Text(
-              _initial,
-              style: AppTextStyles.headlineMd(color: colors.secondary)
-                  .copyWith(fontSize: 20, fontWeight: FontWeight.w800),
+        ),
+        _ServiceData(
+          svg: 'assets/icons/ic_svc_internet.svg',
+          label: l10n.svcInternetCards,
+          comingSoon: true,
+          onTap: () => showComingSoonSheet(
+            context,
+            serviceName: l10n.svcInternetCards,
+            description: l10n.svcInternetCardsDesc,
+            icon: Icons.sim_card_rounded,
+          ),
+        ),
+        _ServiceData(
+          svg: 'assets/icons/ic_svc_favorites.svg',
+          label: l10n.walletFavorites,
+          onTap: () => context.push('/favorites'),
+        ),
+        _ServiceData(
+          svg: 'assets/icons/ic_svc_recent.svg',
+          label: l10n.walletRecentActivity,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) =>
+                  SecureScreen(child: TransactionsScreen(account: account)),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            favorite.displayName,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.labelSm(
-                    color: colors.onSurface, languageCode: lang)
-                .copyWith(fontWeight: FontWeight.w600, fontSize: 11),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AddFavoriteSlot extends StatelessWidget {
-  const _AddFavoriteSlot({
-    required this.colors,
-    required this.lang,
-    required this.label,
-    required this.onTap,
-  });
-
-  final BankSyncColors colors;
-  final String lang;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Column(
-        children: [
-          _DottedCircle(
-            size: 56,
-            color: colors.outline,
-            child: Icon(Icons.add_rounded,
-                color: colors.onSurfaceVariant, size: 24),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.labelSm(
-                    color: colors.onSurfaceVariant, languageCode: lang)
-                .copyWith(fontWeight: FontWeight.w500, fontSize: 11),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FavoriteSkeleton extends StatelessWidget {
-  const _FavoriteSkeleton({required this.colors});
-
-  final BankSyncColors colors;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: colors.surfaceContainerHigh,
-            shape: BoxShape.circle,
+        ),
+        // 9th service — completes the balanced 3×3 grid. Agents & service
+        // points (nearest cash-in/out locations) is served by the core and
+        // wired later; until then the tile behaves exactly like the other
+        // not-yet-built services — it opens the shared "coming soon" sheet
+        // (same chrome as Internet Cards) rather than a placeholder page.
+        _ServiceData(
+          svg: 'assets/icons/ic_svc_agents.svg',
+          label: l10n.svcServicePoints,
+          comingSoon: true,
+          onTap: () => showComingSoonSheet(
+            context,
+            serviceName: l10n.svcServicePoints,
+            description: l10n.svcServicePointsDesc,
+            icon: Icons.support_agent_rounded,
           ),
         ),
-        const SizedBox(height: 8),
-        Container(
-          width: 40,
-          height: 9,
-          decoration: BoxDecoration(
-            color: colors.surfaceContainerHigh,
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// A circle drawn with a dashed outline — used for the empty "add favorite" slot.
-class _DottedCircle extends StatelessWidget {
-  const _DottedCircle({
-    required this.size,
-    required this.color,
-    required this.child,
-  });
-
-  final double size;
-  final Color color;
-  final Widget child;
+      ];
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _DashedCirclePainter(color),
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Center(child: child),
-      ),
-    );
-  }
-}
-
-class _DashedCirclePainter extends CustomPainter {
-  _DashedCirclePainter(this.color);
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4;
-    final radius = size.width / 2;
-    final center = Offset(radius, radius);
-    const dashCount = 26;
-    const gap = 0.32; // fraction of each segment left empty
-    const sweep = 2 * 3.1415926535 / dashCount;
-    for (var i = 0; i < dashCount; i++) {
-      final start = i * sweep;
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        start,
-        sweep * (1 - gap),
-        false,
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedCirclePainter oldDelegate) =>
-      oldDelegate.color != color;
-}
-
-// ─── Services grid ──────────────────────────────────────────────────────────
-
-class _ServicesGrid extends StatelessWidget {
-  const _ServicesGrid({
-    required this.colors,
-    required this.l10n,
-    required this.lang,
-  });
-
-  final BankSyncColors colors;
-  final AppLocalizations l10n;
-  final String lang;
-
-  @override
-  Widget build(BuildContext context) {
-    final items = <_ServiceData>[
-      _ServiceData(Icons.arrow_upward_rounded, l10n.walletActionSend,
-          onTap: () => context.push('/transfer/others')),
-      _ServiceData(Icons.receipt_long_rounded, l10n.walletPayBills,
-          onTap: () => context.push('/bills/providers')),
-      _ServiceData(Icons.account_balance_rounded, l10n.walletTransferToBank,
-          onTap: () => context.push('/network-transfers')),
-      _ServiceData(Icons.people_alt_rounded, l10n.walletBeneficiaries,
-          onTap: () => context.push('/beneficiaries')),
-      _ServiceData(Icons.credit_card_rounded, l10n.serviceCards,
-          onTap: () => context.push('/cards')),
-      _ServiceData(Icons.wifi_rounded, l10n.walletServiceInternet,
-          onTap: () => context.push('/bills/internet')),
-      _ServiceData(Icons.star_rounded, l10n.walletFavorites,
-          onTap: () => context.push('/favorites')),
-      // Not built yet — surfaced honestly with a "coming soon" badge.
-      _ServiceData(Icons.trending_up_rounded, l10n.serviceInvestmentWallet,
-          comingSoon: true),
-    ];
-
+    final services = _services(context);
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
+        crossAxisCount: 3,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
-        childAspectRatio: 0.74,
+        // Fixed row height (not aspect-ratio) keeps every tile identical across
+        // screen widths. Tightened from the old boxed layout: the bare icon +
+        // reserved two-line label block sits centred inside this height, so the
+        // grid reads compact and precisely aligned without label overflow.
+        mainAxisExtent: 100,
       ),
-      itemCount: items.length,
+      itemCount: services.length,
       itemBuilder: (context, index) => _ServiceTile(
-        data: items[index],
+        data: services[index],
         colors: colors,
         lang: lang,
         comingSoonLabel: l10n.walletComingSoon,
-        onComingSoon: () => ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.comingSoonToast),
-            behavior: SnackBarBehavior.floating,
-          ),
-        ),
       ),
     );
   }
-}
-
-class _ServiceData {
-  const _ServiceData(this.icon, this.label,
-      {this.onTap, this.comingSoon = false});
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  final bool comingSoon;
 }
 
 class _ServiceTile extends StatelessWidget {
@@ -1118,90 +1018,101 @@ class _ServiceTile extends StatelessWidget {
     required this.colors,
     required this.lang,
     required this.comingSoonLabel,
-    required this.onComingSoon,
   });
 
   final _ServiceData data;
   final BankSyncColors colors;
   final String lang;
   final String comingSoonLabel;
-  final VoidCallback onComingSoon;
 
   @override
   Widget build(BuildContext context) {
-    final disabled = data.comingSoon;
-    return InkWell(
-      onTap: disabled ? onComingSoon : data.onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-        decoration: BoxDecoration(
-          color: colors.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(16),
-          border:
-              Border.all(color: colors.outlineVariant.withValues(alpha: 0.6)),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: disabled
-                        ? colors.surfaceContainerHigh
-                        : colors.secondary.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    data.icon,
-                    color: disabled
-                        ? colors.onSurfaceVariant
-                        : colors.secondary,
-                    size: 24,
-                  ),
-                ),
-                if (disabled)
-                  PositionedDirectional(
-                    end: -8,
-                    top: -6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.warning,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
+    final soon = data.comingSoon;
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.6)),
+        // A single, very soft lift — enough to separate the tile from the page
+        // without the heavy "template card" drop shadow.
+        boxShadow: [
+          BoxShadow(
+            color: colors.cardShadow,
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: data.onTap,
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // No tinted tile behind the glyph: the colourful SVG is the
+                    // card's primary element, sized up so it reads clearly on
+                    // the bare surface. Each glyph carries its own brand colours
+                    // (no ColorFilter) and stays full-colour even for "coming
+                    // soon" services — the corner badge alone carries that status.
+                    SvgPicture.asset(data.svg, width: 34, height: 34),
+                    const SizedBox(height: 10),
+                    // Fixed two-line label region. Because its height is
+                    // constant, the icon above always lands at the same Y and
+                    // the icon→label gap is identical on every tile, whether the
+                    // label is one line (most Arabic) or two (longer strings).
+                    // The text top-aligns inside it, so that gap never drifts.
+                    SizedBox(
+                      height: 30,
+                      width: double.infinity,
                       child: Text(
-                        comingSoonLabel,
-                        style: const TextStyle(
-                          fontFamily: 'Tajawal',
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF14152E),
+                        data.label,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.labelSm(
+                          color: colors.onSurface,
+                          languageCode: lang,
+                        ).copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
                           height: 1.2,
                         ),
                       ),
                     ),
+                  ],
+                ),
+              ),
+              if (soon)
+                PositionedDirectional(
+                  top: 7,
+                  end: 7,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      comingSoonLabel,
+                      style: const TextStyle(
+                        fontFamily: 'Tajawal',
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF14152E),
+                        height: 1.2,
+                      ),
+                    ),
                   ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              data.label,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.labelSm(
-                color: disabled ? colors.onSurfaceVariant : colors.onSurface,
-                languageCode: lang,
-              ).copyWith(
-                  fontWeight: FontWeight.w600, fontSize: 10.5, height: 1.15),
-            ),
-          ],
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -1233,24 +1144,18 @@ class _PromoCarouselState extends State<_PromoCarousel> {
   Timer? _timer;
   int _index = 0;
 
-  late final List<_PromoData> _promos = [
+  late final List<_PromoData> _promos = const [
     _PromoData(
-      icon: Icons.card_giftcard_rounded,
-      title: widget.l10n.exclusiveOffers,
-      subtitle: widget.l10n.cashBackSubtitle,
-      colors: const [Color(0xFF2F80ED), Color(0xFF0050B3)],
+      imagePath: 'assets/promos/Picture1.png',
+      aspectRatio: 1017 / 233,
     ),
     _PromoData(
-      icon: Icons.flight_takeoff_rounded,
-      title: widget.l10n.travelDiscountTitle,
-      subtitle: widget.l10n.travelDiscountSubtitle,
-      colors: const [Color(0xFF3B82F6), AppColors.navy],
+      imagePath: 'assets/promos/Picture2.png',
+      aspectRatio: 1017 / 207,
     ),
     _PromoData(
-      icon: Icons.savings_rounded,
-      title: widget.l10n.financeCalculatorTitle,
-      subtitle: widget.l10n.financeCalculatorSubtitle,
-      colors: const [Color(0xFF0050B3), Color(0xFF063A80)],
+      imagePath: 'assets/promos/Picture3.png',
+      aspectRatio: 1017 / 207,
     ),
   ];
 
@@ -1279,16 +1184,21 @@ class _PromoCarouselState extends State<_PromoCarousel> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SizedBox(
-          height: 120,
+        AspectRatio(
+          // Average aspect ratio of the images (~4.73) divided by 0.92 viewport fraction = 5.14
+          aspectRatio: 5.14,
           child: PageView.builder(
             controller: _controller,
             onPageChanged: (i) => setState(() => _index = i),
             itemCount: _promos.length,
-            itemBuilder: (context, i) => Padding(
-              padding: const EdgeInsetsDirectional.only(end: 10),
-              child: _PromoCard(data: _promos[i], lang: widget.lang),
-            ),
+            itemBuilder: (context, i) {
+              return _PromoCardSlide(
+                controller: _controller,
+                index: i,
+                fallbackPage: _index.toDouble(),
+                child: _PromoCard(data: _promos[i]),
+              );
+            },
           ),
         ),
         const SizedBox(height: 12),
@@ -1304,160 +1214,77 @@ class _PromoCarouselState extends State<_PromoCarousel> {
 
 class _PromoData {
   const _PromoData({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.colors,
+    required this.imagePath,
+    required this.aspectRatio,
   });
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final List<Color> colors;
+
+  final String imagePath;
+  final double aspectRatio;
+}
+
+class _PromoCardSlide extends StatelessWidget {
+  const _PromoCardSlide({
+    required this.controller,
+    required this.index,
+    required this.fallbackPage,
+    required this.child,
+  });
+
+  final PageController controller;
+  final int index;
+  final double fallbackPage;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      child: child,
+      builder: (context, child) {
+        final page = controller.hasClients
+            ? (controller.page ?? fallbackPage)
+            : fallbackPage;
+        // Continuous scale transition driving professional slide scaling
+        final t = (1.0 - (page - index).abs()).clamp(0.0, 1.0);
+        final scale = 0.94 + 0.06 * t; // scales between 0.94 and 1.0
+        return Transform.scale(scale: scale, child: child);
+      },
+    );
+  }
 }
 
 class _PromoCard extends StatelessWidget {
-  const _PromoCard({required this.data, required this.lang});
+  const _PromoCard({required this.data});
 
   final _PromoData data;
-  final String lang;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: data.colors,
-        ),
-        borderRadius: BorderRadius.circular(AppColors.radiusLg),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  data.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.labelSm(
-                          color: Colors.white, languageCode: lang)
-                      .copyWith(fontWeight: FontWeight.w800, fontSize: 15),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  data.subtitle,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.labelSm(
-                    color: Colors.white.withValues(alpha: 0.85),
-                    languageCode: lang,
-                  ).copyWith(
-                      fontWeight: FontWeight.w500, fontSize: 12, height: 1.4),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            width: 56,
-            height: 56,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(data.icon, color: Colors.white, size: 28),
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        // Modern premium soft shadow
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            spreadRadius: 0,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-    );
-  }
-}
-
-// ─── Recent activity ────────────────────────────────────────────────────────
-
-class _RecentActivityList extends ConsumerWidget {
-  const _RecentActivityList({
-    required this.account,
-    required this.colors,
-    required this.l10n,
-    required this.lang,
-  });
-
-  final BankingAccount account;
-  final BankSyncColors colors;
-  final AppLocalizations l10n;
-  final String lang;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final async =
-        ref.watch(walletRecentActivityProvider(account.accountNoForIntegration));
-
-    return async.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 28),
-        child: Center(child: UffLoader()),
-      ),
-      error: (_, __) => _hint(l10n.serverUnreachableMessage),
-      data: (list) {
-        if (list.isEmpty) return _hint(l10n.walletNoRecentActivity);
-        final items = [...list]..sort((a, b) {
-            final da = DateTime.tryParse(a.bookingDate);
-            final db = DateTime.tryParse(b.bookingDate);
-            if (da == null && db == null) return 0;
-            if (da == null) return 1;
-            if (db == null) return -1;
-            return db.compareTo(da);
-          });
-        final top = items.take(5).toList();
-        return Column(
-          children: [
-            for (final txn in top) ...[
-              _tile(txn),
-              const SizedBox(height: 10),
-            ],
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _tile(AccountTransaction txn) {
-    final credit = txn.isCredit;
-    return TransactionTile(
-      icon: txn.iconForType(),
-      title: txn.tileTitle(),
-      subtitle: txn.tileSubtitle(),
-      amount: txn.formattedAmount(),
-      status: txn.tileStatus(),
-      amountColor: credit ? _positiveAmount : _negativeAmount,
-      iconBackground: credit
-          ? colors.secondary.withValues(alpha: 0.1)
-          : colors.primaryContainer,
-      iconColor: credit ? colors.secondary : colors.onPrimaryContainer,
-      statusColor: colors.onSurfaceVariant,
-      statusBackground: colors.surfaceContainer,
-    );
-  }
-
-  Widget _hint(String text) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 28),
-        child: Center(
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.bodyMd(
-                color: colors.onSurfaceVariant, languageCode: lang),
-          ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: Image.asset(
+          data.imagePath,
+          fit: BoxFit.cover,
+          filterQuality: FilterQuality.high,
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _EmptyWalletState extends StatelessWidget {
@@ -1517,7 +1344,8 @@ class _ErrorState extends StatelessWidget {
       padding: const EdgeInsets.only(top: 60),
       child: Column(
         children: [
-          Icon(Icons.cloud_off_rounded, size: 64, color: colors.onSurfaceVariant),
+          Icon(Icons.cloud_off_rounded,
+              size: 64, color: colors.onSurfaceVariant),
           const SizedBox(height: 16),
           Text(
             l10n.serverUnreachableMessage,
