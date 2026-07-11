@@ -12,6 +12,14 @@ final kycRepositoryProvider = Provider<KycRepository>((ref) {
   );
 });
 
+/// Name + gender captured at sign-up, shown read-only atop the KYC form so the
+/// customer confirms (but can't change) what they registered with. Resolves to
+/// null while loading or if the account predates this being recorded.
+final registrationIdentityProvider =
+    FutureProvider<Map<String, dynamic>?>((ref) {
+  return ref.read(authServiceProvider).readRegistrationIdentity();
+});
+
 /// Shared, cached KYC status for the signed-in customer. The home banner, the
 /// verification screen and the profile screen all watch this so they stay in
 /// sync. Falls back to the profile-derived status when the backend endpoint is
@@ -43,3 +51,14 @@ class KycStatusNotifier extends AsyncNotifier<KycProfile> {
     state = AsyncData(profile);
   }
 }
+
+/// Whether the signed-in customer has completed identity verification.
+///
+/// Fails safe to `false` while the status is loading, errored, or anything
+/// other than VERIFIED — so operations stay locked until the account is
+/// confirmed. This is a UX gate only: the server remains the authoritative gate
+/// (money operations need a `customer_id` the backend issues only after
+/// verification).
+final walletVerifiedProvider = Provider<bool>((ref) {
+  return ref.watch(kycStatusProvider).valueOrNull?.status.isVerified ?? false;
+});

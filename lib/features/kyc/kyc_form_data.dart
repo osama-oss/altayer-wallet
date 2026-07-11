@@ -68,31 +68,60 @@ class KycFormData {
         address: address ?? this.address,
       );
 
-  /// Serialises the provided fields for the `POST /kyc/submit` payload. Dates
-  /// use ISO-8601 date-only (`yyyy-MM-dd`); empty text fields are omitted so the
-  /// server only ever sees what the customer actually entered.
+  /// Serialises this form into the `profile` object sent with `POST /kyc/submit`,
+  /// shaped to line up with the wallet core's `WALLET_CUSTOMER_CREATE` contract so
+  /// mobile-service can fold it into the customer-create call with minimal
+  /// translation — see `mobile-service-scaffold/KYC_BACKEND_PLAN.md` §11.
+  ///
+  /// Only the identity-document + birth fields this form owns are emitted. The
+  /// customer's name / gender / mobile come from registration, and the compliance
+  /// and extra birth/nationality fields (peps, sector, motherName, nationality,
+  /// birthCountry/Zone, …) are not collected yet — they are tracked as gaps in
+  /// the plan. `documents[].legalIdType` is derived server-side from the
+  /// separately-sent `idType`. Dates are ISO-8601 date-only (`yyyy-MM-dd`); empty
+  /// text is omitted so the server only ever sees what the customer entered.
   Map<String, dynamic> toWire() {
-    final map = <String, dynamic>{};
-    void putText(String key, String value) {
+    String? text(String value) {
       final trimmed = value.trim();
-      if (trimmed.isNotEmpty) map[key] = trimmed;
+      return trimmed.isEmpty ? null : trimmed;
     }
 
-    void putDate(String key, DateTime? value) {
-      if (value != null) map[key] = _isoDate(value);
+    // documents[] — the legal-ID block of WALLET_CUSTOMER_CREATE.
+    final document = <String, dynamic>{};
+    void putDoc(String key, String? value) {
+      if (value != null) document[key] = value;
     }
 
-    putText('documentNumber', documentNumber);
-    putText('issuingAuthority', issuingAuthority);
-    putDate('issueDate', issueDate);
-    putDate('expiryDate', expiryDate);
-    putText('placeOfBirth', placeOfBirth);
-    putDate('dateOfBirth', dateOfBirth);
-    putText('country', country);
-    putText('city', city);
-    putText('district', district);
-    putText('region', region);
-    putText('address', address);
+    putDoc('legalIdNumber', text(documentNumber));
+    putDoc('issueAuthority', text(issuingAuthority));
+    if (issueDate != null) document['legalIdIssueDate'] = _isoDate(issueDate!);
+    if (expiryDate != null) {
+      document['legalIdExpirationDate'] = _isoDate(expiryDate!);
+    }
+
+    final map = <String, dynamic>{};
+    if (dateOfBirth != null) map['dateOfBirth'] = _isoDate(dateOfBirth!);
+    // Provisional: the form's single "place of birth" seeds birthCity; the core
+    // also wants birthCountry + birthZone, which aren't collected yet (§11).
+    final birthCity = text(placeOfBirth);
+    if (birthCity != null) map['birthCity'] = birthCity;
+    if (document.isNotEmpty) map['documents'] = [document];
+
+    // Residence is collected here but is NOT part of WALLET_CUSTOMER_CREATE; the
+    // KYC service keeps it on the local verification record. Nested so it can
+    // never leak into the core customer body.
+    final residence = <String, dynamic>{};
+    void putRes(String key, String? value) {
+      if (value != null) residence[key] = value;
+    }
+
+    putRes('country', text(country));
+    putRes('city', text(city));
+    putRes('district', text(district));
+    putRes('region', text(region));
+    putRes('address', text(address));
+    if (residence.isNotEmpty) map['residence'] = residence;
+
     return map;
   }
 

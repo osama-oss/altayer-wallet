@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/bank_sync_colors.dart';
@@ -6,13 +7,15 @@ import '../../../core/widgets/uff_ui.dart';
 import '../../../l10n/app_localizations.dart';
 import '../kyc_document.dart';
 import '../kyc_form_data.dart';
+import '../kyc_providers.dart';
+import 'kyc_id_scan_screen.dart';
 import 'kyc_id_type_selector.dart';
 
 /// Step 1 of account verification: the customer confirms the details printed on
 /// their identity document plus their residence, then continues to the document
 /// capture step. Nothing is submitted here — the collected [KycFormData] is
 /// handed back through [onContinue]; the parent [KycFlow] carries it to submit.
-class KycDataFormView extends StatefulWidget {
+class KycDataFormView extends ConsumerStatefulWidget {
   const KycDataFormView({
     super.key,
     required this.initialIdType,
@@ -25,10 +28,10 @@ class KycDataFormView extends StatefulWidget {
   final void Function(KycIdType idType, KycFormData data) onContinue;
 
   @override
-  State<KycDataFormView> createState() => _KycDataFormViewState();
+  ConsumerState<KycDataFormView> createState() => _KycDataFormViewState();
 }
 
-class _KycDataFormViewState extends State<KycDataFormView> {
+class _KycDataFormViewState extends ConsumerState<KycDataFormView> {
   final _formKey = GlobalKey<FormState>();
 
   late KycIdType _idType;
@@ -96,6 +99,16 @@ class _KycDataFormViewState extends State<KycDataFormView> {
     widget.onContinue(_idType, _collect());
   }
 
+  /// Opens the ID-barcode scanner and, on a successful read, fills the document
+  /// number. The field stays fully editable so a failed scan never blocks manual
+  /// entry.
+  Future<void> _scanId() async {
+    FocusScope.of(context).unfocus();
+    final number = await openIdBarcodeScanScreen(context);
+    if (!mounted || number == null || number.isEmpty) return;
+    setState(() => _documentNumber.text = number);
+  }
+
   Future<DateTime?> _pick({
     required DateTime? current,
     required DateTime first,
@@ -122,6 +135,8 @@ class _KycDataFormViewState extends State<KycDataFormView> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final isPassport = _idType == KycIdType.passport;
+    // Name + gender captured at sign-up — shown read-only (never editable here).
+    final identity = ref.watch(registrationIdentityProvider).valueOrNull;
 
     return Form(
       key: _formKey,
@@ -158,6 +173,7 @@ class _KycDataFormViewState extends State<KycDataFormView> {
                         : l10n.kycFieldIdNumber,
                     keyboardType:
                         isPassport ? TextInputType.text : TextInputType.number,
+                    onScan: _scanId,
                   ),
                   _TextField(
                     controller: _issuingAuthority,
@@ -272,6 +288,7 @@ class _TextField extends StatelessWidget {
     this.prefixIcon,
     this.required = true,
     this.maxLines = 1,
+    this.onScan,
   });
 
   final TextEditingController controller;
@@ -280,6 +297,10 @@ class _TextField extends StatelessWidget {
   final IconData? prefixIcon;
   final bool required;
   final int maxLines;
+
+  /// When set, a barcode-scan button is shown at the trailing edge; tapping it
+  /// runs the ID scanner to fill this field.
+  final VoidCallback? onScan;
 
   @override
   Widget build(BuildContext context) {
@@ -302,12 +323,35 @@ class _TextField extends StatelessWidget {
           prefixIcon: prefixIcon != null
               ? Icon(prefixIcon, color: colors.outline, size: 20)
               : null,
+          suffixIcon: onScan == null ? null : _ScanButton(onTap: onScan!),
         ),
         validator: required
             ? (v) =>
                 (v == null || v.trim().isEmpty) ? l10n.kycFieldRequired : null
             : null,
       ),
+    );
+  }
+}
+
+/// The trailing barcode-scan affordance shown inside the ID-number field, in
+/// the brand accent so it clearly reads as a tappable scan action.
+class _ScanButton extends StatelessWidget {
+  const _ScanButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.bankColors;
+    return IconButton(
+      onPressed: onTap,
+      // AR-hardcoded to match the (Arabic-only) scanner screen; the surrounding
+      // form is Arabic-first. Move to l10n if an English scanner is ever needed.
+      tooltip: 'امسح الباركود',
+      visualDensity: VisualDensity.compact,
+      icon: Icon(Icons.qr_code_scanner_rounded,
+          color: colors.secondary, size: 22),
     );
   }
 }
