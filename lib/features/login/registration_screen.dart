@@ -3,9 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/network/api_exception.dart';
+import '../../core/providers/app_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/bank_sync_colors.dart';
 import '../../core/widgets/brand_logo.dart';
+import '../../core/widgets/uff_loader.dart';
 import '../../core/widgets/uff_ui.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -31,6 +34,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
 
   String? _gender; // 'male' | 'female'
   bool _agreed = false;
+  bool _submitting = false;
 
   @override
   void dispose() {
@@ -42,7 +46,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final l10n = context.l10n;
     final formOk = _formKey.currentState?.validate() ?? false;
     if (!formOk) return;
@@ -54,9 +58,49 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       _snack(l10n.mustAgreeToTerms);
       return;
     }
-    // ربط الكور لاحقاً — الآن ننتقل مباشرة إلى شاشة تفعيل الحساب.
+    if (_submitting) return;
     final mobile = _mobile.text.trim();
-    context.push('/register/verify?mobile=${Uri.encodeComponent(mobile)}');
+    setState(() => _submitting = true);
+    try {
+      // Wallet registration: username = the mobile number. Per the backend
+      // contract the only usernameMode values are CUSTOMER_ID and CUSTOM, so we
+      // use CUSTOM + customUsername to set the Keycloak username to the mobile
+      // explicitly. customerId is required by the DTO (1–16 chars), so we pass
+      // the mobile there too. The temporary password equals the username
+      // (= mobile), which the set-password step then sends as currentPassword.
+      final auth = ref.read(authServiceProvider);
+      await auth.completeRegistration(
+            customerId: mobile,
+            usernameMode: 'CUSTOM',
+            customUsername: mobile,
+          );
+      // Keep the name + gender the customer entered here: registration itself
+      // only creates the Keycloak user, but the KYC step and the eventual
+      // WALLET_CUSTOMER_CREATE call need these. Persisted read-only so KYC shows
+      // them without letting the customer change what they signed up with.
+      final fullName = [_firstName, _secondName, _thirdName, _surname]
+          .map((c) => c.text.trim())
+          .where((s) => s.isNotEmpty)
+          .join(' ');
+      await auth.saveRegistrationIdentity({
+        'firstName': _firstName.text.trim(),
+        'secondName': _secondName.text.trim(),
+        'thirdName': _thirdName.text.trim(),
+        'familyName': _surname.text.trim(),
+        'givenName': _firstName.text.trim(),
+        'fullName': fullName,
+        'gender': _gender, // 'male' | 'female'
+        'mobile': mobile,
+      });
+      if (!mounted) return;
+      context.push('/register/verify?mobile=${Uri.encodeComponent(mobile)}');
+    } on ApiException catch (e) {
+      if (mounted) _snack(e.message);
+    } catch (e) {
+      if (mounted) _snack(e.toString());
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   void _snack(String message) {
@@ -216,22 +260,26 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                 SizedBox(
                   height: 54,
                   child: FilledButton(
-                    onPressed: _submit,
+                    onPressed: _submitting ? null : _submit,
                     style: FilledButton.styleFrom(
                       backgroundColor: colors.secondary,
                       foregroundColor: colors.onSecondary,
+                      disabledBackgroundColor:
+                          colors.secondary.withValues(alpha: 0.5),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    child: Text(
-                      l10n.createAccountButton,
-                      style: const TextStyle(
-                        fontFamily: 'Tajawal',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+                    child: _submitting
+                        ? const UffLoader(size: 22, color: Colors.white)
+                        : Text(
+                            l10n.createAccountButton,
+                            style: const TextStyle(
+                              fontFamily: 'Tajawal',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 14),

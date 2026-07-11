@@ -91,7 +91,15 @@ class _AccountActivationScreenState extends State<AccountActivationScreen> {
       return;
     }
     setState(() => _verifying = false);
-    context.go('/login');
+    // Registration flow: after activation, the user sets a permanent password.
+    // The account is created (backend, same pattern as mobile) with a temporary
+    // password equal to the phone, so we pass it as currentPassword; the
+    // set-initial-password screen then sets the new password AND logs the user
+    // in (completeInitialPasswordAndLogin).
+    context.go('/set-initial-password', extra: <String, String>{
+      'username': widget.mobile,
+      'currentPassword': widget.mobile,
+    });
   }
 
   String _invalidCodeMessage(BuildContext context) {
