@@ -1,18 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Present Box Body -->
-  <rect x="5" y="10" width="14" height="10" rx="1.5" fill="#13a438" fill-opacity="0.15" stroke="#090078" stroke-width="1.8" stroke-linejoin="round" />
-  <!-- Present Box Lid -->
-  <rect x="4" y="7" width="16" height="3" rx="1" fill="#13a438" fill-opacity="0.15" stroke="#090078" stroke-width="1.8" stroke-linejoin="round" />
-  <!-- Ribbon Vertical Line -->
-  <line x1="12" y1="7" x2="12" y2="20" stroke="#13a438" stroke-width="1.8" stroke-linecap="round" />
-  <!-- Left Bow Loop -->
-  <path d="M12 7 C 10 4.5, 7 3, 7 5.5 C 7 7.5, 10 7, 12 7" fill="#13a438" fill-opacity="0.25" stroke="#13a438" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-  <!-- Right Bow Loop -->
-  <path d="M12 7 C 14 4.5, 17 3, 17 5.5 C 17 7.5, 14 7, 12 7" fill="#13a438" fill-opacity="0.25" stroke="#13a438" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-  <!-- Left Bow Tail -->
-  <path d="M12 7c-1 1.5-2 3.5-1.5 5" fill="none" stroke="#13a438" stroke-width="1.8" stroke-linecap="round" />
-  <!-- Right Bow Tail -->
-  <path d="M12 7c1 1.5 2 3.5 1.5 5" fill="none" stroke="#13a438" stroke-width="1.8" stroke-linecap="round" />
-  <!-- Center Bow Knot -->
-  <circle cx="12" cy="7" r="1.5" fill="#13a438" />
+  <!-- Send gift: pink box + amber ribbon and bow. Theme-shared. -->
+  <rect x="4.7" y="10.6" width="14.6" height="10.8" rx="1.6" fill="#EC4899"/>
+  <rect x="3.3" y="6.8" width="17.4" height="4.4" rx="1.4" fill="#F472B6"/>
+  <rect x="10.8" y="6.8" width="2.4" height="14.6" fill="#F59E0B"/>
+  <path d="M12 6.8C11 5.7 10.3 3.2 8.5 3.2 7.2 3.2 6.5 4.4 7.1 5.5 7.7 6.6 9.5 6.8 12 6.8Z" fill="#F59E0B"/>
+  <path d="M12 6.8C13 5.7 13.7 3.2 15.5 3.2 16.8 3.2 17.5 4.4 16.9 5.5 16.3 6.6 14.5 6.8 12 6.8Z" fill="#F59E0B"/>
+  <circle cx="12" cy="6.6" r="1.35" fill="#E58A0B"/>
 </svg>

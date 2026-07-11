@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- Purchase payment: violet shopping bag. -->
+  <path d="M5.6 7.4h12.8a.8.8 0 0 1 .8.86l-.92 11.3a2 2 0 0 1-2 1.84H7.72a2 2 0 0 1-2-1.84L4.8 8.26a.8.8 0 0 1 .8-.86z" fill="#7C5CFC"/>
+  <path d="M8.7 7.4V6.5a3.3 3.3 0 0 1 6.6 0V7.4" fill="none" stroke="#8B5CF6" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M5.15 10.5H18.85" stroke="#A78BFA" stroke-width="1.2" stroke-linecap="round"/>
+</svg>
