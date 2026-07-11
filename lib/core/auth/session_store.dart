@@ -82,6 +82,22 @@ class SessionStore {
   Future<void> saveProfile(Map<String, dynamic> profile) =>
       _secure.write(SecureKeys.userProfile, jsonEncode(profile));
 
+  /// Persists the name + gender the customer entered at sign-up. Kept apart from
+  /// [saveProfile] so a later profile refresh can't erase it.
+  Future<void> saveRegistrationIdentity(Map<String, dynamic> identity) =>
+      _secure.write(SecureKeys.registrationIdentity, jsonEncode(identity));
+
+  Future<Map<String, dynamic>?> readRegistrationIdentity() async {
+    final raw = await _secure.read(SecureKeys.registrationIdentity);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final decoded = jsonDecode(raw);
+      return decoded is Map<String, dynamic> ? decoded : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<String?> readToken() async {
     if (!_tokenLoaded) {
       _token = await _secure.read(SecureKeys.accessToken);
@@ -196,5 +212,6 @@ class SessionStore {
     await clearSessionTokens();
     await _secure.delete(SecureKeys.username);
     await _secure.delete(SecureKeys.userProfile);
+    await _secure.delete(SecureKeys.registrationIdentity);
   }
 }

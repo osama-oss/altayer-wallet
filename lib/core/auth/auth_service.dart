@@ -89,7 +89,10 @@ class AuthService {
 
   Future<LoginResult> loginWithPassword(String username, String password) async {
     final trimmedUser = username.trim();
-    final keycloakUsername = await _api.resolveLoginUsername(trimmedUser);
+    // TEMP (wallet testing): the wallet Keycloak username IS the mobile number,
+    // so skip the resolve-login round-trip (it still hits the bank registry/core,
+    // not wired for the wallet yet). Revert once the wallet backend is ready.
+    final keycloakUsername = trimmedUser;
     try {
       final tokens = await _api.loginKeycloak(keycloakUsername, password);
       final access = tokens['access_token'] as String?;
@@ -123,14 +126,20 @@ class AuthService {
     // rejects userDetail/registerDevice with 401 SESSION_IDLE_TIMEOUT.
     await _store.touchLastActivity(persist: true);
 
-    final detail = await _api.userDetail(token);
-    final deviceId = await _devices.getOrCreateDeviceId();
+    // TEMP (wallet testing): the wallet backend isn't fully wired yet, so
+    // userDetail / registerDevice can fail for an unverified user. Keep them
+    // best-effort so login still lands in the app to exercise the integrations.
+    Map<String, dynamic> detail = const {};
     try {
+      detail = await _api.userDetail(token);
+    } catch (_) {}
+    try {
+      final deviceId = await _devices.getOrCreateDeviceId();
       await _api.registerDevice(token, deviceId);
     } on DeviceAlreadyBoundException {
       await _store.clear();
       rethrow;
-    }
+    } catch (_) {}
     await _store.saveSession(
       token: token,
       username: username,
@@ -142,6 +151,10 @@ class AuthService {
     await clearPreferPasswordLogin();
     await _store.touchLastActivity(persist: true);
     _onLoginSuccess?.call();
+    if (detail.isEmpty) {
+      // No profile (unverified/dev session) — go straight in to test.
+      return const LoginResult(route: PostLoginRoute.home);
+    }
     final pinStatus = detail['pinStatus']?.toString();
     if (pinStatus == 'NOT_SET') {
       return const LoginResult(route: PostLoginRoute.pinSetup);
@@ -459,6 +472,14 @@ class AuthService {
   Future<void> saveProfile(Map<String, dynamic> profile) => _store.saveProfile(profile);
 
   Future<Map<String, dynamic>?> readProfile() => _store.readProfile();
+
+  /// Name + gender captured at sign-up (used read-only by the KYC form). Stored
+  /// apart from the profile so a profile refresh never erases it.
+  Future<void> saveRegistrationIdentity(Map<String, dynamic> identity) =>
+      _store.saveRegistrationIdentity(identity);
+
+  Future<Map<String, dynamic>?> readRegistrationIdentity() =>
+      _store.readRegistrationIdentity();
 
   // ─── Session lifecycle ────────────────────────────────────────────────
   /// True when the stored access token is missing/near expiry. Foundation for

@@ -11,6 +11,10 @@ abstract class SecureKeys {
   static const accessTokenExpiry = 'access_token_expiry'; // epoch millis (String)
   static const username = 'username';
   static const userProfile = 'user_profile'; // JSON
+  // Name + gender captured at sign-up, kept separate from [userProfile] so a
+  // backend profile refresh (which replaces userProfile) never wipes it. Read
+  // back read-only in the KYC form. JSON.
+  static const registrationIdentity = 'registration_identity';
   static const authMethod = 'auth_method'; // 'password' | 'biometric'
   static const sessionTimeoutMinutes = 'session_timeout_minutes'; // int (String)
   static const lastActivityAt = 'last_activity_at'; // epoch millis (String)
