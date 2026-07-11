@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/profile_helpers.dart';
 import '../../core/providers/app_providers.dart';
@@ -9,10 +10,14 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/bank_sync_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/widgets/uff_loader.dart';
+import '../kyc/kyc_providers.dart';
+import '../kyc/kyc_status.dart';
+import '../kyc/widgets/kyc_status_badge.dart';
 
 /// Read-only profile screen. Renders the customer details already cached from
-/// `userDetail` / `CUSTOMER-DATA` at login — no new backend call. Editing and
-/// avatar upload need core support, so they are intentionally out of scope.
+/// `userDetail` / `CUSTOMER-DATA` at login, plus a live verification (KYC)
+/// status card driven by [kycStatusProvider]. Editing and avatar upload need
+/// core support, so they are intentionally out of scope.
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
@@ -78,6 +83,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final l10n = context.l10n;
     final colors = context.bankColors;
     final languageCode = Localizations.localeOf(context).languageCode;
+    final kycStatus =
+        ref.watch(kycStatusProvider).valueOrNull?.status ?? KycStatus.unverified;
 
     final fullName =
         _pick(['fullName', 'name', 'customerName']) ?? _username ?? '';
@@ -97,13 +104,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 28),
               children: [
                 _Header(
-                  initials: _initials(fullName.isNotEmpty ? fullName : (username ?? '?')),
+                  initials: _initials(
+                      fullName.isNotEmpty ? fullName : (username ?? '?')),
                   name: fullName.isNotEmpty ? fullName : (username ?? ''),
                   username: username,
+                  verified: kycStatus.isVerified,
                   colors: colors,
                   languageCode: languageCode,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
+                _VerificationCard(status: kycStatus),
+                const SizedBox(height: 20),
                 Container(
                   decoration: BoxDecoration(
                     color: colors.surfaceContainerLowest,
@@ -160,8 +171,42 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _divider(BankSyncColors colors) =>
-      Divider(height: 1, indent: 56, endIndent: 16, color: colors.outlineVariant);
+  Widget _divider(BankSyncColors colors) => Divider(
+      height: 1, indent: 56, endIndent: 16, color: colors.outlineVariant);
+}
+
+/// Verification status card. Tappable for any non-terminal state — actionable
+/// states (unverified/incomplete/rejected) show a "complete verification" cue,
+/// pending/verified open the read-only status view.
+class _VerificationCard extends StatelessWidget {
+  const _VerificationCard({required this.status});
+
+  final KycStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.bankColors;
+    final actionable = status.canSubmit;
+
+    return InkWell(
+      onTap: () => context.push('/kyc'),
+      borderRadius: BorderRadius.circular(18),
+      child: KycStatusCard(
+        status: status,
+        trailing: actionable
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.chevron_right_rounded, color: status.color(colors)),
+                ],
+              )
+            : (status.isVerified
+                ? Icon(Icons.verified_rounded,
+                    color: colors.accentGreen, size: 22)
+                : null),
+      ),
+    );
+  }
 }
 
 class _Header extends StatelessWidget {
@@ -169,6 +214,7 @@ class _Header extends StatelessWidget {
     required this.initials,
     required this.name,
     required this.username,
+    required this.verified,
     required this.colors,
     required this.languageCode,
   });
@@ -176,6 +222,7 @@ class _Header extends StatelessWidget {
   final String initials;
   final String name;
   final String? username;
+  final bool verified;
   final BankSyncColors colors;
   final String languageCode;
 
@@ -183,29 +230,60 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          width: 96,
-          height: 96,
-          alignment: Alignment.center,
-          decoration: const BoxDecoration(
-            gradient: AppColors.brandGradient,
-            shape: BoxShape.circle,
-          ),
-          child: Text(
-            initials,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-              fontSize: 34,
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 96,
+              height: 96,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                gradient: AppColors.brandGradient,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                initials,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 34,
+                ),
+              ),
             ),
-          ),
+            // Verified check overlaid on the avatar.
+            if (verified)
+              PositionedDirectional(
+                end: -2,
+                bottom: -2,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: colors.background,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.verified_rounded,
+                      color: colors.accentGreen, size: 26),
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 16),
-        Text(
-          name,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.headlineMd(languageCode: languageCode)
-               .copyWith(color: colors.onSurface, fontWeight: FontWeight.w700),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                name,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.headlineMd(languageCode: languageCode)
+                    .copyWith(color: colors.onSurface, fontWeight: FontWeight.w700),
+              ),
+            ),
+            if (verified) ...[
+              const SizedBox(width: 6),
+              Icon(Icons.verified_rounded, color: colors.accentGreen, size: 20),
+            ],
+          ],
         ),
         if (username != null && username!.isNotEmpty) ...[
           const SizedBox(height: 4),
@@ -284,7 +362,8 @@ class _InfoRow extends StatelessWidget {
           if (onCopy != null)
             IconButton(
               onPressed: onCopy,
-              icon: Icon(Icons.content_copy_rounded, size: 18, color: colors.secondary),
+              icon: Icon(Icons.content_copy_rounded,
+                  size: 18, color: colors.secondary),
             ),
         ],
       ),

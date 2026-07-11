@@ -6,6 +6,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../core/data/accounts_repository.dart';
 import '../../core/models/banking_account.dart';
+import '../../core/network/api_error_message.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/security/screen_security.dart';
@@ -98,7 +99,12 @@ class _AllAccountsScreenState extends ConsumerState<AllAccountsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        // Never surface the raw DioException text. Transport failures (timeout,
+        // no connection) get the friendly "server unreachable" copy; anything
+        // else is passed through the shared humanizer.
+        _error = isNetworkError(e)
+            ? context.l10n.serverUnreachableMessage
+            : formatThrowableMessage(e);
         _loading = false;
       });
     }
@@ -212,14 +218,31 @@ class _AllAccountsScreenState extends ConsumerState<AllAccountsScreen> {
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.24),
             Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  _error!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  children: [
+                    Icon(Icons.cloud_off_rounded,
+                        size: 56, color: colors.onSurfaceVariant),
+                    const SizedBox(height: 16),
+                    Text(
+                      _error!,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.bodyMd(color: colors.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton.icon(
+                      onPressed: _loadAccounts,
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: colors.secondary,
+                        foregroundColor: colors.onSecondary,
+                      ),
+                      label: Text(l10n.walletRetry),
+                    ),
+                  ],
                 ),
               ),
             ),
