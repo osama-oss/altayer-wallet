@@ -159,6 +159,15 @@ class _KycDataFormViewState extends ConsumerState<KycDataFormView> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  if (identity != null &&
+                      (identity['fullName']?.toString().trim().isNotEmpty ??
+                          false)) ...[
+                    _ReadOnlyIdentityCard(
+                      fullName: identity['fullName'].toString(),
+                      gender: identity['gender']?.toString(),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   KycIdTypeSelector(
                     value: _idType,
                     onChanged: (t) => setState(() => _idType = t),
@@ -352,6 +361,134 @@ class _ScanButton extends StatelessWidget {
       visualDensity: VisualDensity.compact,
       icon: Icon(Icons.qr_code_scanner_rounded,
           color: colors.secondary, size: 22),
+    );
+  }
+}
+
+/// The locked "your details" card at the top of the KYC form: the full name and
+/// gender the customer entered at sign-up, shown for confirmation only. There is
+/// deliberately no input here — a lock glyph + hint make clear it can't be
+/// changed from this screen.
+class _ReadOnlyIdentityCard extends StatelessWidget {
+  const _ReadOnlyIdentityCard({required this.fullName, required this.gender});
+
+  final String fullName;
+
+  /// 'male' | 'female' | null (older accounts).
+  final String? gender;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.bankColors;
+    final l10n = context.l10n;
+    final genderText = switch (gender) {
+      'male' => l10n.genderMale,
+      'female' => l10n.genderFemale,
+      _ => '—',
+    };
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant, width: 1.2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.lock_outline_rounded,
+                  size: 15, color: colors.onSurfaceVariant),
+              const SizedBox(width: 6),
+              Text(
+                l10n.kycSectionPersonal,
+                style: TextStyle(
+                  fontFamily: 'Tajawal',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _ReadOnlyRow(
+            label: l10n.fullName,
+            value: fullName,
+            icon: Icons.person_outline_rounded,
+          ),
+          const SizedBox(height: 12),
+          _ReadOnlyRow(
+            label: l10n.gender,
+            value: genderText,
+            icon: gender == 'female'
+                ? Icons.female_rounded
+                : Icons.male_rounded,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n.kycIdentityLocked,
+            style: TextStyle(
+              fontFamily: 'Tajawal',
+              fontSize: 11.5,
+              height: 1.4,
+              fontWeight: FontWeight.w600,
+              color: colors.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A single label + value line inside [_ReadOnlyIdentityCard].
+class _ReadOnlyRow extends StatelessWidget {
+  const _ReadOnlyRow({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.bankColors;
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: colors.outline),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Tajawal',
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value.isEmpty ? '—' : value,
+                style: TextStyle(
+                  fontFamily: 'Tajawal',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: colors.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
