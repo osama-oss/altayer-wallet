@@ -6,6 +6,7 @@ import '../../core/security/screen_security.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/bank_sync_colors.dart';
+import '../../core/widgets/app_bottom_sheet.dart';
 import '../../core/widgets/uff_ui.dart';
 import '../../l10n/app_localizations.dart';
 import '../accounts/all_accounts_screen.dart';
@@ -74,7 +75,8 @@ class TransferHubScreen extends StatelessWidget {
               if (serviceIndex == 0) {
                 Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => const UnsecureScreen(child: AllAccountsScreen()),
+                    builder: (_) =>
+                        const UnsecureScreen(child: AllAccountsScreen()),
                   ),
                 );
               } else if (serviceIndex == 1) {
@@ -88,15 +90,21 @@ class TransferHubScreen extends StatelessWidget {
               } else if (serviceIndex == 5) {
                 context.push('/favorites');
               } else if (serviceIndex == 6) {
-                _comingSoon(context);
+                showComingSoonSheet(context,
+                    serviceName: l10n.serviceStandingOrders,
+                    icon: Icons.event_repeat_rounded);
               } else if (serviceIndex == 7) {
                 context.push('/beneficiaries');
               } else if (serviceIndex == 8) {
-                _comingSoon(context);
+                showComingSoonSheet(context,
+                    serviceName: l10n.serviceCharity,
+                    icon: Icons.volunteer_activism_rounded);
               } else if (serviceIndex == 9) {
                 context.push('/network-transfers');
               } else if (serviceIndex == 10) {
-                _comingSoon(context);
+                showComingSoonSheet(context,
+                    serviceName: l10n.serviceSendGift,
+                    icon: Icons.card_giftcard_rounded);
               }
             },
           ),
@@ -114,19 +122,12 @@ class TransferHubScreen extends StatelessWidget {
     );
   }
 
-  void _comingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.comingSoonToast),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   // "سداد خدمات" tile → choose between telecom top-up and bill payment.
-  void _showBillPaymentsSheet(BuildContext context, BankSyncColors colors, String lang) {
+  void _showBillPaymentsSheet(
+      BuildContext context, BankSyncColors colors, String lang) {
     final isAr = lang == 'ar';
-    final suffix = Theme.of(context).brightness == Brightness.dark ? 'dark' : 'light';
+    final suffix =
+        Theme.of(context).brightness == Brightness.dark ? 'dark' : 'light';
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: colors.surfaceContainerLowest,
@@ -170,7 +171,8 @@ class TransferHubScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.of(sheetContext).pop();
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const TelecomPaymentScreen()),
+                      MaterialPageRoute(
+                          builder: (_) => const TelecomPaymentScreen()),
                     );
                   },
                 ),
@@ -183,7 +185,8 @@ class TransferHubScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.of(sheetContext).pop();
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const BillerListScreen()),
+                      MaterialPageRoute(
+                          builder: (_) => const BillerListScreen()),
                     );
                   },
                 ),
@@ -195,7 +198,8 @@ class TransferHubScreen extends StatelessWidget {
     );
   }
 
-  void _showOffersBottomSheet(BuildContext context, BankSyncColors colors, String lang) {
+  void _showOffersBottomSheet(
+      BuildContext context, BankSyncColors colors, String lang) {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: colors.surfaceContainerLowest,
@@ -204,7 +208,8 @@ class TransferHubScreen extends StatelessWidget {
       ),
       builder: (context) {
         final isAr = lang == 'ar';
-        final suffix = Theme.of(context).brightness == Brightness.dark ? 'dark' : 'light';
+        final suffix =
+            Theme.of(context).brightness == Brightness.dark ? 'dark' : 'light';
         return Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
@@ -240,11 +245,14 @@ class TransferHubScreen extends StatelessWidget {
                 ),
                 title: Text(
                   context.l10n.cashBackTitle,
-                  style: TextStyle(fontWeight: FontWeight.w600, fontFamily: isAr ? 'Tajawal' : null),
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontFamily: isAr ? 'Tajawal' : null),
                 ),
                 subtitle: Text(
                   context.l10n.cashBackSubtitle,
-                  style: TextStyle(fontSize: 12, fontFamily: isAr ? 'Tajawal' : null),
+                  style: TextStyle(
+                      fontSize: 12, fontFamily: isAr ? 'Tajawal' : null),
                 ),
               ),
               const Divider(),
@@ -256,11 +264,14 @@ class TransferHubScreen extends StatelessWidget {
                 ),
                 title: Text(
                   context.l10n.travelDiscountTitle,
-                  style: TextStyle(fontWeight: FontWeight.w600, fontFamily: isAr ? 'Tajawal' : null),
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontFamily: isAr ? 'Tajawal' : null),
                 ),
                 subtitle: Text(
                   context.l10n.travelDiscountSubtitle,
-                  style: TextStyle(fontSize: 12, fontFamily: isAr ? 'Tajawal' : null),
+                  style: TextStyle(
+                      fontSize: 12, fontFamily: isAr ? 'Tajawal' : null),
                 ),
               ),
               const SizedBox(height: 16),
@@ -271,17 +282,21 @@ class TransferHubScreen extends StatelessWidget {
     );
   }
 
-  void _showFinanceEligibilityDialog(BuildContext context, BankSyncColors colors, String lang) {
+  void _showFinanceEligibilityDialog(
+      BuildContext context, BankSyncColors colors, String lang) {
     showDialog<void>(
       context: context,
       builder: (context) {
         final isAr = lang == 'ar';
         return AlertDialog(
           backgroundColor: colors.surfaceContainerLowest,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(
             context.l10n.financeCalculatorTitle,
-            style: TextStyle(fontWeight: FontWeight.bold, fontFamily: isAr ? 'Tajawal' : null),
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontFamily: isAr ? 'Tajawal' : null),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -289,7 +304,10 @@ class TransferHubScreen extends StatelessWidget {
             children: [
               Text(
                 context.l10n.financeCalculatorSubtitle,
-                style: TextStyle(fontSize: 14, color: colors.onSurfaceVariant, fontFamily: isAr ? 'Tajawal' : null),
+                style: TextStyle(
+                    fontSize: 14,
+                    color: colors.onSurfaceVariant,
+                    fontFamily: isAr ? 'Tajawal' : null),
               ),
               const SizedBox(height: 12),
               Container(
@@ -298,7 +316,8 @@ class TransferHubScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: colors.success.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: colors.success.withValues(alpha: 0.2)),
+                  border:
+                      Border.all(color: colors.success.withValues(alpha: 0.2)),
                 ),
                 child: Center(
                   child: Text(
@@ -315,7 +334,11 @@ class TransferHubScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 context.l10n.financeDisclaimer,
-                style: TextStyle(fontSize: 10, color: colors.outline, fontStyle: FontStyle.italic, fontFamily: isAr ? 'Tajawal' : null),
+                style: TextStyle(
+                    fontSize: 10,
+                    color: colors.outline,
+                    fontStyle: FontStyle.italic,
+                    fontFamily: isAr ? 'Tajawal' : null),
               ),
             ],
           ),
@@ -324,7 +347,9 @@ class TransferHubScreen extends StatelessWidget {
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
                 context.l10n.closeButton,
-                style: TextStyle(fontWeight: FontWeight.bold, fontFamily: isAr ? 'Tajawal' : null),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontFamily: isAr ? 'Tajawal' : null),
               ),
             ),
           ],
@@ -344,7 +369,8 @@ class _RecentTransfersCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.bankColors;
     final languageCode = Localizations.localeOf(context).languageCode;
-    final suffix = Theme.of(context).brightness == Brightness.dark ? 'dark' : 'light';
+    final suffix =
+        Theme.of(context).brightness == Brightness.dark ? 'dark' : 'light';
     return Material(
       color: colors.surfaceContainerLowest,
       borderRadius: BorderRadius.circular(AppColors.radiusLg),
@@ -412,20 +438,55 @@ class _ServicesGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final isAr = languageCode == 'ar';
     final services = [
-      _ServiceItem(label: l10n.serviceAccounts, svgName: 'ic_safe', color: const Color(0xFF2E7D32)),
-      _ServiceItem(label: l10n.serviceCards, svgName: 'ic_credit_card', color: const Color(0xFF1565C0)),
-      _ServiceItem(label: l10n.serviceBills, svgName: 'ic_payment_services', color: const Color(0xFFE65100)),
-      _ServiceItem(label: l10n.serviceOffers, svgName: 'ic_offer_tag', color: const Color(0xFF8E24AA), hasBadge: true),
-      _ServiceItem(label: l10n.serviceFinance, svgName: 'ic_money_growth', color: const Color(0xFF00796B)),
-      _ServiceItem(label: l10n.favoritesLabel, svgName: 'ic_favorite_star', color: const Color(0xFFC62828)),
-      _ServiceItem(label: l10n.serviceStandingOrders, svgName: 'ic_transfer_complete', color: const Color(0xFF3949AB)),
-      _ServiceItem(label: l10n.beneficiaries, svgName: 'ic_beneficiaries', color: const Color(0xFF00838F)),
-      _ServiceItem(label: l10n.serviceCharity, svgName: 'ic_charity', color: const Color(0xFF6D4C41)),
-      _ServiceItem(label: l10n.networkTransfersTitle, svgName: 'ic_transfer_to_bank', color: const Color(0xFF2E7D32)),
-      _ServiceItem(label: l10n.serviceSendGift, svgName: 'ic_send_gift', color: const Color(0xFFAD1457)),
+      _ServiceItem(
+          label: l10n.serviceAccounts,
+          svgName: 'ic_safe',
+          color: const Color(0xFF2E7D32)),
+      _ServiceItem(
+          label: l10n.serviceCards,
+          svgName: 'ic_credit_card',
+          color: const Color(0xFF1565C0)),
+      _ServiceItem(
+          label: l10n.serviceBills,
+          svgName: 'ic_payment_services',
+          color: const Color(0xFFE65100)),
+      _ServiceItem(
+          label: l10n.serviceOffers,
+          svgName: 'ic_offer_tag',
+          color: const Color(0xFF8E24AA),
+          hasBadge: true),
+      _ServiceItem(
+          label: l10n.serviceFinance,
+          svgName: 'ic_money_growth',
+          color: const Color(0xFF00796B)),
+      _ServiceItem(
+          label: l10n.favoritesLabel,
+          svgName: 'ic_favorite_star',
+          color: const Color(0xFFC62828)),
+      _ServiceItem(
+          label: l10n.serviceStandingOrders,
+          svgName: 'ic_transfer_complete',
+          color: const Color(0xFF3949AB)),
+      _ServiceItem(
+          label: l10n.beneficiaries,
+          svgName: 'ic_beneficiaries',
+          color: const Color(0xFF00838F)),
+      _ServiceItem(
+          label: l10n.serviceCharity,
+          svgName: 'ic_charity',
+          color: const Color(0xFF6D4C41)),
+      _ServiceItem(
+          label: l10n.networkTransfersTitle,
+          svgName: 'ic_transfer_to_bank',
+          color: const Color(0xFF2E7D32)),
+      _ServiceItem(
+          label: l10n.serviceSendGift,
+          svgName: 'ic_send_gift',
+          color: const Color(0xFFAD1457)),
     ];
 
-    final suffix = Theme.of(context).brightness == Brightness.dark ? 'dark' : 'light';
+    final suffix =
+        Theme.of(context).brightness == Brightness.dark ? 'dark' : 'light';
 
     return GridView.builder(
       shrinkWrap: true,
@@ -447,7 +508,8 @@ class _ServicesGrid extends StatelessWidget {
             decoration: BoxDecoration(
               color: colors.surfaceContainerLowest,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.4)),
+              border: Border.all(
+                  color: colors.outlineVariant.withValues(alpha: 0.4)),
               boxShadow: [
                 BoxShadow(
                   color: colors.cardShadow,
@@ -518,7 +580,11 @@ class _ServiceItem {
   final String svgName;
   final Color color;
   final bool hasBadge;
-  _ServiceItem({required this.label, required this.svgName, required this.color, this.hasBadge = false});
+  _ServiceItem(
+      {required this.label,
+      required this.svgName,
+      required this.color,
+      this.hasBadge = false});
 }
 
 /// One row in the "سداد خدمات" bottom sheet (leading icon + label + chevron).
@@ -554,7 +620,8 @@ class _BillOptionRow extends StatelessWidget {
           ),
           child: Row(
             children: [
-              SvgPicture.asset('assets/icons/${svgName}_$suffix.svg', width: 34, height: 34),
+              SvgPicture.asset('assets/icons/${svgName}_$suffix.svg',
+                  width: 34, height: 34),
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
