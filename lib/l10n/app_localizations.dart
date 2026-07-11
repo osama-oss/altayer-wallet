@@ -91,6 +91,31 @@ abstract class AppLocalizations {
   String get navHome;
   String get navTransfers;
   String get navPayments;
+  String get navReports;
+
+  // ─── Reports (transaction reports tab + filter sheet) ───
+  String get reportsTitle;
+  String get reportsTabAll;
+  String get reportsTabSent;
+  String get reportsTabReceived;
+  String get reportsTabFees;
+  String get reportsEmpty;
+  String get reportsFilterTitle;
+  String get reportsFilterCurrency;
+  String get reportsFilterPhoneHint;
+  String get reportsFilterOr;
+  String get reportsFilterOperationType;
+  String get reportsFilterFromDate;
+  String get reportsFilterToDate;
+  String get reportsFilterPurposeHint;
+  String get reportsApply;
+  String get reportsReset;
+  String get reportsOpTransfer;
+  String get reportsOpPayment;
+  String get reportsOpDeposit;
+  String get reportsOpWithdrawal;
+  String get reportsExportComingSoon;
+
   String get navSettings;
   String get settingsTitle;
   String get appearance;
@@ -406,6 +431,10 @@ abstract class AppLocalizations {
   // ── KYC data-entry form (account confirmation) ─────────────────────────
   String get kycDataIntro;
   String get kycSectionIdentity;
+
+  String get kycSectionPersonal;
+
+  String get kycIdentityLocked;
   String get kycSectionResidence;
   String get kycFieldIdNumber;
   String get kycFieldPassportNumber;
@@ -860,6 +889,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navPayments => 'Payments';
+
+  @override
+  String get navReports => 'Reports';
+
+  @override
+  String get reportsTitle => 'Reports';
+  @override
+  String get reportsTabAll => 'All';
+  @override
+  String get reportsTabSent => 'Sent';
+  @override
+  String get reportsTabReceived => 'Received';
+  @override
+  String get reportsTabFees => 'Fees';
+  @override
+  String get reportsEmpty => 'No items';
+  @override
+  String get reportsFilterTitle => 'Filter reports';
+  @override
+  String get reportsFilterCurrency => 'Currency';
+  @override
+  String get reportsFilterPhoneHint => 'Phone';
+  @override
+  String get reportsFilterOr => 'or';
+  @override
+  String get reportsFilterOperationType => 'Operation type';
+  @override
+  String get reportsFilterFromDate => 'From date';
+  @override
+  String get reportsFilterToDate => 'To date';
+  @override
+  String get reportsFilterPurposeHint => 'Purpose';
+  @override
+  String get reportsApply => 'Confirm';
+  @override
+  String get reportsReset => 'Reset';
+  @override
+  String get reportsOpTransfer => 'Transfer';
+  @override
+  String get reportsOpPayment => 'Payment';
+  @override
+  String get reportsOpDeposit => 'Deposit';
+  @override
+  String get reportsOpWithdrawal => 'Withdrawal';
+  @override
+  String get reportsExportComingSoon => 'Export will be available soon';
 
   @override
   String get navSettings => 'Settings';
@@ -1784,6 +1859,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Confirm the details printed on your identity document, then continue to attach your photos.';
   @override
   String get kycSectionIdentity => 'Identity details';
+
+  @override
+  String get kycSectionPersonal => 'Your details';
+
+  @override
+  String get kycIdentityLocked => 'From your registration — can\'t be edited';
   @override
   String get kycSectionResidence => 'Residence details';
   @override
@@ -2544,6 +2625,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get navPayments => 'المدفوعات';
+
+  @override
+  String get navReports => 'التقارير';
+
+  @override
+  String get reportsTitle => 'التقارير';
+  @override
+  String get reportsTabAll => 'الكل';
+  @override
+  String get reportsTabSent => 'المرسلة';
+  @override
+  String get reportsTabReceived => 'المستلمة';
+  @override
+  String get reportsTabFees => 'الرسوم';
+  @override
+  String get reportsEmpty => 'لا توجد عناصر';
+  @override
+  String get reportsFilterTitle => 'تصفية التقارير';
+  @override
+  String get reportsFilterCurrency => 'العملة';
+  @override
+  String get reportsFilterPhoneHint => 'الهاتف';
+  @override
+  String get reportsFilterOr => 'أو';
+  @override
+  String get reportsFilterOperationType => 'نوع العملية';
+  @override
+  String get reportsFilterFromDate => 'من تاريخ';
+  @override
+  String get reportsFilterToDate => 'إلى تاريخ';
+  @override
+  String get reportsFilterPurposeHint => 'الغرض';
+  @override
+  String get reportsApply => 'تأكيد';
+  @override
+  String get reportsReset => 'إعادة تعيين';
+  @override
+  String get reportsOpTransfer => 'تحويل';
+  @override
+  String get reportsOpPayment => 'دفع';
+  @override
+  String get reportsOpDeposit => 'إيداع';
+  @override
+  String get reportsOpWithdrawal => 'سحب';
+  @override
+  String get reportsExportComingSoon => 'سيتوفر التصدير قريبًا';
 
   @override
   String get navSettings => 'الإعدادات';
@@ -3455,6 +3582,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'تحقق من البيانات المدوّنة في وثيقة هويتك، ثم تابع لإرفاق صورك.';
   @override
   String get kycSectionIdentity => 'بيانات الهوية';
+
+  @override
+  String get kycSectionPersonal => 'بياناتك الشخصية';
+
+  @override
+  String get kycIdentityLocked => 'من بيانات التسجيل — لا يمكن تعديلها';
   @override
   String get kycSectionResidence => 'بيانات الإقامة';
   @override

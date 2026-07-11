@@ -157,6 +157,52 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navPayments => '支付';
 
   @override
+  String get navReports => '报告';
+
+  @override
+  String get reportsTitle => '报告';
+  @override
+  String get reportsTabAll => '全部';
+  @override
+  String get reportsTabSent => '已发送';
+  @override
+  String get reportsTabReceived => '已接收';
+  @override
+  String get reportsTabFees => '费用';
+  @override
+  String get reportsEmpty => '没有项目';
+  @override
+  String get reportsFilterTitle => '筛选报告';
+  @override
+  String get reportsFilterCurrency => '货币';
+  @override
+  String get reportsFilterPhoneHint => '电话';
+  @override
+  String get reportsFilterOr => '或';
+  @override
+  String get reportsFilterOperationType => '操作类型';
+  @override
+  String get reportsFilterFromDate => '开始日期';
+  @override
+  String get reportsFilterToDate => '结束日期';
+  @override
+  String get reportsFilterPurposeHint => '用途';
+  @override
+  String get reportsApply => '确认';
+  @override
+  String get reportsReset => '重置';
+  @override
+  String get reportsOpTransfer => '转账';
+  @override
+  String get reportsOpPayment => '支付';
+  @override
+  String get reportsOpDeposit => '存款';
+  @override
+  String get reportsOpWithdrawal => '取款';
+  @override
+  String get reportsExportComingSoon => '导出功能即将推出';
+
+  @override
   String get navSettings => '设置';
 
   @override
@@ -1027,6 +1073,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get kycDataIntro => '请确认您证件上的信息，然后继续附上照片。';
   @override
   String get kycSectionIdentity => '身份信息';
+
+  @override
+  String get kycSectionPersonal => '您的信息';
+
+  @override
+  String get kycIdentityLocked => '来自注册信息 — 无法修改';
   @override
   String get kycSectionResidence => '居住信息';
   @override
