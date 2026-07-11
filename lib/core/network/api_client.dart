@@ -410,7 +410,7 @@ class ApiClient {
     String token,
     Map<String, dynamic> body,
   ) async {
-    return invokeIntegration(token, 'TRANSFER-TO-ACC-VALIDATE', body);
+    return invokeIntegration(token, 'TRANSFER-TO-WALLET-VALIDATE', body);
   }
 
   Future<Map<String, dynamic>> confirmTransfer(
@@ -420,7 +420,7 @@ class ApiClient {
   ) async {
     return invokeIntegration(
       token,
-      'TRANSFER-TO-ACC-VALIDATE-CONFIRM',
+      'TRANSFER-TO-WALLET-VALIDATE-CONFIRM',
       body,
       transactionPin: pin,
     );
@@ -434,10 +434,11 @@ class ApiClient {
     return confirmTransfer(token, body, pin);
   }
 
-  // ─── Open new account (validate → open) ──────────────────
-  // The account TYPE is chosen by the integration code (current vs saving);
-  // the ledger is baked into each Back Office integration, so the app never
-  // sends a ledger. validate returns a reference ID which the open (process)
+  // ─── Open new wallet account (validate → open) ──────────────────
+  // Wallet exposes a SINGLE validate code and a SINGLE open code (no
+  // current/saving split); the account type + ledger are baked into the Back
+  // Office integration, so the app never sends a ledger and `saving` no longer
+  // selects the code. validate returns a reference ID which the open (process)
   // call passes back. Opening saves AND auto-authorizes (Authorizers=0) and
   // requires the transaction PIN.
 
@@ -451,7 +452,9 @@ class ApiClient {
   }) async {
     return invokeIntegration(
       token,
-      saving ? 'ACCOUNT_SAVING_VALIDATE' : 'ACCOUNT_VALIDATE',
+      // Wallet single validate code. This string is the Mobile Channel Path
+      // shown in Back Office for WALLET_ACCOUNT_VALIDATE (the URL segment).
+      'VALIDATE_WALLET_ACCOUNT',
       {
         'currency': currency,
         'customer': customer,
@@ -479,7 +482,7 @@ class ApiClient {
     };
     return invokeIntegration(
       token,
-      saving ? 'ACCOUNT_OPEN_SAVING' : 'ACCOUNT_OPEN_CURRENT',
+      'WALLET_ACCOUNT_OPEN',
       payload,
       transactionPin: pin,
     );
@@ -654,6 +657,76 @@ class ApiClient {
     String pin,
   ) async {
     return invokeIntegration(token, 'UNMONEY-RECEIVE-CONFIRM', body, transactionPin: pin);
+  }
+
+  // ─── KYC / identity verification ─────────────────────────────────────────
+  // Binary document upload uses a dedicated multipart REST controller
+  // (`/api/mobile/kyc`) rather than the JSON integration gateway — large image
+  // payloads must not be base64-inflated through the integration chain.
+  // customer_id is derived server-side from the JWT (never sent by the client).
+  // Contract lives in `mobile-service-scaffold/KYC_BACKEND_PLAN.md`.
+
+  /// Current KYC status + review metadata.
+  /// `GET /api/mobile/kyc/status` → `{ status, rejectionReason?, submittedAt?, reviewedAt?, documents:[...] }`.
+  Future<Map<String, dynamic>> getKycStatus(String token) async {
+    final res = await _dio.get<Map<String, dynamic>>(
+      '/api/mobile/kyc/status',
+      options: Options(
+        headers: _bearer(token),
+        validateStatus: _validateOptions.validateStatus,
+      ),
+    );
+    return _unwrap(res);
+  }
+
+  /// Uploads one identity document as multipart form-data.
+  /// `POST /api/mobile/kyc/documents` — fields: `type` (ID_FRONT|ID_BACK|SELFIE),
+  /// `file`. Returns `{ type, documentId, uploaded:true }`.
+  Future<Map<String, dynamic>> uploadKycDocument(
+    String token, {
+    required String type,
+    required String filePath,
+    String? fileName,
+  }) async {
+    final form = FormData.fromMap({
+      'type': type,
+      'file': await MultipartFile.fromFile(filePath, filename: fileName),
+    });
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/mobile/kyc/documents',
+      data: form,
+      options: Options(
+        headers: _bearer(token),
+        contentType: 'multipart/form-data',
+        validateStatus: _validateOptions.validateStatus,
+      ),
+    );
+    return _unwrap(res);
+  }
+
+  /// Submits the uploaded documents for back-office review.
+  /// `POST /api/mobile/kyc/submit` body `{ idType, profile? }` →
+  /// `{ status:"PENDING", submittedAt }`. [idType] is NATIONAL_ID or PASSPORT so
+  /// the server can validate the expected document set; [profile] carries the
+  /// customer-confirmed identity + residence details (nested so the server can
+  /// persist them in one call). customer_id is derived server-side from the JWT.
+  Future<Map<String, dynamic>> submitKyc(
+    String token, {
+    String? idType,
+    Map<String, dynamic>? profile,
+  }) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/mobile/kyc/submit',
+      data: {
+        if (idType != null && idType.isNotEmpty) 'idType': idType,
+        if (profile != null && profile.isNotEmpty) 'profile': profile,
+      },
+      options: Options(
+        headers: _bearer(token),
+        validateStatus: _validateOptions.validateStatus,
+      ),
+    );
+    return _unwrap(res);
   }
 
   Future<List<Map<String, dynamic>>> listSupportCases(String token) async {

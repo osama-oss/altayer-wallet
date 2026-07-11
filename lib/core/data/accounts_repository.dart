@@ -2,6 +2,7 @@ import 'package:banksync_app/core/auth/auth_service.dart';
 import 'package:banksync_app/core/models/banking_account.dart';
 import 'package:banksync_app/core/network/api_client.dart';
 import 'package:banksync_app/core/profile_helpers.dart';
+import 'package:banksync_app/core/wallet_account_id.dart';
 
 /// Logical (non-network) reasons account loading yields no usable list. Kept
 /// separate from [ApiException] so callers can localize a friendly message
@@ -14,8 +15,8 @@ class AccountsException implements Exception {
   final AccountsErrorKind kind;
 }
 
-/// Single source of truth for fetching the signed-in customer's core accounts
-/// via the `CUSTOMER_ACCOUNTS_SEARCH` integration.
+/// Single source of truth for fetching the signed-in customer's wallet accounts
+/// via the `CUSTOMER_WALLET_ACCOUNTS_SEARCH` integration.
 ///
 /// Shared by the home carousel and the "All accounts" screen so the profile
 /// lookup → customer-id resolution → integration call lives in exactly one
@@ -34,33 +35,59 @@ class AccountsRepository {
   /// Throws [AccountsException] for the two logical empty states and
   /// [ApiException] for backend/network failures.
   Future<List<BankingAccount>> fetchAccounts(String token) async {
-    // The customer id never changes mid-session, so resolve it from the
-    // locally stored profile first — `userDetail` is a full network
-    // round-trip and used to run before EVERY accounts load.
-    final usernameFallback = await _auth.readUsername();
-    var profile = await _auth.readProfile();
-    var coreCustomerId = profile == null
-        ? ''
-        : coreCustomerIdFromProfile(profile, usernameFallback: usernameFallback);
-    if (coreCustomerId.isEmpty) {
-      profile = await _api.userDetail(token);
-      await _auth.saveProfile(profile);
-      coreCustomerId =
-          coreCustomerIdFromProfile(profile, usernameFallback: usernameFallback);
-    }
-    if (coreCustomerId.isEmpty) {
+    // In the wallet, an account is identified by "<phone>_<currency>" — the
+    // logged-in mobile plus the currency (e.g. 777777777_YER). The three cards
+    // (YER/USD/SAR) are always built here so they render even before the
+    // customer exists server-side; balances are merged in by currency below.
+    final username = await _auth.readUsername();
+    final phone = normalizeWalletPhone(username ?? '');
+    if (phone.isEmpty) {
       throw const AccountsException(AccountsErrorKind.customerIdMissing);
     }
 
-    final integration = await _api.invokeIntegration(
-      token,
-      'CUSTOMER_ACCOUNTS_SEARCH',
-      {'customerId': coreCustomerId},
-    );
-    final accounts = BankingAccount.listFromCoreIntegration(integration);
-    if (accounts.isEmpty) {
-      throw const AccountsException(AccountsErrorKind.noAccounts);
+    // Best-effort wallet customer id for the search body. The backend re-derives
+    // the customer from the JWT, so this value is context only, never trusted.
+    var profile = await _auth.readProfile();
+    var customerId = profile == null
+        ? ''
+        : coreCustomerIdFromProfile(profile, usernameFallback: username);
+    if (customerId.isEmpty) {
+      try {
+        profile = await _api.userDetail(token);
+        await _auth.saveProfile(profile);
+        customerId =
+            coreCustomerIdFromProfile(profile, usernameFallback: username);
+      } catch (_) {
+        // Continue with the phone as fallback context.
+      }
     }
-    return accounts;
+
+    // Balances come from the wallet core keyed by currency. Any failure is
+    // non-fatal: the three cards still render (zero balances) so the wallet is
+    // usable pre-verification and a refresh retries.
+    final balanceByCurrency = <String, double>{};
+    try {
+      final integration = await _api.invokeIntegration(
+        token,
+        'CUSTOMER_WALLET_ACCOUNTS_SEARCH',
+        {'customerId': customerId.isEmpty ? phone : customerId},
+      );
+      for (final acc in BankingAccount.listFromCoreIntegration(integration)) {
+        balanceByCurrency[acc.currency.trim().toUpperCase()] = acc.balance;
+      }
+    } catch (_) {
+      // non-fatal — render the three cards with zero balances
+    }
+
+    return [
+      for (final ccy in walletCurrencies)
+        BankingAccount(
+          id: walletAccountId(phone, ccy).hashCode,
+          accountNumber: walletAccountId(phone, ccy),
+          label: ccy,
+          currency: ccy,
+          balance: balanceByCurrency[ccy] ?? 0,
+        ),
+    ];
   }
 }
