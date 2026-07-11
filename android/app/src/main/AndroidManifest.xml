@@ -1,9 +1,21 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
     <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
     <uses-permission android:name="android.permission.CAMERA"/>
+    <!-- Camera is used for QR scanning and KYC document/selfie capture, but the
+         app degrades gracefully without one, so it must not block installs. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Saving the receive-QR image to the gallery on legacy Android (≤ API 29).
+         Android 10+ uses scoped storage / MediaStore and needs no runtime grant. -->
+    <!-- camera_android_camerax also declares this with maxSdkVersion=28;
+         tools:replace lets our value (29) win the manifest merge. -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29"
+        tools:replace="android:maxSdkVersion"/>
 
     <!-- allowBackup/fullBackupContent off: session tokens and device identity
          must never leave the device via ADB/cloud backups (tokens are Keystore-

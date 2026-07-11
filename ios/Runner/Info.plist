@@ -66,5 +66,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>يستخدم التطبيق الكاميرا لمسح رموز QR الخاصة بالحسابات ولتصوير وثائق الهوية أثناء توثيق الحساب.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>يستخدم التطبيق مكتبة الصور لاختيار رمز QR أو صور وثائق الهوية اللازمة لتوثيق الحساب.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>يحتاج التطبيق إلى إذن حفظ الصور لحفظ رمز QR الخاص باستلام الأموال في معرض الصور.</string>
 </dict>
 </plist>
