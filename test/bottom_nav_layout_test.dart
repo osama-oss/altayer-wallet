@@ -47,7 +47,7 @@ void main() {
 
     expect(find.byIcon(Icons.home_rounded), findsOneWidget);
     expect(find.byIcon(Icons.swap_horiz_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.account_balance_wallet_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.bar_chart_rounded), findsOneWidget);
     expect(find.byIcon(Icons.settings_rounded), findsOneWidget);
     expect(find.byIcon(Icons.qr_code_scanner_rounded), findsOneWidget);
   });
@@ -68,12 +68,11 @@ void main() {
     // Only partially Positioned (top only) → the Stack must centre it.
     expect((fab.center.dx - logicalWidth(tester) / 2).abs(), lessThan(2.0));
 
-    // It sits between the inner (transfers) and the payments tab horizontally.
+    // It sits between the inner (transfers) and the reports tab horizontally.
     final transfers = tester.getRect(find.byIcon(Icons.swap_horiz_rounded));
-    final payments =
-        tester.getRect(find.byIcon(Icons.account_balance_wallet_rounded));
-    final leftTab = transfers.center.dx < payments.center.dx ? transfers : payments;
-    final rightTab = transfers.center.dx < payments.center.dx ? payments : transfers;
+    final reports = tester.getRect(find.byIcon(Icons.bar_chart_rounded));
+    final leftTab = transfers.center.dx < reports.center.dx ? transfers : reports;
+    final rightTab = transfers.center.dx < reports.center.dx ? reports : transfers;
     expect(fab.center.dx, greaterThan(leftTab.center.dx));
     expect(fab.center.dx, lessThan(rightTab.center.dx));
   });
@@ -84,8 +83,8 @@ void main() {
         harness(tab: BankSyncTab.home, onTab: (t) => tapped = t));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.account_balance_wallet_rounded));
-    expect(tapped, BankSyncTab.payments);
+    await tester.tap(find.byIcon(Icons.bar_chart_rounded));
+    expect(tapped, BankSyncTab.reports);
 
     await tester.tap(find.byIcon(Icons.settings_rounded));
     expect(tapped, BankSyncTab.explore);
