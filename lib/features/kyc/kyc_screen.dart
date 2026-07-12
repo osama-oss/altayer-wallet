@@ -13,7 +13,7 @@ import 'widgets/kyc_status_result.dart';
 /// Account verification (KYC) entry point.
 ///
 /// The screen is fully status-driven off [kycStatusProvider]:
-///   • unverified / incomplete / rejected → the document capture flow
+///   • unverified / incomplete / rejected / returned → the document capture flow
 ///   • pending                            → "under review" result
 ///   • verified                           → "you're verified" result
 ///
@@ -67,6 +67,7 @@ class KycScreen extends ConsumerWidget {
       case KycStatus.unverified:
       case KycStatus.incomplete:
       case KycStatus.rejected:
+      case KycStatus.returned:
         return KycFlow(
           profile: profile,
           // The provider is updated by the flow's capture step before this

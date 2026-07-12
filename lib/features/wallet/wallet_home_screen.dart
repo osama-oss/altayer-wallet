@@ -89,7 +89,7 @@ class _WalletHomeScreenState extends ConsumerState<WalletHomeScreen> {
       body = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _KycBanner(colors: colors, l10n: l10n),
+          if (kycFeatureEnabled) _KycBanner(colors: colors, l10n: l10n),
           _SectionHeader(title: l10n.walletMyWallets, lang: lang),
           const SizedBox(height: 12),
           _WalletsCarousel(
@@ -167,15 +167,14 @@ class _KycBanner extends ConsumerWidget {
     if (status == KycStatus.verified) return const SizedBox.shrink();
 
     final bool pending = status == KycStatus.pending;
-    final bool rejected = status == KycStatus.rejected;
-    final Color accent = pending ? colors.secondary : colors.error;
-    final String text = rejected
-        ? l10n.kycBannerRejectedText
-        : pending
-            ? l10n.kycBannerPendingText
-            : l10n.kycBannerText;
-    final IconData leadingIcon =
-        pending ? Icons.hourglass_top_rounded : Icons.gpp_maybe_outlined;
+    final Color accent = status.color(colors);
+    final String text = switch (status) {
+      KycStatus.rejected => l10n.kycBannerRejectedText,
+      KycStatus.returned => l10n.kycBannerReturnedText,
+      KycStatus.pending => l10n.kycBannerPendingText,
+      _ => l10n.kycBannerText,
+    };
+    final IconData leadingIcon = status.icon;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),

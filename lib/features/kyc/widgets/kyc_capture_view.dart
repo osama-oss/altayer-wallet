@@ -200,11 +200,11 @@ class _KycCaptureViewState extends ConsumerState<KycCaptureView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (widget.profile.status == KycStatus.rejected)
+                if (widget.profile.status.hasReviewNote)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child:
-                        _RejectedBanner(profile: widget.profile, colors: colors),
+                    child: _ReviewNoteBanner(
+                        profile: widget.profile, colors: colors),
                   ),
                 if (_inFlow)
                   Padding(
@@ -360,8 +360,8 @@ class _ProgressHeader extends StatelessWidget {
   }
 }
 
-class _RejectedBanner extends StatelessWidget {
-  const _RejectedBanner({required this.profile, required this.colors});
+class _ReviewNoteBanner extends StatelessWidget {
+  const _ReviewNoteBanner({required this.profile, required this.colors});
 
   final KycProfile profile;
   final BankSyncColors colors;
@@ -369,34 +369,41 @@ class _RejectedBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final status = profile.status;
+    final color = status.color(colors);
+    final headline =
+        status.isReturned ? l10n.kycReturnedHeadline : l10n.kycRejectedHeadline;
+    final fallbackBody = status.isReturned
+        ? l10n.kycReturnedBody
+        : l10n.kycStatusRejectedDesc;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: colors.error.withValues(alpha: 0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colors.error.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.gpp_bad_outlined, color: colors.error, size: 22),
+          Icon(status.icon, color: color, size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n.kycRejectedHeadline,
+                  headline,
                   style: TextStyle(
                     fontFamily: 'Tajawal',
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
-                    color: colors.error,
+                    color: color,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  profile.rejectionReason ?? l10n.kycStatusRejectedDesc,
+                  profile.rejectionReason ?? fallbackBody,
                   style: TextStyle(
                     fontFamily: 'Tajawal',
                     fontSize: 12.5,

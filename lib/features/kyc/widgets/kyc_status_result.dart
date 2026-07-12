@@ -34,6 +34,7 @@ class KycStatusResultView extends StatelessWidget {
       KycStatus.pending => (l10n.kycPendingHeadline, l10n.kycPendingBody),
       KycStatus.rejected =>
         (l10n.kycRejectedHeadline, status.description(l10n)),
+      KycStatus.returned => (l10n.kycReturnedHeadline, l10n.kycReturnedBody),
       _ => (status.title(l10n), status.description(l10n)),
     };
 
@@ -76,10 +77,13 @@ class KycStatusResultView extends StatelessWidget {
                 color: colors.onSurfaceVariant,
               ),
             ),
-            if (status == KycStatus.rejected &&
-                profile.rejectionReason != null) ...[
+            if (status.hasReviewNote && profile.rejectionReason != null) ...[
               const SizedBox(height: 20),
-              _RejectionReason(reason: profile.rejectionReason!, colors: colors),
+              _ReviewNote(
+                reason: profile.rejectionReason!,
+                status: status,
+                colors: colors,
+              ),
             ],
             const Spacer(),
             if (onPrimary != null && primaryLabel != null)
@@ -127,33 +131,42 @@ class KycStatusResultView extends StatelessWidget {
   }
 }
 
-class _RejectionReason extends StatelessWidget {
-  const _RejectionReason({required this.reason, required this.colors});
+class _ReviewNote extends StatelessWidget {
+  const _ReviewNote({
+    required this.reason,
+    required this.status,
+    required this.colors,
+  });
 
   final String reason;
+  final KycStatus status;
   final BankSyncColors colors;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final color = status.color(colors);
+    final label = status.isReturned
+        ? l10n.kycReturnedReasonLabel
+        : l10n.kycRejectionReasonLabel;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: colors.error.withValues(alpha: 0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colors.error.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            l10n.kycRejectionReasonLabel,
+            label,
             style: TextStyle(
               fontFamily: 'Tajawal',
               fontSize: 12,
               fontWeight: FontWeight.w800,
-              color: colors.error,
+              color: color,
             ),
           ),
           const SizedBox(height: 4),
