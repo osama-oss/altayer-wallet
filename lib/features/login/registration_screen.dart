@@ -32,7 +32,6 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
   final _surname = TextEditingController();
   final _mobile = TextEditingController();
 
-  String? _gender; // 'male' | 'female'
   bool _agreed = false;
   bool _submitting = false;
 
@@ -50,10 +49,6 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     final l10n = context.l10n;
     final formOk = _formKey.currentState?.validate() ?? false;
     if (!formOk) return;
-    if (_gender == null) {
-      _snack(l10n.requiredField);
-      return;
-    }
     if (!_agreed) {
       _snack(l10n.mustAgreeToTerms);
       return;
@@ -81,10 +76,12 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       final kcUsername = data['keycloakUsername']?.toString().trim();
       final keycloakUsername =
           (kcUsername != null && kcUsername.isNotEmpty) ? kcUsername : mobile;
-      // Keep the name + gender the customer entered here: registration itself
-      // only creates the Keycloak user, but the KYC step and the eventual
-      // WALLET_CUSTOMER_CREATE call need these. Persisted read-only so KYC shows
-      // them without letting the customer change what they signed up with.
+      // Keep the name the customer entered here: registration itself only
+      // creates the Keycloak user, but the KYC step and the eventual
+      // WALLET_CUSTOMER_CREATE call need it. Persisted read-only so KYC shows it
+      // without letting the customer change what they signed up with. Gender is
+      // NOT captured here — Keycloak has no attribute for it, so it is collected
+      // in the KYC (account confirmation) step instead.
       final fullName = [_firstName, _secondName, _thirdName, _surname]
           .map((c) => c.text.trim())
           .where((s) => s.isNotEmpty)
@@ -96,7 +93,6 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
         'familyName': _surname.text.trim(),
         'givenName': _firstName.text.trim(),
         'fullName': fullName,
-        'gender': _gender, // 'male' | 'female'
         'mobile': mobile,
       });
       if (!mounted) return;
@@ -236,31 +232,10 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
 
                 // رقم الموبايل مع مقدمة الدولة
                 _mobileField(colors, l10n),
-                const SizedBox(height: 10),
-
-                // اختيار الجنس
-                Row(
-                  children: [
-                    Expanded(
-                      child: _genderButton(
-                        colors,
-                        value: 'male',
-                        label: l10n.genderMale,
-                        icon: Icons.male_rounded,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _genderButton(
-                        colors,
-                        value: 'female',
-                        label: l10n.genderFemale,
-                        icon: Icons.female_rounded,
-                      ),
-                    ),
-                  ],
-                ),
                 const SizedBox(height: 18),
+
+                // الجنس يُجمَع لاحقاً في خطوة توثيق الحساب (KYC) لأن Keycloak
+                // لا يملك attribute لتخزينه، فلا نطلبه هنا.
 
                 // الموافقة على الشروط
                 _termsRow(colors, l10n),
@@ -410,48 +385,6 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _genderButton(
-    BankSyncColors colors, {
-    required String value,
-    required String label,
-    required IconData icon,
-  }) {
-    final selected = _gender == value;
-    return InkWell(
-      onTap: () => setState(() => _gender = value),
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        height: 58,
-        decoration: BoxDecoration(
-          color: selected ? colors.secondary : colors.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: selected ? colors.secondary : colors.outlineVariant,
-            width: 1.3,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: 'Tajawal',
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: selected ? colors.onSecondary : colors.onSurface,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(icon,
-                size: 20,
-                color: selected ? colors.onSecondary : colors.onSurfaceVariant),
-          ],
-        ),
-      ),
     );
   }
 
