@@ -18,6 +18,7 @@ class KycFormData {
     this.expiryDate,
     this.placeOfBirth = '',
     this.dateOfBirth,
+    this.gender = '',
     this.country = '',
     this.city = '',
     this.district = '',
@@ -34,6 +35,11 @@ class KycFormData {
   final String placeOfBirth;
   final DateTime? dateOfBirth;
 
+  /// 'male' | 'female' | '' — collected in this step. Keycloak has no attribute
+  /// for gender, so registration no longer captures it; the customer confirms it
+  /// here where it is submitted with the rest of the identity.
+  final String gender;
+
   // ── Residence ─────────────────────────────────────────────────────────────
   final String country;
   final String city;
@@ -48,6 +54,7 @@ class KycFormData {
     DateTime? expiryDate,
     String? placeOfBirth,
     DateTime? dateOfBirth,
+    String? gender,
     String? country,
     String? city,
     String? district,
@@ -61,6 +68,7 @@ class KycFormData {
         expiryDate: expiryDate ?? this.expiryDate,
         placeOfBirth: placeOfBirth ?? this.placeOfBirth,
         dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+        gender: gender ?? this.gender,
         country: country ?? this.country,
         city: city ?? this.city,
         district: district ?? this.district,
@@ -74,12 +82,13 @@ class KycFormData {
   /// translation — see `mobile-service-scaffold/KYC_BACKEND_PLAN.md` §11.
   ///
   /// Only the identity-document + birth fields this form owns are emitted. The
-  /// customer's name / gender / mobile come from registration, and the compliance
-  /// and extra birth/nationality fields (peps, sector, motherName, nationality,
-  /// birthCountry/Zone, …) are not collected yet — they are tracked as gaps in
-  /// the plan. `documents[].legalIdType` is derived server-side from the
-  /// separately-sent `idType`. Dates are ISO-8601 date-only (`yyyy-MM-dd`); empty
-  /// text is omitted so the server only ever sees what the customer entered.
+  /// customer's name / mobile come from registration; gender is confirmed here
+  /// (Keycloak has no attribute for it) and emitted as a single-letter `M`/`F`.
+  /// The compliance and extra birth/nationality fields (peps, sector, motherName,
+  /// nationality, birthCountry/Zone, …) are not collected yet — they are tracked
+  /// as gaps in the plan. `documents[].legalIdType` is derived server-side from
+  /// the separately-sent `idType`. Dates are ISO-8601 date-only (`yyyy-MM-dd`);
+  /// empty text is omitted so the server only ever sees what the customer entered.
   Map<String, dynamic> toWire() {
     String? text(String value) {
       final trimmed = value.trim();
@@ -101,6 +110,15 @@ class KycFormData {
 
     final map = <String, dynamic>{};
     if (dateOfBirth != null) map['dateOfBirth'] = _isoDate(dateOfBirth!);
+    // Provisional core mapping: WALLET_CUSTOMER_CREATE expects a single-letter
+    // gender. Confirm the exact key/enum against the core contract when the KYC
+    // backend lands (see KYC_BACKEND_PLAN §11).
+    final genderCode = switch (gender.trim().toLowerCase()) {
+      'male' => 'M',
+      'female' => 'F',
+      _ => null,
+    };
+    if (genderCode != null) map['gender'] = genderCode;
     // Provisional: the form's single "place of birth" seeds birthCity; the core
     // also wants birthCountry + birthZone, which aren't collected yet (§11).
     final birthCity = text(placeOfBirth);
