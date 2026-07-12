@@ -199,6 +199,31 @@ class AuthService {
         customUsername: customUsername,
       );
 
+  /// Wallet sign-up: creates the Keycloak identity only (no bank core). The
+  /// username and temporary password both become the mobile number. The core
+  /// CIF is linked later — after KYC produces a customer id — via [linkCore].
+  Future<Map<String, dynamic>> registerWalletIdentity({
+    required String mobile,
+    String? firstName,
+    String? lastName,
+    String? email,
+  }) =>
+      _api.registerIdentity(
+        mobile: mobile,
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+      );
+
+  /// Links a core CIF (produced after KYC) to the signed-in wallet identity.
+  /// After this succeeds the session must be refreshed/re-logged so the
+  /// `customer_id` claim lands in the token.
+  Future<Map<String, dynamic>> linkCore(String customerId) async {
+    final token = await _store.readToken();
+    if (token == null) throw const ApiException('Not signed in');
+    return _api.linkCore(token: token, customerId: customerId);
+  }
+
   Future<void> setupPinAndDevice(String pin, String confirmPin) async {
     final token = await _store.readToken();
     if (token == null) throw const ApiException('Not signed in');

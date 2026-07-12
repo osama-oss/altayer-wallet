@@ -122,6 +122,57 @@ class ApiClient {
     });
   }
 
+  /// Wallet identity registration — no bank-core lookup. Creates a Keycloak
+  /// user in the wallet realm keyed by the mobile number; the temporary
+  /// password equals the normalized username (the mobile). Returns the
+  /// response `data`, which includes `keycloakUsername`.
+  ///
+  /// This replaces [registerCustomer] for the wallet flow: the old
+  /// `/api/mobile/auth/register` still resolves the customer against the bank
+  /// core and requires a real `customerId`, which the wallet doesn't have at
+  /// sign-up. The core CIF is linked later via [linkCore].
+  Future<Map<String, dynamic>> registerIdentity({
+    required String mobile,
+    String? firstName,
+    String? lastName,
+    String? email,
+  }) async {
+    return _postPublicData('/api/mobile/auth/identity/register', {
+      'mobile': mobile.trim(),
+      if (firstName != null && firstName.trim().isNotEmpty)
+        'firstName': firstName.trim(),
+      if (lastName != null && lastName.trim().isNotEmpty)
+        'lastName': lastName.trim(),
+      if (email != null && email.trim().isNotEmpty) 'email': email.trim(),
+    });
+  }
+
+  /// Links a freshly-created core CIF to the signed-in wallet identity. The
+  /// server reads the mobile from the JWT `preferred_username`, so the caller
+  /// only sends the core [customerId]. Requires a bearer token; after it
+  /// succeeds the client must refresh/re-login so `customer_id` lands in the
+  /// token.
+  Future<Map<String, dynamic>> linkCore({
+    required String token,
+    required String customerId,
+  }) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/mobile/auth/identity/link-core',
+      data: {'customerId': customerId.trim()},
+      options: Options(
+        headers: _bearer(token),
+        validateStatus: _validateOptions.validateStatus,
+      ),
+    );
+    final body = res.data ?? {};
+    if (body['success'] == true) {
+      final payload = body['data'];
+      if (payload is Map) return Map<String, dynamic>.from(payload);
+      return {};
+    }
+    throw _apiFromBody(body, res.requestOptions);
+  }
+
 
 
   Future<Map<String, dynamic>> userDetail(String token) async {
