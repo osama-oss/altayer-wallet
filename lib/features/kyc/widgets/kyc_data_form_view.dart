@@ -48,6 +48,14 @@ class _KycDataFormViewState extends ConsumerState<KycDataFormView> {
   DateTime? _expiryDate;
   DateTime? _dateOfBirth;
 
+  /// 'male' | 'female' | null. Collected here (registration no longer captures
+  /// gender because Keycloak has no attribute for it).
+  String? _gender;
+
+  /// Inline validation message shown under the gender selector, since it is not
+  /// a [TextFormField] and so is not covered by [Form.validate].
+  String? _genderError;
+
   @override
   void initState() {
     super.initState();
@@ -64,6 +72,7 @@ class _KycDataFormViewState extends ConsumerState<KycDataFormView> {
     _issueDate = d.issueDate;
     _expiryDate = d.expiryDate;
     _dateOfBirth = d.dateOfBirth;
+    _gender = d.gender.isEmpty ? null : d.gender;
   }
 
   @override
@@ -86,6 +95,7 @@ class _KycDataFormViewState extends ConsumerState<KycDataFormView> {
         expiryDate: _expiryDate,
         placeOfBirth: _placeOfBirth.text,
         dateOfBirth: _dateOfBirth,
+        gender: _gender ?? '',
         country: _country.text,
         city: _city.text,
         district: _district.text,
@@ -95,7 +105,13 @@ class _KycDataFormViewState extends ConsumerState<KycDataFormView> {
 
   void _onContinue() {
     FocusScope.of(context).unfocus();
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final formOk = _formKey.currentState?.validate() ?? false;
+    // The gender selector is not a form field, so validate it manually.
+    final genderMissing = _gender == null;
+    if (genderMissing) {
+      setState(() => _genderError = context.l10n.kycFieldRequired);
+    }
+    if (!formOk || genderMissing) return;
     widget.onContinue(_idType, _collect());
   }
 
@@ -164,7 +180,6 @@ class _KycDataFormViewState extends ConsumerState<KycDataFormView> {
                           false)) ...[
                     _ReadOnlyIdentityCard(
                       fullName: identity['fullName'].toString(),
-                      gender: identity['gender']?.toString(),
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -234,6 +249,15 @@ class _KycDataFormViewState extends ConsumerState<KycDataFormView> {
                     ),
                     onChanged: (d) => setState(() => _dateOfBirth = d),
                     validator: (v) => v == null ? l10n.kycFieldRequired : null,
+                  ),
+                  const SizedBox(height: 4),
+                  _GenderSelector(
+                    value: _gender,
+                    errorText: _genderError,
+                    onChanged: (g) => setState(() {
+                      _gender = g;
+                      _genderError = null;
+                    }),
                   ),
                   const SizedBox(height: 8),
                   UffSectionLabel(label: l10n.kycSectionResidence),
@@ -365,27 +389,20 @@ class _ScanButton extends StatelessWidget {
   }
 }
 
-/// The locked "your details" card at the top of the KYC form: the full name and
-/// gender the customer entered at sign-up, shown for confirmation only. There is
+/// The locked "your details" card at the top of the KYC form: the full name the
+/// customer entered at sign-up, shown for confirmation only. There is
 /// deliberately no input here — a lock glyph + hint make clear it can't be
-/// changed from this screen.
+/// changed from this screen. Gender is NOT shown here anymore; it is collected
+/// as an editable selector further down the form.
 class _ReadOnlyIdentityCard extends StatelessWidget {
-  const _ReadOnlyIdentityCard({required this.fullName, required this.gender});
+  const _ReadOnlyIdentityCard({required this.fullName});
 
   final String fullName;
-
-  /// 'male' | 'female' | null (older accounts).
-  final String? gender;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.bankColors;
     final l10n = context.l10n;
-    final genderText = switch (gender) {
-      'male' => l10n.genderMale,
-      'female' => l10n.genderFemale,
-      _ => '—',
-    };
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       decoration: BoxDecoration(
@@ -418,14 +435,6 @@ class _ReadOnlyIdentityCard extends StatelessWidget {
             value: fullName,
             icon: Icons.person_outline_rounded,
           ),
-          const SizedBox(height: 12),
-          _ReadOnlyRow(
-            label: l10n.gender,
-            value: genderText,
-            icon: gender == 'female'
-                ? Icons.female_rounded
-                : Icons.male_rounded,
-          ),
           const SizedBox(height: 10),
           Text(
             l10n.kycIdentityLocked,
@@ -438,6 +447,123 @@ class _ReadOnlyIdentityCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Male/female selector for the KYC form. Registration no longer captures
+/// gender (Keycloak has no attribute for it), so the customer chooses it here.
+/// Mirrors the two-button style used elsewhere; [errorText] surfaces the
+/// "required" message since this is not a [TextFormField].
+class _GenderSelector extends StatelessWidget {
+  const _GenderSelector({
+    required this.value,
+    required this.onChanged,
+    this.errorText,
+  });
+
+  /// 'male' | 'female' | null.
+  final String? value;
+  final ValueChanged<String> onChanged;
+  final String? errorText;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.bankColors;
+    final l10n = context.l10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        UffSectionLabel(label: l10n.gender),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: _GenderOption(
+                selected: value == 'male',
+                label: l10n.genderMale,
+                icon: Icons.male_rounded,
+                onTap: () => onChanged('male'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _GenderOption(
+                selected: value == 'female',
+                label: l10n.genderFemale,
+                icon: Icons.female_rounded,
+                onTap: () => onChanged('female'),
+              ),
+            ),
+          ],
+        ),
+        if (errorText != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            errorText!,
+            style: TextStyle(
+              fontFamily: 'Tajawal',
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: colors.error,
+            ),
+          ),
+        ],
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+}
+
+/// A single male/female pill inside [_GenderSelector].
+class _GenderOption extends StatelessWidget {
+  const _GenderOption({
+    required this.selected,
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final bool selected;
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.bankColors;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        height: 56,
+        decoration: BoxDecoration(
+          color: selected ? colors.secondary : colors.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected ? colors.secondary : colors.outlineVariant,
+            width: 1.3,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'Tajawal',
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: selected ? colors.onSecondary : colors.onSurface,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(icon,
+                size: 20,
+                color: selected ? colors.onSecondary : colors.onSurfaceVariant),
+          ],
+        ),
       ),
     );
   }
