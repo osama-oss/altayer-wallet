@@ -62,18 +62,17 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     final mobile = _mobile.text.trim();
     setState(() => _submitting = true);
     try {
-      // Wallet registration: username = the mobile number. Per the backend
-      // contract the only usernameMode values are CUSTOMER_ID and CUSTOM, so we
-      // use CUSTOM + customUsername to set the Keycloak username to the mobile
-      // explicitly. customerId is required by the DTO (1–16 chars), so we pass
-      // the mobile there too. The temporary password equals the username
-      // (= mobile), which the set-password step then sends as currentPassword.
+      // Wallet registration = identity only (no bank core). Creates a Keycloak
+      // user in the wallet realm keyed by the mobile number; the temporary
+      // password equals the username (= mobile), which the set-password step
+      // then sends as currentPassword. firstName/lastName are optional metadata
+      // on the identity. The core CIF is linked later (after KYC) via link-core.
       final auth = ref.read(authServiceProvider);
-      await auth.completeRegistration(
-            customerId: mobile,
-            usernameMode: 'CUSTOM',
-            customUsername: mobile,
-          );
+      await auth.registerWalletIdentity(
+        mobile: mobile,
+        firstName: _firstName.text.trim(),
+        lastName: _surname.text.trim(),
+      );
       // Keep the name + gender the customer entered here: registration itself
       // only creates the Keycloak user, but the KYC step and the eventual
       // WALLET_CUSTOMER_CREATE call need these. Persisted read-only so KYC shows
