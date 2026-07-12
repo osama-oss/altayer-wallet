@@ -7,6 +7,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../core/wallet_account_id.dart';
 import 'transfer_receipt.dart';
 
 // uff brand palette (kept in sync with the app theme).
@@ -44,7 +45,7 @@ Future<Uint8List> buildTransferReceiptPdf(TransferReceipt r) async {
   final qrData = 'Ultimate Wallet Transfer Receipt\n'
       'Ref: ${r.reference}\n'
       'Amount: ${r.amount} ${r.currency}\n'
-      'To: ${maskAccount(r.toAccount)}\n'
+      'To: ${maskAccount(walletDisplayNumber(r.toAccount))}\n'
       'Date: ${r.date.toIso8601String()}';
 
   doc.addPage(
@@ -174,11 +175,11 @@ pw.Widget _successBadge(TransferReceipt r) {
 
 pw.Widget _detailsCard(TransferReceipt r) {
   final from = (r.fromName != null && r.fromName!.isNotEmpty)
-      ? '${r.fromName}\n${maskAccount(r.fromAccount)}'
-      : maskAccount(r.fromAccount);
+      ? '${r.fromName}\n${maskAccount(walletDisplayNumber(r.fromAccount))}'
+      : maskAccount(walletDisplayNumber(r.fromAccount));
   final to = (r.toName != null && r.toName!.isNotEmpty)
-      ? '${r.toName}\n${r.toAccount}'
-      : r.toAccount;
+      ? '${r.toName}\n${walletDisplayNumber(r.toAccount)}'
+      : walletDisplayNumber(r.toAccount);
 
   return pw.Container(
     padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -295,8 +296,10 @@ pw.Widget _footer(String qrData) {
 
 /// Plain-text version of the receipt (for the "share as text" action).
 String transferReceiptText(TransferReceipt r) {
-  final from = '${r.fromName ?? ''} ${maskAccount(r.fromAccount)}'.trim();
-  final to = '${r.toName ?? ''} ${r.toAccount}'.trim();
+  final from =
+      '${r.fromName ?? ''} ${maskAccount(walletDisplayNumber(r.fromAccount))}'
+          .trim();
+  final to = '${r.toName ?? ''} ${walletDisplayNumber(r.toAccount)}'.trim();
   final date = DateFormat('yyyy-MM-dd  HH:mm').format(r.date);
   final lines = <String>[
     'Ultimate Wallet — إيصال التحويل / Transfer Receipt',

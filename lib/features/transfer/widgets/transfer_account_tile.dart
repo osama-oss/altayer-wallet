@@ -5,6 +5,7 @@ import '../../../core/models/banking_account.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/bank_sync_colors.dart';
+import '../../../core/wallet_account_id.dart';
 
 /// Light, tappable account card shared by both transfer tabs (debit/credit).
 /// Flat and easy on the eye: soft tint, thin border, no heavy shadow.
@@ -30,7 +31,8 @@ class TransferAccountTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.bankColors;
     final lang = Localizations.localeOf(context).languageCode;
-    final number = account?.accountNumber ?? '—';
+    final number =
+        account != null ? walletDisplayNumber(account!.accountNumber) : '—';
     final balance =
         account != null ? NumberFormat('#,##0.00').format(account!.balance) : '0.00';
     final currency = currencyOverride ?? account?.currency ?? 'YER';
@@ -363,7 +365,7 @@ class _AccountRow extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        account.accountNumber,
+                        walletDisplayNumber(account.accountNumber),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textDirection: TextDirection.ltr,

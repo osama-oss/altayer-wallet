@@ -9,6 +9,7 @@ import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/bank_sync_colors.dart';
+import '../../../core/wallet_account_id.dart';
 import '../../../l10n/app_localizations.dart';
 import '../transfer_receipt.dart';
 import '../transfer_receipt_pdf.dart';
@@ -281,8 +282,8 @@ class _TransferSuccessViewState extends ConsumerState<TransferSuccessView> {
           const SizedBox(height: 14),
           _field(colors, isAr ? 'إلى' : 'To',
               r.toName?.trim().isNotEmpty == true
-                  ? '${r.toName}  ·  ${r.toAccount}'
-                  : r.toAccount),
+                  ? '${r.toName}  ·  ${walletDisplayNumber(r.toAccount)}'
+                  : walletDisplayNumber(r.toAccount)),
           const SizedBox(height: 14),
           _field(colors, isAr ? 'تاريخ إنشاء الأمر' : 'Order date', dateStr),
           if (_expanded) ...[
@@ -291,8 +292,8 @@ class _TransferSuccessViewState extends ConsumerState<TransferSuccessView> {
                 colors,
                 isAr ? 'من' : 'From',
                 r.fromName?.trim().isNotEmpty == true
-                    ? '${r.fromName}  ·  ${maskAccount(r.fromAccount)}'
-                    : maskAccount(r.fromAccount)),
+                    ? '${r.fromName}  ·  ${maskAccount(walletDisplayNumber(r.fromAccount))}'
+                    : maskAccount(walletDisplayNumber(r.fromAccount))),
             if (r.typeLabel != null && r.typeLabel!.isNotEmpty) ...[
               const SizedBox(height: 14),
               _field(colors, isAr ? 'نوع الحوالة' : 'Type', r.typeLabel!),

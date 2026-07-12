@@ -10,6 +10,7 @@ import '../../core/providers/app_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/bank_sync_colors.dart';
+import '../../core/wallet_account_id.dart';
 import '../../core/widgets/pin_entry_sheet.dart';
 import '../../core/widgets/uff_loader.dart';
 import '../../l10n/app_localizations.dart';
@@ -225,7 +226,7 @@ class _TransferReviewScreenState extends ConsumerState<TransferReviewScreen> {
         amount: widget.amount.trim(),
         currency: _currency,
         fromName: _debit?.label,
-        fromAccount: _debit?.accountNumber ?? '—',
+        fromAccount: walletDisplayNumber(_debit?.accountNumber ?? '—'),
         toName: _recipientName.isEmpty ? null : _recipientName,
         toAccount: widget.account.trim(),
         reference: transferResultReference(_result),
@@ -297,7 +298,7 @@ class _TransferReviewScreenState extends ConsumerState<TransferReviewScreen> {
           rows: [
             _Detail(
               label: isAr ? 'الحساب أو المحفظة' : 'Account / wallet',
-              value: maskAccount(widget.account.trim()),
+              value: maskAccount(walletDisplayNumber(widget.account)),
               mono: true,
             ),
             _Detail(
