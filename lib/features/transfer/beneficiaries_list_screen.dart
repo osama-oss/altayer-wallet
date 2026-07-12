@@ -7,6 +7,7 @@ import '../../core/providers/app_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/bank_sync_colors.dart';
+import '../../core/wallet_account_id.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/widgets/uff_loader.dart';
 
@@ -374,7 +375,7 @@ class _BeneficiaryCard extends StatelessWidget {
                     ],
                     const SizedBox(height: 6),
                     Text(
-                      accountNum,
+                      walletDisplayNumber(accountNum),
                       textDirection: TextDirection.ltr,
                       textAlign: languageCode == 'ar' ? TextAlign.right : TextAlign.left,
                       maxLines: 1,

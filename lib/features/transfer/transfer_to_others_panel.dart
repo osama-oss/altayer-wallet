@@ -262,6 +262,22 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
     _amount.text = NumberFormat('#,##0.##').format(debit.balance);
   }
 
+  /// Opens the recipient-wallet dropdown (a clean bottom sheet) and applies the
+  /// picked currency, which decides which of the recipient's wallets is credited.
+  Future<void> _pickRecipientCurrency() async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _RecipientCurrencySheet(selected: _creditCurrency),
+    );
+    if (selected == null) return;
+    setState(() {
+      _creditCurrency = selected;
+      _creditCurrencyTouched = true;
+    });
+    _scheduleQuote();
+  }
+
   Future<void> _pickDebitAccount() async {
     final selected = await TransferAccountPicker.show(
       context,
@@ -328,19 +344,14 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
           beneficiariesTooltip: l10n.beneficiaries,
           scanTooltip: l10n.scanQr,
         ),
-        // Recipient wallet (YER/USD/SAR) — shown once a number is entered so the
-        // customer can send to any of the recipient's wallets without ever
-        // seeing or typing the internal currency suffix.
+        // Recipient wallet (YER/USD/SAR) — a dropdown shown once a number is
+        // entered so the customer can send to any of the recipient's wallets
+        // (incl. a different currency, with a live FX rate) without ever seeing
+        // or typing the internal currency suffix.
         if (_beneficiary.text.trim().isNotEmpty)
-          _RecipientWalletSelector(
-            selected: _creditCurrency,
-            onSelected: (ccy) {
-              setState(() {
-                _creditCurrency = ccy;
-                _creditCurrencyTouched = true;
-              });
-              _scheduleQuote();
-            },
+          _RecipientWalletDropdown(
+            currency: _creditCurrency,
+            onTap: _pickRecipientCurrency,
           ),
         const SizedBox(height: 16),
         TransferAmountField(
@@ -536,17 +547,32 @@ class _BeneficiaryField extends StatelessWidget {
   }
 }
 
-/// Pills to pick which of the recipient's wallets (YER / USD / SAR) receives the
-/// transfer. Only the bare number is ever typed; this chooses the currency the
-/// full wallet id is built from, without exposing the internal suffix.
-class _RecipientWalletSelector extends StatelessWidget {
-  const _RecipientWalletSelector({
-    required this.selected,
-    required this.onSelected,
+/// Localized name for a wallet currency, e.g. `USD` → "دولار أمريكي".
+String recipientCurrencyName(String currency, bool isAr) {
+  switch (currency.trim().toUpperCase()) {
+    case 'YER':
+      return isAr ? 'ريال يمني' : 'Yemeni Rial';
+    case 'SAR':
+      return isAr ? 'ريال سعودي' : 'Saudi Riyal';
+    case 'USD':
+      return isAr ? 'دولار أمريكي' : 'US Dollar';
+    default:
+      return currency;
+  }
+}
+
+/// Dropdown field to pick which of the recipient's wallets (YER / USD / SAR)
+/// receives the transfer. Only the bare number is ever typed; this chooses the
+/// currency the full wallet id is built from, without exposing the internal
+/// suffix. Tapping opens [_RecipientCurrencySheet].
+class _RecipientWalletDropdown extends StatelessWidget {
+  const _RecipientWalletDropdown({
+    required this.currency,
+    required this.onTap,
   });
 
-  final String selected;
-  final ValueChanged<String> onSelected;
+  final String currency;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -559,34 +585,154 @@ class _RecipientWalletSelector extends StatelessWidget {
       children: [
         const SizedBox(height: 16),
         Text(
-          isAr ? 'محفظة المستلم' : 'Recipient wallet',
+          isAr ? 'محفظة المستلم (العملة)' : 'Recipient wallet (currency)',
           style: AppTextStyles.labelSm(
             color: colors.onSurfaceVariant,
             languageCode: lang,
           ).copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 8),
-        Row(
-          children: [
-            for (final ccy in walletCurrencies) ...[
-              Expanded(
-                child: _CurrencyChip(
-                  currency: ccy,
-                  selected: ccy == selected,
-                  onTap: () => onSelected(ccy),
-                ),
+        Material(
+          color: colors.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(AppColors.radiusLg),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(AppColors.radiusLg),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppColors.radiusLg),
+                border: Border.all(color: colors.outlineVariant),
               ),
-              if (ccy != walletCurrencies.last) const SizedBox(width: 8),
-            ],
-          ],
+              child: Row(
+                children: [
+                  _CurrencyBadge(currency: currency, colors: colors),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          recipientCurrencyName(currency, isAr),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bodyMd(
+                            color: colors.onSurface,
+                            languageCode: lang,
+                          ).copyWith(fontWeight: FontWeight.w700, fontSize: 14),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          currency.toUpperCase(),
+                          textDirection: TextDirection.ltr,
+                          style: AppTextStyles.labelSm(
+                            color: colors.onSurfaceVariant,
+                            languageCode: lang,
+                          ).copyWith(fontWeight: FontWeight.w600, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.keyboard_arrow_down_rounded,
+                      color: colors.outline, size: 24),
+                ],
+              ),
+            ),
+          ),
         ),
       ],
     );
   }
 }
 
-class _CurrencyChip extends StatelessWidget {
-  const _CurrencyChip({
+/// Small rounded badge showing the currency code, reused by the field + sheet.
+class _CurrencyBadge extends StatelessWidget {
+  const _CurrencyBadge({required this.currency, required this.colors});
+
+  final String currency;
+  final BankSyncColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: colors.secondary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        currency.toUpperCase(),
+        textDirection: TextDirection.ltr,
+        style: AppTextStyles.labelSm(color: colors.secondary)
+            .copyWith(fontWeight: FontWeight.w800, fontSize: 12),
+      ),
+    );
+  }
+}
+
+/// Bottom-sheet list backing the recipient-wallet dropdown. Returns the picked
+/// currency code, or null when dismissed.
+class _RecipientCurrencySheet extends StatelessWidget {
+  const _RecipientCurrencySheet({required this.selected});
+
+  final String selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.bankColors;
+    final lang = Localizations.localeOf(context).languageCode;
+    final isAr = lang == 'ar';
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.surfaceContainerLowest,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 44,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: colors.outlineVariant,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              isAr ? 'اختر محفظة المستلم' : 'Choose recipient wallet',
+              style: AppTextStyles.headlineMd(
+                color: colors.onSurface,
+                languageCode: lang,
+              ).copyWith(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 14),
+            for (final ccy in walletCurrencies) ...[
+              _CurrencyOption(
+                currency: ccy,
+                selected: ccy == selected,
+                onTap: () => Navigator.of(context).pop(ccy),
+              ),
+              if (ccy != walletCurrencies.last) const SizedBox(height: 10),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CurrencyOption extends StatelessWidget {
+  const _CurrencyOption({
     required this.currency,
     required this.selected,
     required this.onTap,
@@ -600,31 +746,56 @@ class _CurrencyChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.bankColors;
     final lang = Localizations.localeOf(context).languageCode;
+    final isAr = lang == 'ar';
 
     return Material(
       color: selected
-          ? colors.secondary.withValues(alpha: 0.12)
+          ? colors.secondary.withValues(alpha: 0.08)
           : colors.surfaceContainerLowest,
-      borderRadius: BorderRadius.circular(AppColors.radiusMd),
+      borderRadius: BorderRadius.circular(AppColors.radiusLg),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppColors.radiusMd),
+        borderRadius: BorderRadius.circular(AppColors.radiusLg),
         child: Container(
-          height: 44,
-          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppColors.radiusMd),
+            borderRadius: BorderRadius.circular(AppColors.radiusLg),
             border: Border.all(
               color: selected ? colors.secondary : colors.outlineVariant,
               width: selected ? 1.4 : 1,
             ),
           ),
-          child: Text(
-            currency,
-            style: AppTextStyles.labelSm(
-              color: selected ? colors.secondary : colors.onSurface,
-              languageCode: lang,
-            ).copyWith(fontWeight: FontWeight.w700, fontSize: 14),
+          child: Row(
+            children: [
+              _CurrencyBadge(currency: currency, colors: colors),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      recipientCurrencyName(currency, isAr),
+                      style: AppTextStyles.bodyMd(
+                        color: colors.onSurface,
+                        languageCode: lang,
+                      ).copyWith(fontWeight: FontWeight.w700, fontSize: 14),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      currency.toUpperCase(),
+                      textDirection: TextDirection.ltr,
+                      style: AppTextStyles.labelSm(
+                        color: colors.onSurfaceVariant,
+                        languageCode: lang,
+                      ).copyWith(fontWeight: FontWeight.w600, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              if (selected)
+                Icon(Icons.check_circle_rounded,
+                    color: colors.secondary, size: 22),
+            ],
           ),
         ),
       ),
