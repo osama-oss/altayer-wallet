@@ -4,6 +4,15 @@ import '../../core/providers/app_providers.dart';
 import 'kyc_repository.dart';
 import 'kyc_status.dart';
 
+/// Master switch for the KYC feature's UI entry points.
+///
+/// TEMP: kept `false` so KYC stays "dead code" (present but not wired) and does
+/// not disrupt end-to-end app testing — the home banner and the profile
+/// verification card are hidden and never hit the KYC backend. The `/kyc` route
+/// and all KYC widgets remain compiled but unreachable through the UI. Flip to
+/// `true` to re-enable KYC once its backend is live.
+const bool kycFeatureEnabled = false;
+
 /// Single KYC backend gateway (status / upload / submit).
 final kycRepositoryProvider = Provider<KycRepository>((ref) {
   return KycRepository(

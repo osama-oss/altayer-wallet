@@ -83,8 +83,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final l10n = context.l10n;
     final colors = context.bankColors;
     final languageCode = Localizations.localeOf(context).languageCode;
-    final kycStatus =
-        ref.watch(kycStatusProvider).valueOrNull?.status ?? KycStatus.unverified;
+    // While KYC is disabled (dead code), don't watch the provider — that avoids
+    // hitting the KYC backend during app testing.
+    final kycStatus = kycFeatureEnabled
+        ? (ref.watch(kycStatusProvider).valueOrNull?.status ??
+            KycStatus.unverified)
+        : KycStatus.unverified;
 
     final fullName =
         _pick(['fullName', 'name', 'customerName']) ?? _username ?? '';
@@ -113,8 +117,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   languageCode: languageCode,
                 ),
                 const SizedBox(height: 20),
-                _VerificationCard(status: kycStatus),
-                const SizedBox(height: 20),
+                if (kycFeatureEnabled) ...[
+                  _VerificationCard(status: kycStatus),
+                  const SizedBox(height: 20),
+                ],
                 Container(
                   decoration: BoxDecoration(
                     color: colors.surfaceContainerLowest,
