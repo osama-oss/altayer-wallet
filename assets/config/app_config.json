@@ -2,8 +2,8 @@
   "apiBaseUrl": "http://88.80.145.121:8089",
   "sessionIdleMinutes": 10,
   "keycloak": {
-    "issuer": "https://88.80.145.121:8085/realms/uff-digital-banking",
-    "clientId": "digital-banking-mobile",
+    "issuer": "https://88.80.145.121:8085/realms/uff-wallet-backoffice-realm",
+    "clientId": "uff-browser-deployed",
     "scopes": [
       "openid",
       "profile",
