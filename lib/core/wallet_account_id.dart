@@ -33,3 +33,31 @@ String walletPhonePart(String identifier) {
   final i = identifier.indexOf('_');
   return normalizeWalletPhone(i >= 0 ? identifier.substring(0, i) : identifier);
 }
+
+/// Extracts the wallet currency from an id like `"<phone>_YER"`, or null when
+/// the value carries no known currency suffix. Used to preselect the recipient
+/// wallet when prefilling from a favorite / recent transfer / QR that already
+/// encodes the currency, so the customer never has to reselect it.
+String? walletCurrencyPart(String identifier) {
+  final i = identifier.lastIndexOf('_');
+  if (i < 0) return null;
+  final suffix = identifier.substring(i + 1).trim().toUpperCase();
+  return walletCurrencies.contains(suffix) ? suffix : null;
+}
+
+/// Strips a trailing wallet currency suffix (`_YER` / `_USD` / `_SAR`) for
+/// display only. The wallet stores accounts as `"<number>_<CURRENCY>"`, but the
+/// customer must never see the internal currency suffix — they deal with the
+/// bare account / wallet number, exactly like a normal banking app.
+///
+/// Unlike [walletPhonePart] this preserves the number verbatim (leading zeros,
+/// no phone trunk normalization) and only strips when the suffix is one of the
+/// known wallet currencies, so a real account number that merely contains `_`
+/// is left untouched. Keep the original value for anything sent to the API.
+String walletDisplayNumber(String value) {
+  final v = value.trim();
+  final i = v.lastIndexOf('_');
+  if (i < 0) return v;
+  final suffix = v.substring(i + 1).toUpperCase();
+  return walletCurrencies.contains(suffix) ? v.substring(0, i) : v;
+}
