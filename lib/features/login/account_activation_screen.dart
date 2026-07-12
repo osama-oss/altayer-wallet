@@ -18,7 +18,16 @@ import '../../l10n/app_localizations.dart';
 class AccountActivationScreen extends StatefulWidget {
   final String mobile;
 
-  const AccountActivationScreen({super.key, required this.mobile});
+  /// Keycloak username returned by registration (normalized digits). It doubles
+  /// as the temporary password. Null for legacy entry points that only know the
+  /// raw mobile — in that case we fall back to [mobile].
+  final String? keycloakUsername;
+
+  const AccountActivationScreen({
+    super.key,
+    required this.mobile,
+    this.keycloakUsername,
+  });
 
   @override
   State<AccountActivationScreen> createState() =>
@@ -92,13 +101,18 @@ class _AccountActivationScreenState extends State<AccountActivationScreen> {
     }
     setState(() => _verifying = false);
     // Registration flow: after activation, the user sets a permanent password.
-    // The account is created (backend, same pattern as mobile) with a temporary
-    // password equal to the phone, so we pass it as currentPassword; the
-    // set-initial-password screen then sets the new password AND logs the user
-    // in (completeInitialPasswordAndLogin).
+    // The account was created in Keycloak with a temporary password EQUAL to the
+    // (normalized) keycloakUsername, so we pass that as both the username and the
+    // currentPassword. The set-initial-password screen then sets the new password
+    // AND logs the user in (completeInitialPasswordAndLogin). Fall back to the
+    // raw mobile only when no keycloakUsername was provided.
+    final loginUsername =
+        (widget.keycloakUsername != null && widget.keycloakUsername!.isNotEmpty)
+            ? widget.keycloakUsername!
+            : widget.mobile;
     context.go('/set-initial-password', extra: <String, String>{
-      'username': widget.mobile,
-      'currentPassword': widget.mobile,
+      'username': loginUsername,
+      'currentPassword': loginUsername,
     });
   }
 
