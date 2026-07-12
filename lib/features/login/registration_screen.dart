@@ -68,11 +68,19 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
       // then sends as currentPassword. firstName/lastName are optional metadata
       // on the identity. The core CIF is linked later (after KYC) via link-core.
       final auth = ref.read(authServiceProvider);
-      await auth.registerWalletIdentity(
+      final data = await auth.registerWalletIdentity(
         mobile: mobile,
         firstName: _firstName.text.trim(),
         lastName: _surname.text.trim(),
       );
+      // The backend normalizes the mobile (e.g. adds the country code) and
+      // returns the Keycloak username in `keycloakUsername`. The temporary
+      // password EQUALS that username — so the login / set-password steps must
+      // use this value, NOT the raw digits the user typed. Fall back to the
+      // typed mobile only if the field is missing.
+      final kcUsername = data['keycloakUsername']?.toString().trim();
+      final keycloakUsername =
+          (kcUsername != null && kcUsername.isNotEmpty) ? kcUsername : mobile;
       // Keep the name + gender the customer entered here: registration itself
       // only creates the Keycloak user, but the KYC step and the eventual
       // WALLET_CUSTOMER_CREATE call need these. Persisted read-only so KYC shows
@@ -92,7 +100,10 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
         'mobile': mobile,
       });
       if (!mounted) return;
-      context.push('/register/verify?mobile=${Uri.encodeComponent(mobile)}');
+      context.push(
+        '/register/verify?mobile=${Uri.encodeComponent(mobile)}'
+        '&keycloakUsername=${Uri.encodeComponent(keycloakUsername)}',
+      );
     } on ApiException catch (e) {
       if (mounted) _snack(e.message);
     } catch (e) {
