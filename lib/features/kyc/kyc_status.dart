@@ -24,6 +24,10 @@ enum KycStatus {
 
   /// Review rejected — the customer must fix and resubmit.
   rejected,
+
+  /// Reviewed and sent back for edits — the submission wasn't rejected, but the
+  /// customer must correct specific details and resubmit.
+  returned,
 }
 
 extension KycStatusX on KycStatus {
@@ -48,6 +52,14 @@ extension KycStatusX on KycStatus {
       case 'DECLINED':
       case 'FAILED':
         return KycStatus.rejected;
+      case 'RETURNED':
+      case 'NEEDS_INFO':
+      case 'NEEDS_EDIT':
+      case 'MORE_INFO':
+      case 'RESUBMIT':
+      case 'ACTION_REQUIRED':
+      case 'CHANGES_REQUESTED':
+        return KycStatus.returned;
       case 'INCOMPLETE':
       case 'DRAFT':
       case 'STARTED':
@@ -69,17 +81,25 @@ extension KycStatusX on KycStatus {
         KycStatus.pending => 'PENDING',
         KycStatus.verified => 'VERIFIED',
         KycStatus.rejected => 'REJECTED',
+        KycStatus.returned => 'RETURNED',
       };
 
   /// True when the customer can (re)start the capture flow.
   bool get canSubmit =>
       this == KycStatus.unverified ||
       this == KycStatus.incomplete ||
-      this == KycStatus.rejected;
+      this == KycStatus.rejected ||
+      this == KycStatus.returned;
 
   bool get isVerified => this == KycStatus.verified;
   bool get isPending => this == KycStatus.pending;
   bool get isRejected => this == KycStatus.rejected;
+  bool get isReturned => this == KycStatus.returned;
+
+  /// Review states that carry a back-office note the customer should read
+  /// (a rejection reason or a list of edits requested).
+  bool get hasReviewNote =>
+      this == KycStatus.rejected || this == KycStatus.returned;
 
   String title(AppLocalizations l10n) => switch (this) {
         KycStatus.unverified => l10n.kycStatusUnverifiedTitle,
@@ -87,6 +107,7 @@ extension KycStatusX on KycStatus {
         KycStatus.pending => l10n.kycStatusPendingTitle,
         KycStatus.verified => l10n.kycStatusVerifiedTitle,
         KycStatus.rejected => l10n.kycStatusRejectedTitle,
+        KycStatus.returned => l10n.kycStatusReturnedTitle,
       };
 
   String description(AppLocalizations l10n) => switch (this) {
@@ -95,6 +116,7 @@ extension KycStatusX on KycStatus {
         KycStatus.pending => l10n.kycStatusPendingDesc,
         KycStatus.verified => l10n.kycStatusVerifiedDesc,
         KycStatus.rejected => l10n.kycStatusRejectedDesc,
+        KycStatus.returned => l10n.kycStatusReturnedDesc,
       };
 
   IconData get icon => switch (this) {
@@ -103,6 +125,7 @@ extension KycStatusX on KycStatus {
         KycStatus.pending => Icons.hourglass_top_rounded,
         KycStatus.verified => Icons.verified_rounded,
         KycStatus.rejected => Icons.gpp_bad_outlined,
+        KycStatus.returned => Icons.assignment_late_outlined,
       };
 
   /// Accent color for the status, drawn from the theme so it adapts to
@@ -113,6 +136,7 @@ extension KycStatusX on KycStatus {
         KycStatus.pending => colors.secondary,
         KycStatus.verified => colors.accentGreen,
         KycStatus.rejected => colors.error,
+        KycStatus.returned => colors.warning,
       };
 }
 

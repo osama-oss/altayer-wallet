@@ -383,6 +383,8 @@ abstract class AppLocalizations {
   String get kycStatusVerifiedDesc;
   String get kycStatusRejectedTitle;
   String get kycStatusRejectedDesc;
+  String get kycStatusReturnedTitle;
+  String get kycStatusReturnedDesc;
   // ── KYC capture flow ───────────────────────────────────────────────────
   String kycStepProgress(int current, int total);
   String get kycChooseSource;
@@ -423,11 +425,15 @@ abstract class AppLocalizations {
   String get kycVerifiedBody;
   String get kycRejectedHeadline;
   String get kycRejectionReasonLabel;
+  String get kycReturnedHeadline;
+  String get kycReturnedBody;
+  String get kycReturnedReasonLabel;
   String get kycResubmit;
   String get kycBackToHome;
   // ── KYC banner variants ────────────────────────────────────────────────
   String get kycBannerPendingText;
   String get kycBannerRejectedText;
+  String get kycBannerReturnedText;
   // ── KYC data-entry form (account confirmation) ─────────────────────────
   String get kycDataIntro;
   String get kycSectionIdentity;
@@ -1755,6 +1761,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get kycStatusRejectedDesc =>
       'We couldn\'t verify your documents. Please review and resubmit.';
+  @override
+  String get kycStatusReturnedTitle => 'Action needed';
+  @override
+  String get kycStatusReturnedDesc =>
+      'Our team reviewed your application and needs a few details corrected before your account can be verified.';
 
   @override
   String kycStepProgress(int current, int total) => 'Step $current of $total';
@@ -1843,6 +1854,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get kycRejectionReasonLabel => 'Reason';
   @override
+  String get kycReturnedHeadline => 'A few things need your attention';
+  @override
+  String get kycReturnedBody =>
+      'We\'ve reviewed your application and need you to update the details below. Make the changes and resubmit — it only takes a moment.';
+  @override
+  String get kycReturnedReasonLabel => 'What to fix';
+  @override
   String get kycResubmit => 'Resubmit documents';
   @override
   String get kycBackToHome => 'Back to home';
@@ -1853,6 +1871,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get kycBannerRejectedText =>
       'Verification was declined — tap to review and resubmit.';
+  @override
+  String get kycBannerReturnedText =>
+      'Action needed — tap to update a few details and resubmit.';
 
   @override
   String get kycDataIntro =>
@@ -3481,6 +3502,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get kycStatusRejectedDesc =>
       'تعذّر التحقق من وثائقك. يُرجى المراجعة وإعادة الإرسال.';
+  @override
+  String get kycStatusReturnedTitle => 'مطلوب إجراء';
+  @override
+  String get kycStatusReturnedDesc =>
+      'راجع فريقنا طلبك ويحتاج إلى تصحيح بعض البيانات قبل توثيق حسابك.';
 
   @override
   String kycStepProgress(int current, int total) => 'الخطوة $current من $total';
@@ -3566,6 +3592,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get kycRejectionReasonLabel => 'السبب';
   @override
+  String get kycReturnedHeadline => 'بعض التفاصيل تحتاج انتباهك';
+  @override
+  String get kycReturnedBody =>
+      'راجعنا طلبك ونحتاج منك تحديث البيانات أدناه. أجرِ التعديلات ثم أعد الإرسال — لن يستغرق ذلك سوى لحظات.';
+  @override
+  String get kycReturnedReasonLabel => 'المطلوب تصحيحه';
+  @override
   String get kycResubmit => 'إعادة إرسال الوثائق';
   @override
   String get kycBackToHome => 'العودة للرئيسية';
@@ -3576,6 +3609,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get kycBannerRejectedText =>
       'تم رفض التوثيق — اضغط للمراجعة وإعادة الإرسال.';
+  @override
+  String get kycBannerReturnedText =>
+      'مطلوب إجراء — اضغط لتحديث بعض البيانات وإعادة الإرسال.';
 
   @override
   String get kycDataIntro =>

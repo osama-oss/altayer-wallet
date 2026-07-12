@@ -984,6 +984,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get kycStatusRejectedTitle => '验证被拒';
   @override
   String get kycStatusRejectedDesc => '无法验证您的证件，请检查后重新提交。';
+  @override
+  String get kycStatusReturnedTitle => '需要处理';
+  @override
+  String get kycStatusReturnedDesc => '我们的团队已审核您的申请，需先更正部分信息才能完成账户验证。';
 
   @override
   String kycStepProgress(int current, int total) => '第 $current 步，共 $total 步';
@@ -1060,6 +1064,12 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get kycRejectionReasonLabel => '原因';
   @override
+  String get kycReturnedHeadline => '有几项信息需要您处理';
+  @override
+  String get kycReturnedBody => '我们已审核您的申请，需要您更新以下信息。完成修改后重新提交，只需片刻即可。';
+  @override
+  String get kycReturnedReasonLabel => '需更正的内容';
+  @override
   String get kycResubmit => '重新提交证件';
   @override
   String get kycBackToHome => '返回首页';
@@ -1068,6 +1078,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get kycBannerPendingText => '您的证件正在审核中 — 我们会尽快更新。';
   @override
   String get kycBannerRejectedText => '验证被拒 — 点击查看并重新提交。';
+  @override
+  String get kycBannerReturnedText => '需要处理 — 点按以更新部分信息并重新提交。';
 
   @override
   String get kycDataIntro => '请确认您证件上的信息，然后继续附上照片。';

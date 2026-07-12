@@ -22,6 +22,7 @@ class BankSyncColors extends ThemeExtension<BankSyncColors> {
     required this.tertiaryFixedDim,
     required this.error,
     required this.success,
+    required this.warning,
     required this.accentGreen,
     required this.onError,
     required this.errorContainer,
@@ -58,6 +59,10 @@ class BankSyncColors extends ThemeExtension<BankSyncColors> {
   final Color tertiaryFixedDim;
   final Color error;
   final Color success;
+
+  /// Amber accent for "action required" states that aren't hard failures
+  /// (e.g. a KYC submission returned for edits).
+  final Color warning;
   final Color accentGreen;
   final Color onError;
   final Color errorContainer;
@@ -94,6 +99,7 @@ class BankSyncColors extends ThemeExtension<BankSyncColors> {
     tertiaryFixedDim: AppColors.tertiaryFixedDim,
     error: AppColors.error,
     success: AppColors.success,
+    warning: AppColors.warning,
     accentGreen: AppColors.accentGreen,
     onError: AppColors.onError,
     errorContainer: AppColors.errorContainer,
@@ -131,6 +137,7 @@ class BankSyncColors extends ThemeExtension<BankSyncColors> {
     tertiaryFixedDim: Color(0xFF4C8CFF),
     error: Color(0xFFFFB4AB),
     success: Color(0xFF6DD58C),
+    warning: Color(0xFFFAD34E),
     accentGreen: Color(0xFF00C853),
     onError: Color(0xFF690005),
     errorContainer: Color(0xFF93000A),
@@ -169,6 +176,7 @@ class BankSyncColors extends ThemeExtension<BankSyncColors> {
     Color? tertiaryFixedDim,
     Color? error,
     Color? success,
+    Color? warning,
     Color? accentGreen,
     Color? onError,
     Color? errorContainer,
@@ -205,6 +213,7 @@ class BankSyncColors extends ThemeExtension<BankSyncColors> {
       tertiaryFixedDim: tertiaryFixedDim ?? this.tertiaryFixedDim,
       error: error ?? this.error,
       success: success ?? this.success,
+      warning: warning ?? this.warning,
       accentGreen: accentGreen ?? this.accentGreen,
       onError: onError ?? this.onError,
       errorContainer: errorContainer ?? this.errorContainer,
@@ -247,6 +256,7 @@ class BankSyncColors extends ThemeExtension<BankSyncColors> {
       tertiaryFixedDim: lerpColor(tertiaryFixedDim, other.tertiaryFixedDim),
       error: lerpColor(error, other.error),
       success: lerpColor(success, other.success),
+      warning: lerpColor(warning, other.warning),
       accentGreen: lerpColor(accentGreen, other.accentGreen),
       onError: lerpColor(onError, other.onError),
       errorContainer: lerpColor(errorContainer, other.errorContainer),
