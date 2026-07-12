@@ -53,7 +53,18 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
   bool _loadingAccounts = true;
   List<BankingAccount> _accounts = [];
   String? _debitAccount;
+
+  // Currency of the selected debit account — the currency the amount is entered
+  // in.
   String _currency = 'YER';
+
+  // The recipient's target wallet currency. The customer only ever types the
+  // bare recipient number; this picks which of the recipient's wallets
+  // (YER/USD/SAR) is credited, so the full `"<phone>_<currency>"` id is built
+  // internally for the API. Defaults to the debit currency (same-currency
+  // transfer) until the customer picks a different wallet.
+  String _creditCurrency = 'YER';
+  bool _creditCurrencyTouched = false;
 
   // Live cross-currency quote (deal rate + converted amount).
   Timer? _quoteTimer;
@@ -64,7 +75,7 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
   @override
   void dispose() {
     _quoteTimer?.cancel();
-    _beneficiary.removeListener(_scheduleQuote);
+    _beneficiary.removeListener(_onBeneficiaryChanged);
     _amount.removeListener(_scheduleQuote);
     _beneficiary.dispose();
     _amount.dispose();
@@ -76,15 +87,30 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
     super.initState();
     final prefill = widget.initialBeneficiary?.trim();
     if (prefill != null && prefill.isNotEmpty) {
-      _beneficiary.text = prefill;
+      // Prefills (transfer-again / favorite / deep link) may carry the internal
+      // "_<currency>" suffix — strip it for display and use it to preselect the
+      // recipient wallet. Fields are set directly (setState is illegal here).
+      _beneficiary.text = walletPhonePart(prefill);
+      final ccy = walletCurrencyPart(prefill);
+      if (ccy != null) {
+        _creditCurrency = ccy;
+        _creditCurrencyTouched = true;
+      }
     }
     final amountPrefill = widget.initialAmount?.trim();
     if (amountPrefill != null && amountPrefill.isNotEmpty) {
       _amount.text = amountPrefill;
     }
-    _beneficiary.addListener(_scheduleQuote);
+    _beneficiary.addListener(_onBeneficiaryChanged);
     _amount.addListener(_scheduleQuote);
     _loadAccounts();
+  }
+
+  /// Rebuilds so the recipient-wallet selector appears once a number is typed,
+  /// then refreshes the live quote.
+  void _onBeneficiaryChanged() {
+    if (mounted) setState(() {});
+    _scheduleQuote();
   }
 
   /// Debounces a validate call to refresh the live exchange quote as the user
@@ -144,6 +170,7 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
           _debitAccount =
               defaultDebit?.accountNumber ?? accounts.first.accountNumber;
           _currency = defaultDebit?.currency ?? accounts.first.currency;
+          if (!_creditCurrencyTouched) _creditCurrency = _currency;
         }
         _loadingAccounts = false;
       });
@@ -162,9 +189,11 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
 
   Map<String, dynamic> get _payload => transferPayload(
         debitAccount: _debitAccount ?? '',
-        // Recipient is entered as a phone; the wallet id is "<phone>_<currency>"
-        // with the currency taken from the selected debit account.
-        creditAccount: walletAccountId(_beneficiary.text.trim(), _currency),
+        // The customer types only the bare recipient number; the internal wallet
+        // id "<phone>_<currency>" is built here using the recipient wallet the
+        // customer picked, so the currency suffix never surfaces in the UI.
+        creditAccount:
+            walletAccountId(_beneficiary.text.trim(), _creditCurrency),
         amountText: _amount.text,
       );
 
@@ -189,7 +218,7 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => TransferReviewScreen(
-          account: walletAccountId(_beneficiary.text.trim(), _currency),
+          account: walletAccountId(_beneficiary.text.trim(), _creditCurrency),
           amount: _amount.text.trim(),
           currency: _currency,
           debitAccount: _accountByNumber(_debitAccount),
@@ -198,17 +227,32 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
     );
   }
 
+  /// Prefills the recipient field from a picked value (QR / beneficiary /
+  /// favorite), stripping the internal currency suffix for display and using it
+  /// to preselect the recipient wallet when present.
+  void _applyBeneficiary(String raw) {
+    final ccy = walletCurrencyPart(raw);
+    // Assigning the text fires `_onBeneficiaryChanged`, which rebuilds.
+    _beneficiary.text = walletPhonePart(raw);
+    if (ccy != null && mounted) {
+      setState(() {
+        _creditCurrency = ccy;
+        _creditCurrencyTouched = true;
+      });
+    }
+  }
+
   Future<void> _scanQr() async {
     final account = await openQrScanScreen(context);
     if (account != null && account.isNotEmpty) {
-      setState(() => _beneficiary.text = walletPhonePart(account));
+      _applyBeneficiary(account);
     }
   }
 
   Future<void> _pickBeneficiary() async {
     final selectedAccount = await context.push<String>('/beneficiaries');
     if (selectedAccount != null && selectedAccount.isNotEmpty) {
-      setState(() => _beneficiary.text = walletPhonePart(selectedAccount));
+      _applyBeneficiary(selectedAccount);
     }
   }
 
@@ -229,7 +273,12 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
     final account = _accountByNumber(selected);
     setState(() {
       _debitAccount = selected;
-      if (account != null) _currency = account.currency;
+      if (account != null) {
+        _currency = account.currency;
+        // Keep the recipient wallet in step with the debit currency until the
+        // customer deliberately picks a different one (cross-currency send).
+        if (!_creditCurrencyTouched) _creditCurrency = account.currency;
+      }
     });
     _scheduleQuote();
   }
@@ -270,7 +319,7 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
         ),
         const SizedBox(height: 16),
         _FavoritesStrip(
-          onPick: (account) => setState(() => _beneficiary.text = walletPhonePart(account)),
+          onPick: _applyBeneficiary,
         ),
         _BeneficiaryField(
           controller: _beneficiary,
@@ -279,6 +328,20 @@ class _TransferToOthersPanelState extends ConsumerState<TransferToOthersPanel> {
           beneficiariesTooltip: l10n.beneficiaries,
           scanTooltip: l10n.scanQr,
         ),
+        // Recipient wallet (YER/USD/SAR) — shown once a number is entered so the
+        // customer can send to any of the recipient's wallets without ever
+        // seeing or typing the internal currency suffix.
+        if (_beneficiary.text.trim().isNotEmpty)
+          _RecipientWalletSelector(
+            selected: _creditCurrency,
+            onSelected: (ccy) {
+              setState(() {
+                _creditCurrency = ccy;
+                _creditCurrencyTouched = true;
+              });
+              _scheduleQuote();
+            },
+          ),
         const SizedBox(height: 16),
         TransferAmountField(
           controller: _amount,
@@ -314,8 +377,8 @@ class _FavoritesStrip extends ConsumerWidget {
         title: Text(l10n.removeFavorite),
         content: Text(
           favorite.displayName == favorite.targetAccountNumber
-              ? favorite.targetAccountNumber
-              : '${favorite.displayName}\n${favorite.targetAccountNumber}',
+              ? walletDisplayNumber(favorite.targetAccountNumber)
+              : '${favorite.displayName}\n${walletDisplayNumber(favorite.targetAccountNumber)}',
         ),
         actions: [
           TextButton(
@@ -468,6 +531,102 @@ class _BeneficiaryField extends StatelessWidget {
           ],
         ),
         suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+      ),
+    );
+  }
+}
+
+/// Pills to pick which of the recipient's wallets (YER / USD / SAR) receives the
+/// transfer. Only the bare number is ever typed; this chooses the currency the
+/// full wallet id is built from, without exposing the internal suffix.
+class _RecipientWalletSelector extends StatelessWidget {
+  const _RecipientWalletSelector({
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final String selected;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.bankColors;
+    final lang = Localizations.localeOf(context).languageCode;
+    final isAr = lang == 'ar';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 16),
+        Text(
+          isAr ? 'محفظة المستلم' : 'Recipient wallet',
+          style: AppTextStyles.labelSm(
+            color: colors.onSurfaceVariant,
+            languageCode: lang,
+          ).copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            for (final ccy in walletCurrencies) ...[
+              Expanded(
+                child: _CurrencyChip(
+                  currency: ccy,
+                  selected: ccy == selected,
+                  onTap: () => onSelected(ccy),
+                ),
+              ),
+              if (ccy != walletCurrencies.last) const SizedBox(width: 8),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _CurrencyChip extends StatelessWidget {
+  const _CurrencyChip({
+    required this.currency,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String currency;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.bankColors;
+    final lang = Localizations.localeOf(context).languageCode;
+
+    return Material(
+      color: selected
+          ? colors.secondary.withValues(alpha: 0.12)
+          : colors.surfaceContainerLowest,
+      borderRadius: BorderRadius.circular(AppColors.radiusMd),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppColors.radiusMd),
+        child: Container(
+          height: 44,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppColors.radiusMd),
+            border: Border.all(
+              color: selected ? colors.secondary : colors.outlineVariant,
+              width: selected ? 1.4 : 1,
+            ),
+          ),
+          child: Text(
+            currency,
+            style: AppTextStyles.labelSm(
+              color: selected ? colors.secondary : colors.onSurface,
+              languageCode: lang,
+            ).copyWith(fontWeight: FontWeight.w700, fontSize: 14),
+          ),
+        ),
       ),
     );
   }
