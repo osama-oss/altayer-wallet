@@ -203,6 +203,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/register/verify',
         builder: (_, state) => AccountActivationScreen(
           mobile: state.uri.queryParameters['mobile'] ?? '',
+          keycloakUsername: state.uri.queryParameters['keycloakUsername'],
         ),
       ),
       GoRoute(
