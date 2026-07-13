@@ -114,6 +114,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   Future<void> _signOut() async {
     await ref.read(authServiceProvider).signOut();
     if (!mounted) return;
+    invalidateUserSessionCache(ref);
     notifyRouterAuthChanged(ref);
     context.go('/login');
   }

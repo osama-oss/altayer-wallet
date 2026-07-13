@@ -38,6 +38,10 @@ class DeviceStorage {
     return id;
   }
 
+  /// Drops the locally cached device id so the next [getOrCreateDeviceId] can
+  /// re-resolve (e.g. after a full sign-out or a server-side rebind).
+  Future<void> clearDeviceId() => _secure.delete(SecureKeys.deviceId);
+
   Future<bool> isBiometricLoginEnabled() async =>
       (await _secure.read(SecureKeys.biometricEnabled)) == 'true';
 

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/providers/app_providers.dart';
 import '../../core/theme/bank_sync_colors.dart';
+import '../../router/app_router.dart';
 import '../../core/widgets/uff_loader.dart';
 import '../../l10n/app_localizations.dart';
 import 'kyc_providers.dart';
@@ -124,6 +125,7 @@ class KycScreen extends ConsumerWidget {
     if (!context.mounted) return;
     await ref.read(authServiceProvider).signOut(full: true);
     if (!context.mounted) return;
+    invalidateUserSessionCache(ref);
     context.go('/login');
   }
 }
