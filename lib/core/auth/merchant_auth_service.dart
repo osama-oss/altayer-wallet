@@ -1,5 +1,6 @@
 import 'package:banksync_app/core/auth/device_storage.dart';
 import 'package:banksync_app/core/auth/merchant_session_store.dart';
+import 'package:banksync_app/core/network/api_exception.dart';
 import 'package:banksync_app/core/network/banking_auth_exceptions.dart';
 import 'package:banksync_app/core/network/merchant_api_client.dart';
 
@@ -30,6 +31,16 @@ class MerchantAuthService {
   Future<Map<String, dynamic>> readProfile() => _store.readProfile();
 
   Future<void> signOut() => _store.clear();
+
+  Future<Map<String, dynamic>> refreshProfile() async {
+    final token = await readToken();
+    if (token == null || token.isEmpty) {
+      throw const ApiException('Not signed in');
+    }
+    final detail = await _api.userDetail(token);
+    await _store.updateProfile(detail);
+    return detail;
+  }
 
   /// Merchant owner self-register (phone-first, merchant Keycloak realm).
   Future<Map<String, dynamic>> registerMerchantIdentity({

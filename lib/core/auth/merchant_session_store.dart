@@ -60,6 +60,12 @@ class MerchantSessionStore {
     return _profile!;
   }
 
+  Future<void> updateProfile(Map<String, dynamic> profile) async {
+    _profile = profile;
+    _profileLoaded = true;
+    await _secure.write(SecureKeys.merchantUserProfile, jsonEncode(profile));
+  }
+
   Future<void> clear() async {
     _token = null;
     _tokenLoaded = true;

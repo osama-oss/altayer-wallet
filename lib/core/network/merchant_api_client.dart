@@ -119,6 +119,33 @@ class MerchantApiClient {
     return _unwrap(res);
   }
 
+  Future<Map<String, dynamic>> uploadOnboardingDocument(String token, String fileBase64) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/merchant/onboarding/documents/upload',
+      data: {'file': fileBase64},
+      options: Options(headers: _bearer(token), validateStatus: _validateOptions.validateStatus),
+    );
+    return _unwrap(res);
+  }
+
+  Future<Map<String, dynamic>> completeOnboarding(
+    String token, {
+    required String idType,
+    required Map<String, dynamic> profile,
+    required List<String> uploadRefs,
+  }) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/merchant/onboarding/complete',
+      data: {
+        'idType': idType,
+        'profile': profile,
+        'uploadRefs': uploadRefs,
+      },
+      options: Options(headers: _bearer(token), validateStatus: _validateOptions.validateStatus),
+    );
+    return _unwrap(res);
+  }
+
   Future<List<dynamic>> transactions(String token) async {
     final res = await _dio.get<Map<String, dynamic>>(
       '/api/merchant/transactions',
