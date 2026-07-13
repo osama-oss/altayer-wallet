@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/network/api_exception.dart';
 import '../../core/providers/app_providers.dart';
+import '../../core/providers/merchant_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/bank_sync_colors.dart';
 import '../../core/widgets/brand_logo.dart';
@@ -18,7 +19,10 @@ import '../../l10n/app_localizations.dart';
 /// الجنس → الموافقة على الشروط) لكن بهوية «Ultimate Wallet» (أزرق الثقة) بدلاً من الأحمر.
 /// عند الضغط على «إنشاء حساب» ننتقل إلى شاشة التحقق (OTP). ربط الكور يأتي لاحقاً.
 class RegistrationScreen extends ConsumerStatefulWidget {
-  const RegistrationScreen({super.key});
+  const RegistrationScreen({super.key, this.channel});
+
+  /// `merchant` for POS tab; otherwise customer/mobile realm.
+  final String? channel;
 
   @override
   ConsumerState<RegistrationScreen> createState() => _RegistrationScreenState();
@@ -57,17 +61,22 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     final mobile = _mobile.text.trim();
     setState(() => _submitting = true);
     try {
-      // Wallet registration = identity only (no bank core). Creates a Keycloak
-      // user in the wallet realm keyed by the mobile number; the temporary
-      // password equals the username (= mobile), which the set-password step
-      // then sends as currentPassword. firstName/lastName are optional metadata
-      // on the identity. The core CIF is linked later (after KYC) via link-core.
-      final auth = ref.read(authServiceProvider);
-      final data = await auth.registerWalletIdentity(
-        mobile: mobile,
-        firstName: _firstName.text.trim(),
-        lastName: _surname.text.trim(),
-      );
+      final isMerchant = widget.channel == 'merchant';
+      final Map<String, dynamic> data;
+      if (isMerchant) {
+        data = await ref.read(merchantAuthServiceProvider).registerMerchantIdentity(
+              mobile: mobile,
+              firstName: _firstName.text.trim(),
+              lastName: _surname.text.trim(),
+            );
+      } else {
+        final auth = ref.read(authServiceProvider);
+        data = await auth.registerWalletIdentity(
+          mobile: mobile,
+          firstName: _firstName.text.trim(),
+          lastName: _surname.text.trim(),
+        );
+      }
       // The backend normalizes the mobile (e.g. adds the country code) and
       // returns the Keycloak username in `keycloakUsername`. The temporary
       // password EQUALS that username — so the login / set-password steps must
@@ -86,19 +95,23 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
           .map((c) => c.text.trim())
           .where((s) => s.isNotEmpty)
           .join(' ');
-      await auth.saveRegistrationIdentity({
-        'firstName': _firstName.text.trim(),
-        'secondName': _secondName.text.trim(),
-        'thirdName': _thirdName.text.trim(),
-        'familyName': _surname.text.trim(),
-        'givenName': _firstName.text.trim(),
-        'fullName': fullName,
-        'mobile': mobile,
-      });
+      if (!isMerchant) {
+        await ref.read(authServiceProvider).saveRegistrationIdentity({
+          'firstName': _firstName.text.trim(),
+          'secondName': _secondName.text.trim(),
+          'thirdName': _thirdName.text.trim(),
+          'familyName': _surname.text.trim(),
+          'givenName': _firstName.text.trim(),
+          'fullName': fullName,
+          'mobile': mobile,
+        });
+      }
       if (!mounted) return;
+      final channelParam = isMerchant ? '&channel=merchant' : '';
       context.push(
         '/register/verify?mobile=${Uri.encodeComponent(mobile)}'
-        '&keycloakUsername=${Uri.encodeComponent(keycloakUsername)}',
+        '&keycloakUsername=${Uri.encodeComponent(keycloakUsername)}'
+        '$channelParam',
       );
     } on ApiException catch (e) {
       if (mounted) _snack(e.message);
@@ -272,7 +285,9 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                 // لديك حساب بالفعل؟ تسجيل الدخول
                 Center(
                   child: TextButton(
-                    onPressed: () => context.go('/login'),
+                    onPressed: () => context.go(
+                      widget.channel == 'merchant' ? '/login?tab=merchant' : '/login',
+                    ),
                     child: Text(
                       l10n.alreadyHaveAccountSignIn,
                       style: TextStyle(

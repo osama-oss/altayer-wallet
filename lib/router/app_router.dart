@@ -203,7 +203,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/login',
         pageBuilder: (context, state) => CustomTransitionPage<void>(
           key: state.pageKey,
-          child: const LoginScreen(),
+          child: LoginScreen(initialTab: state.uri.queryParameters['tab']),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },
@@ -211,12 +211,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
-          path: '/register', builder: (_, __) => const RegistrationScreen()),
+        path: '/register',
+        builder: (_, state) => RegistrationScreen(
+          channel: state.uri.queryParameters['channel'],
+        ),
+      ),
       GoRoute(
         path: '/register/verify',
         builder: (_, state) => AccountActivationScreen(
           mobile: state.uri.queryParameters['mobile'] ?? '',
           keycloakUsername: state.uri.queryParameters['keycloakUsername'],
+          channel: state.uri.queryParameters['channel'],
         ),
       ),
       GoRoute(
@@ -236,6 +241,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             username: extra?['username'] ?? '',
             keycloakUsername: extra?['keycloakUsername'],
             currentPassword: extra?['currentPassword'] ?? '',
+            channel: extra?['channel'] ?? state.uri.queryParameters['channel'],
           );
         },
       ),
@@ -243,7 +249,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/reset-password',
         builder: (_, state) {
           final mobile = state.uri.queryParameters['mobile'];
-          return ResetPasswordScreen(initialMobile: mobile);
+          return ResetPasswordScreen(
+            initialMobile: mobile,
+            channel: state.uri.queryParameters['channel'],
+          );
         },
       ),
       GoRoute(
