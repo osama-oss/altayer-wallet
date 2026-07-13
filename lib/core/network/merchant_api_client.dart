@@ -7,7 +7,7 @@ import 'package:banksync_app/core/config/app_config.dart';
 import 'package:banksync_app/core/network/api_client.dart';
 import 'package:banksync_app/core/network/api_error_message.dart';
 import 'package:banksync_app/core/network/api_exception.dart';
-import 'package:banksync_app/core/network/banking_auth_exceptions.dart';
+import 'package:banksync_app/core/network/api_logging_interceptor.dart';
 
 /// HTTP client for `/api/merchant/*` (POS tab, merchant Keycloak realm).
 class MerchantApiClient {
@@ -49,7 +49,7 @@ class MerchantApiClient {
     );
     final body = res.data ?? {};
     if (body['success'] != true) {
-      throw ApiException(apiErrorMessage(body));
+      throw ApiException(formatApiErrorBody(body));
     }
     final data = body['data'] as Map<String, dynamic>? ?? {};
     final username = data['keycloakUsername']?.toString();
@@ -129,7 +129,7 @@ class MerchantApiClient {
     );
     final body = res.data ?? {};
     if (body['success'] != true) {
-      throw ApiException(apiErrorMessage(body));
+      throw ApiException(formatApiErrorBody(body));
     }
   }
 
@@ -141,7 +141,7 @@ class MerchantApiClient {
       if (data is Map) return Map<String, dynamic>.from(data);
       return {};
     }
-    throw ApiException(apiErrorMessage(body));
+    throw ApiException(formatApiErrorBody(body));
   }
 
   List<dynamic> _unwrapList(Response<Map<String, dynamic>> res) {
@@ -151,7 +151,7 @@ class MerchantApiClient {
       if (data is List) return data;
       return const [];
     }
-    throw ApiException(apiErrorMessage(body));
+    throw ApiException(formatApiErrorBody(body));
   }
 
   static KeycloakConfig _merchantKeycloak() {

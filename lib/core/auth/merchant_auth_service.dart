@@ -1,6 +1,6 @@
 import 'package:banksync_app/core/auth/device_storage.dart';
 import 'package:banksync_app/core/auth/merchant_session_store.dart';
-import 'package:banksync_app/core/network/banking_auth_exceptions.dart';
+import 'package:banksync_app/core/network/api_exception.dart';
 import 'package:banksync_app/core/network/merchant_api_client.dart';
 
 enum MerchantPosRole { owner, supervisor, cashier, unknown }
