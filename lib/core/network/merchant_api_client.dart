@@ -168,7 +168,7 @@ class MerchantApiClient {
     );
     final body = res.data ?? {};
     if (body['success'] != true) {
-      throw ApiException(apiErrorMessage(body));
+      throw ApiException(formatApiErrorBody(body));
     }
   }
 
