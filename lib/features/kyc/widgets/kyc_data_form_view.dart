@@ -35,6 +35,7 @@ class KycDataFormView extends ConsumerStatefulWidget {
 
 class _KycDataFormViewState extends ConsumerState<KycDataFormView> {
   final _formKey = GlobalKey<FormState>();
+  Key _formContentKey = UniqueKey();
 
   late KycIdType _idType;
   late final TextEditingController _documentNumber;
@@ -233,6 +234,7 @@ class _KycDataFormViewState extends ConsumerState<KycDataFormView> {
 
   void _fillMockData() {
     setState(() {
+      _formContentKey = UniqueKey();
       _documentNumber.text = '1012345678';
       _issuingAuthority.text = 'مصلحة الأحوال المدنية';
       _fullNameAr.text = 'سمير شاهر عبدالكافي';
@@ -298,6 +300,7 @@ class _KycDataFormViewState extends ConsumerState<KycDataFormView> {
     return Form(
       key: _formKey,
       child: Column(
+        key: _formContentKey,
         children: [
           Expanded(
             child: SingleChildScrollView(
