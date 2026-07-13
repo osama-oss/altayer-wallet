@@ -711,10 +711,10 @@ class ApiClient {
   }
 
   // ─── KYC / identity verification ─────────────────────────────────────────
-  // The client uploads each photo via POST /api/mobile/kyc/document (WALLET_DOC_UPLOAD
-  // internally), collects uploadString refs, then POST /api/mobile/kyc/onboard runs
-  // WALLET_CUSTOMER_VALIDATE → WALLET_CUSTOMER_CREATE. WALLET_COUNTRY / WALLET_SECTOR
-  // power the reference pickers.
+  // Each photo is uploaded immediately on capture via POST /api/mobile/kyc/document
+  // (WALLET_DOC_UPLOAD). Submit sends cached uploadString refs in one
+  // POST /api/mobile/kyc/onboard (WALLET_CUSTOMER_CREATE). WALLET_COUNTRY /
+  // WALLET_SECTOR power the reference pickers.
 
   /// Uploads ONE KYC document and returns the core `uploadString` reference.
   /// POST /api/mobile/kyc/document — mobile-service runs WALLET_DOC_UPLOAD.
@@ -780,9 +780,10 @@ class ApiClient {
   }
 
   /// Account-confirmation onboarding — POST /api/mobile/kyc/onboard (Bearer).
-  /// Body: `{ idType, profile: {nested identity fields}, uploadRefs: [uploadString...] }`.
-  /// mobile-service runs WALLET_CUSTOMER_VALIDATE → WALLET_CUSTOMER_CREATE and
-  /// writes `customer_id` to Keycloak. Returns `{ customerId, status }`.
+  /// Body: `{ idType, profile: {nested identity fields},
+  ///          upload: [{ upload: "<uploadString>", uploadType: "Photo" }, ...] }`.
+  /// Upload refs must already be cached from per-photo `/kyc/document` calls.
+  /// mobile-service runs WALLET_CUSTOMER_CREATE and links the registry identity.
   Future<Map<String, dynamic>> onboardKyc(
     String token,
     Map<String, dynamic> body,

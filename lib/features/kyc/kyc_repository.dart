@@ -1,7 +1,7 @@
 import 'dart:convert';
 
+import 'package:camera/camera.dart' show XFile;
 import 'package:dio/dio.dart';
-
 import '../../core/auth/auth_service.dart';
 import '../../core/network/api_client.dart';
 import '../../core/network/api_exception.dart';
@@ -104,14 +104,33 @@ class KycRepository {
     return const [];
   }
 
-  /// Creates the wallet customer in the core from the collected form + captured
-  /// documents.
+  /// Uploads one captured photo immediately and returns the core `uploadString`
+  /// reference. Called when the customer takes or picks each document.
+  Future<String> uploadDocument(XFile file) async {
+    final token = await _auth.readToken();
+    if (token == null || token.isEmpty) {
+      throw const ApiException('Not signed in');
+    }
+    try {
+      return await _api.uploadKycDocument(
+        token,
+        fileBase64: base64Encode(await file.readAsBytes()),
+      );
+    } on DioException catch (e) {
+      throw _asUnavailable(e);
+    } on ApiException catch (e) {
+      throw _translate(e);
+    }
+  }
+
+  /// Creates the wallet customer in the core from the collected form and cached
+  /// upload refs (photos must already be uploaded via [uploadDocument]).
   ///
-  /// 1. Upload each photo via `POST /api/mobile/kyc/document` → `uploadString`
-  /// 2. Submit `POST /api/mobile/kyc/onboard` with profile + ordered uploadRefs
+  /// Submits `POST /api/mobile/kyc/onboard` with profile + ordered `upload`
+  /// objects: `[{ upload, uploadType }, ...]`
   ///
-  /// mobile-service then runs WALLET_CUSTOMER_VALIDATE → WALLET_CUSTOMER_CREATE
-  /// and writes `customer_id` to Keycloak. No `customerId` is sent from the app.
+  /// mobile-service runs WALLET_CUSTOMER_CREATE, links the core CIF in the registry
+  /// (PENDING → ACTIVE), and updates Keycloak. No `customerId` is sent from the app.
   ///
   /// [orderedDocuments] must be in the exact order the core expects
   /// (national: front, back, selfie · passport: passport, selfie).
@@ -125,30 +144,25 @@ class KycRepository {
       throw const ApiException('Not signed in');
     }
     try {
-      // 1. Upload each photo → collect core uploadString refs (ordered).
-      final uploadRefs = <String>[];
+      final upload = <Map<String, String>>[];
       for (final doc in orderedDocuments) {
-        final file = doc.file;
-        if (file == null) {
-          throw const ApiException('Missing document image');
+        final ref = doc.savedAs?.trim();
+        if (ref == null || ref.isEmpty) {
+          throw const ApiException('Document not uploaded yet');
         }
-        final ref = await _api.uploadKycDocument(
-          token,
-          fileBase64: base64Encode(await file.readAsBytes()),
-        );
-        uploadRefs.add(ref);
+        upload.add({
+          'upload': ref,
+          'uploadType': 'Photo',
+        });
       }
 
-      // 2. Nested profile fields; merge registration-sourced givenName /
-      //    familyName / mobile from the cached Keycloak profile.
       final profile = <String, dynamic>{...formData.toWire()};
       await _mergeRegistrationFields(profile);
 
-      // 3. Onboard with uploadString refs only — validate → create on server.
       final result = await _api.onboardKyc(token, {
         'idType': idType.wireCode, // NATIONAL_ID | PASSPORT
         'profile': profile,
-        'uploadRefs': uploadRefs,
+        'upload': upload,
       });
 
       final customerId = _deepFind(result, 'customerId') ??
@@ -157,7 +171,9 @@ class KycRepository {
       if (customerId != null) {
         await _persistCustomerId(customerId);
       }
-      return const KycProfile(status: KycStatus.pending);
+      return KycProfile.fromMap(
+        result is Map<String, dynamic> ? result : <String, dynamic>{},
+      );
     } on DioException catch (e) {
       throw _asUnavailable(e);
     } on ApiException catch (e) {

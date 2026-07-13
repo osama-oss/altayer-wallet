@@ -76,8 +76,9 @@ class _KycCaptureViewState extends ConsumerState<KycCaptureView> {
       };
 
   List<KycDocType> get _types => _idType.documents;
-  int get _capturedCount => _docs.values.where((d) => d.isCaptured).length;
-  bool get _ready => _capturedCount == _types.length;
+  int get _uploadedCount => _docs.values.where((d) => d.isUploaded).length;
+  bool get _uploading => _docs.values.any((d) => d.isUploading);
+  bool get _ready => _uploadedCount == _types.length;
 
   @override
   void dispose() {
@@ -130,9 +131,50 @@ class _KycCaptureViewState extends ConsumerState<KycCaptureView> {
       _docs[type] = KycDocument(
         type: type,
         file: file,
-        uploadState: KycDocUploadState.captured,
+        uploadState: KycDocUploadState.uploading,
       );
     });
+    await _uploadDocument(type, file);
+  }
+
+  /// Uploads [file] to the core immediately and caches `uploadString` on the doc.
+  Future<void> _uploadDocument(KycDocType type, XFile file) async {
+    final l10n = context.l10n;
+    final repo = ref.read(kycRepositoryProvider);
+    try {
+      final uploadRef = await repo.uploadDocument(file);
+      if (!mounted) return;
+      setState(() {
+        _docs[type] = _docs[type]!.copyWith(
+          uploadState: KycDocUploadState.uploaded,
+          savedAs: uploadRef,
+        );
+      });
+    } on KycUnavailableException {
+      if (!mounted) return;
+      setState(() {
+        _docs[type] = _docs[type]!.copyWith(
+          uploadState: KycDocUploadState.failed,
+        );
+      });
+      _snack(l10n.kycServiceUnavailable);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _docs[type] = _docs[type]!.copyWith(
+          uploadState: KycDocUploadState.failed,
+        );
+      });
+      _snack(e.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _docs[type] = _docs[type]!.copyWith(
+          uploadState: KycDocUploadState.failed,
+        );
+      });
+      _snack(l10n.kycSubmitFailed);
+    }
   }
 
   /// Bottom sheet to pick where the photo comes from. Returns null if dismissed.
@@ -202,8 +244,7 @@ class _KycCaptureViewState extends ConsumerState<KycCaptureView> {
   }
 
   /// Picks an image from the gallery, downscaled and re-encoded so the base64
-  /// payload stays small (the onboard call sends all photos inline in one JSON
-  /// body — full-resolution originals would make it too large to upload).
+  /// upload payload stays small.
   Future<XFile?> _pickFromGallery() async {
     try {
       return await ImagePicker().pickImage(
@@ -220,17 +261,11 @@ class _KycCaptureViewState extends ConsumerState<KycCaptureView> {
 
   // ── Submit ──────────────────────────────────────────────────────────────
   Future<void> _submit() async {
-    if (!_ready || _submitting) return;
+    if (!_ready || _submitting || _uploading) return;
     final l10n = context.l10n;
     setState(() => _submitting = true);
     final repo = ref.read(kycRepositoryProvider);
     try {
-      // Mark the captured set as in-flight: upload each photo for uploadString,
-      // then submit profile + refs for WALLET_CUSTOMER_VALIDATE → CREATE.
-      for (final type in _types) {
-        setState(() => _docs[type] =
-            _docs[type]!.copyWith(uploadState: KycDocUploadState.uploading));
-      }
       final orderedDocuments = [for (final type in _types) _docs[type]!];
       final result = await repo.createCustomer(
         idType: _idType,
@@ -238,11 +273,6 @@ class _KycCaptureViewState extends ConsumerState<KycCaptureView> {
         orderedDocuments: orderedDocuments,
       );
       _submitted = true;
-      for (final type in _types) {
-        setState(() => _docs[type] =
-            _docs[type]!.copyWith(uploadState: KycDocUploadState.uploaded));
-      }
-      // Submitted successfully — remove the local temp copies.
       for (final doc in _docs.values) {
         if (doc.file != null) _safeDelete(doc.file!.path);
       }
@@ -255,21 +285,7 @@ class _KycCaptureViewState extends ConsumerState<KycCaptureView> {
     } catch (_) {
       if (mounted) _snack(l10n.kycSubmitFailed);
     } finally {
-      if (mounted) {
-        setState(() {
-          _submitting = false;
-          // On failure the whole submission is retried as one call, so clear the
-          // in-flight state from the captured docs (nothing was persisted).
-          if (!_submitted) {
-            for (final type in _types) {
-              if (_docs[type]!.isUploading) {
-                _docs[type] = _docs[type]!
-                    .copyWith(uploadState: KycDocUploadState.captured);
-              }
-            }
-          }
-        });
-      }
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
@@ -333,7 +349,7 @@ class _KycCaptureViewState extends ConsumerState<KycCaptureView> {
                   const SizedBox(height: 18),
                 ],
                 _ProgressHeader(
-                  captured: _capturedCount,
+                  captured: _uploadedCount,
                   total: total,
                   colors: colors,
                 ),
@@ -370,7 +386,7 @@ class _KycCaptureViewState extends ConsumerState<KycCaptureView> {
           ),
         ),
         _SubmitBar(
-          enabled: _ready && !_submitting,
+          enabled: _ready && !_submitting && !_uploading,
           submitting: _submitting,
           onSubmit: _submit,
           colors: colors,
