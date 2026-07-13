@@ -25,7 +25,10 @@ const Color _brandBright = Color(0xFF0050B3);
 const Color _screenBg = Color(0xFFF4F5F8);
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.initialTab});
+
+  /// When `merchant`, opens the Point-of-sale tab (e.g. after merchant registration).
+  final String? initialTab;
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -39,8 +42,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _loading = false;
   bool _biometricLoading = false;
   bool _canBiometric = false;
-  // false → Customer tab (real auth), true → Point-of-sale tab (visual only,
-  // no merchant backend exists yet).
+  // false → Customer tab, true → Point-of-sale (merchant realm).
   bool _merchant = false;
   String? _error;
 
@@ -54,6 +56,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
+    _merchant = widget.initialTab == 'merchant';
     _loadBiometricOption();
     WidgetsBinding.instance.addPostFrameCallback((_) => _showSessionExpiredNotice());
   }
@@ -256,7 +259,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       controller: _mobile,
                       keyboardType: TextInputType.phone,
                       textInputAction: TextInputAction.next,
-                      enabled: !_merchant,
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ]')),
                       ],
@@ -273,9 +275,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             color: Colors.grey[500], size: 20),
                         fillColor: Colors.white,
                       ).copyWith(floatingLabelStyle: _floatingLabelStyle(colors)),
-                      validator: (v) => _merchant
-                          ? null
-                          : (v == null || v.trim().isEmpty ? l10n.enterMobileNumber : null),
+                      validator: (v) =>
+                          v == null || v.trim().isEmpty ? l10n.enterMobileNumber : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -284,7 +285,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     TextFormField(
                       controller: _password,
                       obscureText: _obscure,
-                      enabled: !_merchant,
                       style: const TextStyle(
                         fontFamily: 'Tajawal',
                         fontSize: 15,
@@ -319,17 +319,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         fillColor: Colors.white,
                       ).copyWith(floatingLabelStyle: _floatingLabelStyle(colors)),
                       onFieldSubmitted: (_) => _login(),
-                      validator: (v) => _merchant
-                          ? null
-                          : (v == null || v.isEmpty ? l10n.enterPassword : null),
+                      validator: (v) =>
+                          v == null || v.isEmpty ? l10n.enterPassword : null,
                     ),
 
                     // Forgot password (start-aligned).
                     Align(
                       alignment: AlignmentDirectional.centerStart,
                       child: TextButton(
-                        onPressed:
-                            _merchant ? null : () => context.push('/reset-password'),
+                        onPressed: () => context.push(
+                              _merchant
+                                  ? '/reset-password?channel=merchant'
+                                  : '/reset-password',
+                            ),
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -346,11 +348,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
 
-                    if (_merchant) ...[
-                      const SizedBox(height: 4),
-                      _buildComingSoonBanner(l10n),
-                    ],
-                    if (afterPasswordReset && !_merchant) ...[
+                    if (afterPasswordReset) ...[
                       const SizedBox(height: 12),
                       Container(
                         padding: const EdgeInsets.all(12),
@@ -495,38 +493,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _buildComingSoonBanner(AppLocalizations l10n) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: _brandBright.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _brandBright.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.info_outline_rounded, size: 18, color: _brandBright),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              l10n.merchantLoginComingSoon,
-              style: const TextStyle(
-                fontFamily: 'Tajawal',
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
-                color: _brandDeep,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCreateAccount(AppLocalizations l10n) {
     return GestureDetector(
-      onTap: () => context.push('/register'),
+      onTap: () => context.push(
+            _merchant ? '/register?channel=merchant' : '/register',
+          ),
       behavior: HitTestBehavior.opaque,
       child: RichText(
         text: TextSpan(

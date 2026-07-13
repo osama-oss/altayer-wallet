@@ -41,6 +41,38 @@ class MerchantApiClient {
     }
   }
 
+  Future<Map<String, dynamic>> registerIdentity({
+    required String mobile,
+    String? firstName,
+    String? lastName,
+    String? email,
+  }) async {
+    return _postPublicData('/api/merchant/auth/identity/register', {
+      'mobile': mobile.trim(),
+      if (firstName != null && firstName.trim().isNotEmpty) 'firstName': firstName.trim(),
+      if (lastName != null && lastName.trim().isNotEmpty) 'lastName': lastName.trim(),
+      if (email != null && email.trim().isNotEmpty) 'email': email.trim(),
+    });
+  }
+
+  Future<void> setInitialPassword({
+    required String username,
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    await _postPublic('/api/merchant/auth/set-initial-password', {
+      'username': username,
+      'currentPassword': currentPassword,
+      'newPassword': newPassword,
+      'confirmPassword': confirmPassword,
+    });
+  }
+
+  Future<void> resetPasswordByMobile(String mobileNo) async {
+    await _postPublic('/api/merchant/auth/reset-password', {'mobileNo': mobileNo.trim()});
+  }
+
   Future<String> resolveLoginUsername(String login) async {
     final res = await _dio.post<Map<String, dynamic>>(
       '/api/merchant/auth/resolve-login',
@@ -117,6 +149,27 @@ class MerchantApiClient {
       ),
     );
     return res.data ?? const [];
+  }
+
+  Future<Map<String, dynamic>> _postPublicData(String path, Map<String, dynamic> data) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      path,
+      data: data,
+      options: _validateOptions,
+    );
+    return _unwrap(res);
+  }
+
+  Future<void> _postPublic(String path, Map<String, dynamic> data) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      path,
+      data: data,
+      options: _validateOptions,
+    );
+    final body = res.data ?? {};
+    if (body['success'] != true) {
+      throw ApiException(apiErrorMessage(body));
+    }
   }
 
   Map<String, String> _bearer(String token) => {'Authorization': 'Bearer $token'};

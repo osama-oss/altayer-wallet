@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:banksync_app/core/auth/auth_service.dart';
 import 'package:banksync_app/core/network/api_exception.dart';
+import 'package:banksync_app/core/network/banking_auth_exceptions.dart';
 import 'package:banksync_app/core/providers/app_providers.dart';
+import 'package:banksync_app/core/providers/merchant_providers.dart';
 import 'package:banksync_app/core/theme/app_colors.dart';
 import 'package:banksync_app/core/theme/bank_sync_colors.dart';
 import 'package:banksync_app/core/widgets/banksync_auth_header.dart';
@@ -24,11 +26,15 @@ class SetInitialPasswordScreen extends ConsumerStatefulWidget {
     required this.username,
     this.keycloakUsername,
     required this.currentPassword,
+    this.channel,
   });
 
   final String username;
   final String? keycloakUsername;
   final String currentPassword;
+
+  /// `merchant` for POS registration; otherwise customer/mobile realm.
+  final String? channel;
 
   @override
   ConsumerState<SetInitialPasswordScreen> createState() =>
@@ -61,6 +67,19 @@ class _SetInitialPasswordScreenState
       _error = null;
     });
     try {
+      final isMerchant = widget.channel == 'merchant';
+      if (isMerchant) {
+        await ref.read(merchantAuthServiceProvider).completeInitialPasswordAndLogin(
+              username: widget.username,
+              currentPassword: widget.currentPassword,
+              newPassword: _newPassword.text,
+              confirmPassword: _confirm.text,
+            );
+        if (!mounted) return;
+        context.go('/pos/home');
+        notifyRouterAuthChanged(ref);
+        return;
+      }
       final result =
           await ref.read(authServiceProvider).completeInitialPasswordAndLogin(
                 username: widget.username,

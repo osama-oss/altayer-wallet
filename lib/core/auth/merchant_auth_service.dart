@@ -31,6 +31,44 @@ class MerchantAuthService {
 
   Future<void> signOut() => _store.clear();
 
+  /// Merchant owner self-register (phone-first, merchant Keycloak realm).
+  Future<Map<String, dynamic>> registerMerchantIdentity({
+    required String mobile,
+    String? firstName,
+    String? lastName,
+    String? email,
+  }) async {
+    final data = await _api.registerIdentity(
+      mobile: mobile,
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+    );
+    final username = data['username']?.toString().trim();
+    if (username == null || username.isEmpty) {
+      throw const KeycloakAuthException('Registration did not return a username');
+    }
+    return {
+      ...data,
+      'keycloakUsername': username,
+    };
+  }
+
+  Future<MerchantLoginResult> completeInitialPasswordAndLogin({
+    required String username,
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    await _api.setInitialPassword(
+      username: username,
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+      confirmPassword: confirmPassword,
+    );
+    return loginWithPassword(username, newPassword);
+  }
+
   Future<MerchantLoginResult> loginWithPassword(String username, String password) async {
     final trimmedUser = username.trim();
     final keycloakUsername = await _api.resolveLoginUsername(trimmedUser);

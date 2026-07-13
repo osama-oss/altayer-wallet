@@ -23,10 +23,14 @@ class AccountActivationScreen extends StatefulWidget {
   /// raw mobile — in that case we fall back to [mobile].
   final String? keycloakUsername;
 
+  /// `merchant` for POS registration; otherwise customer/mobile realm.
+  final String? channel;
+
   const AccountActivationScreen({
     super.key,
     required this.mobile,
     this.keycloakUsername,
+    this.channel,
   });
 
   @override
@@ -113,6 +117,8 @@ class _AccountActivationScreenState extends State<AccountActivationScreen> {
     context.go('/set-initial-password', extra: <String, String>{
       'username': loginUsername,
       'currentPassword': loginUsername,
+      if (widget.channel != null && widget.channel!.isNotEmpty)
+        'channel': widget.channel!,
     });
   }
 

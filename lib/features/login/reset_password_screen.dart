@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/network/api_exception.dart';
 import '../../core/providers/app_providers.dart';
+import '../../core/providers/merchant_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/bank_sync_colors.dart';
 import '../../core/widgets/db_error_banner.dart';
@@ -12,9 +13,12 @@ import '../../l10n/app_localizations.dart';
 import '../../core/widgets/uff_loader.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
-  const ResetPasswordScreen({super.key, this.initialMobile});
+  const ResetPasswordScreen({super.key, this.initialMobile, this.channel});
 
   final String? initialMobile;
+
+  /// `merchant` for POS tab; otherwise customer/mobile realm.
+  final String? channel;
 
   @override
   ConsumerState<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
@@ -51,12 +55,19 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       _success = null;
     });
     try {
-      await ref.read(authServiceProvider).resetPasswordByMobile(mobile);
+      if (widget.channel == 'merchant') {
+        await ref.read(merchantApiClientProvider).resetPasswordByMobile(mobile);
+      } else {
+        await ref.read(authServiceProvider).resetPasswordByMobile(mobile);
+      }
       if (!mounted) return;
       setState(() => _success = l10n.resetPasswordSuccess);
       await Future<void>.delayed(const Duration(milliseconds: 1200));
       if (!mounted) return;
-      context.go('/otp-verification?mobile=${Uri.encodeComponent(mobile)}');
+      final loginQuery = widget.channel == 'merchant'
+          ? '/login?tab=merchant&afterPasswordReset=1'
+          : '/otp-verification?mobile=${Uri.encodeComponent(mobile)}';
+      context.go(loginQuery);
     } on ApiException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
