@@ -89,10 +89,7 @@ class AuthService {
 
   Future<LoginResult> loginWithPassword(String username, String password) async {
     final trimmedUser = username.trim();
-    // TEMP (wallet testing): the wallet Keycloak username IS the mobile number,
-    // so skip the resolve-login round-trip (it still hits the bank registry/core,
-    // not wired for the wallet yet). Revert once the wallet backend is ready.
-    final keycloakUsername = trimmedUser;
+    final keycloakUsername = await _api.resolveLoginUsername(trimmedUser);
     try {
       final tokens = await _api.loginKeycloak(keycloakUsername, password);
       final access = tokens['access_token'] as String?;
@@ -137,6 +134,7 @@ class AuthService {
       final deviceId = await _devices.getOrCreateDeviceId();
       await _api.registerDevice(token, deviceId);
     } on DeviceAlreadyBoundException {
+      await _devices.clearDeviceId();
       await _store.clear();
       rethrow;
     } catch (_) {}
@@ -470,6 +468,7 @@ class AuthService {
       if (full) {
         await clearPreferPasswordLogin();
         await _clearBiometricLocal();
+        await _devices.clearDeviceId();
         await _store.clear();
         return;
       }

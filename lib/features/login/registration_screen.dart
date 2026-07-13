@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/theme/app_colors.dart';
+import '../../router/app_router.dart';
 import '../../core/theme/bank_sync_colors.dart';
 import '../../core/widgets/brand_logo.dart';
 import '../../core/widgets/uff_loader.dart';
@@ -34,6 +35,15 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
 
   bool _agreed = false;
   bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(authServiceProvider).signOut(full: true);
+      invalidateUserSessionCache(ref);
+    });
+  }
 
   @override
   void dispose() {

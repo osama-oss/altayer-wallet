@@ -102,6 +102,7 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
   Future<void> _goPasswordLoginAfterError([String? message]) async {
     await ref.read(authServiceProvider).signOut(full: true);
     if (!mounted) return;
+    invalidateUserSessionCache(ref);
     notifyRouterAuthChanged(ref);
     context.go('/login');
     if (message != null) {

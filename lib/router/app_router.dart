@@ -23,6 +23,7 @@ import 'package:banksync_app/features/support/guest_support_screen.dart';
 import 'package:banksync_app/features/support/support_list_screen.dart';
 import 'package:banksync_app/features/support/support_thread_screen.dart';
 import 'package:banksync_app/features/splash/splash_screen.dart';
+import 'package:banksync_app/features/kyc/kyc_providers.dart';
 import 'package:banksync_app/features/transfer/beneficiaries_list_screen.dart';
 import 'package:banksync_app/features/transfer/add_beneficiary_screen.dart';
 import 'package:banksync_app/features/transfer/edit_beneficiary_screen.dart';
@@ -382,11 +383,19 @@ void notifyRouterAuthChanged(WidgetRef ref) {
   ref.read(routerRefreshProvider).notifyAuthChanged();
 }
 
-void navigateAfterLogin(
-    BuildContext context, WidgetRef ref, LoginResult result) {
-  // Fresh (possibly different) user → never serve another session's cache.
+/// Clears Riverpod caches that are scoped to the signed-in customer.
+void invalidateUserSessionCache(WidgetRef ref) {
   ref.invalidate(accountsProvider);
   ref.invalidate(accountPreferencesProvider);
+  ref.invalidate(kycStatusProvider);
+  ref.invalidate(registrationIdentityProvider);
+  ref.invalidate(kycCountriesProvider);
+  ref.invalidate(kycSectorsProvider);
+}
+
+void navigateAfterLogin(
+    BuildContext context, WidgetRef ref, LoginResult result) {
+  invalidateUserSessionCache(ref);
   switch (result.route) {
     case PostLoginRoute.setInitialPassword:
       context.go(

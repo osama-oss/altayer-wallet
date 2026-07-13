@@ -75,6 +75,17 @@ void main() {
     expect(first, second);
   });
 
+  test('clearDeviceId drops the cached id so the next call re-resolves', () async {
+    await secure.write(SecureKeys.deviceId, 'legacy-uuid-123');
+    final store = DeviceStorage(
+      secure: secure,
+      stableIdResolver: () async => 'android-id-abc',
+    );
+    await store.clearDeviceId();
+    final id = await store.getOrCreateDeviceId();
+    expect(id, 'android-id-abc');
+  });
+
   test('biometric + password-preference flags round-trip', () async {
     final store = DeviceStorage(secure: secure, stableIdResolver: () async => null);
     expect(await store.isBiometricLoginEnabled(), isFalse);
