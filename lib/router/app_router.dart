@@ -47,6 +47,7 @@ import 'package:banksync_app/features/cards/my_cards_screen.dart';
 import 'package:banksync_app/features/legal/terms_screen.dart';
 import 'package:banksync_app/features/kyc/kyc_providers.dart';
 import 'package:banksync_app/features/kyc/kyc_screen.dart';
+import 'package:banksync_app/features/pos/pos_onboarding_screen.dart';
 import 'package:banksync_app/features/pos/pos_shell.dart';
 import 'package:banksync_app/features/pos/pos_transactions_screen.dart';
 import 'package:banksync_app/core/providers/merchant_providers.dart';
@@ -380,7 +381,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
       GoRoute(path: '/pos/home', builder: (_, __) => const PosShell()),
       GoRoute(path: '/pos/transactions', builder: (_, __) => const PosTransactionsScreen()),
-      GoRoute(path: '/pos/onboarding', builder: (_, __) => const KycScreen()),
+      GoRoute(path: '/pos/onboarding', builder: (_, __) => const PosOnboardingScreen()),
       GoRoute(
           path: '/guest-support',
           builder: (_, __) => const GuestSupportScreen()),

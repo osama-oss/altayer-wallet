@@ -31,6 +31,16 @@ class MerchantAuthService {
 
   Future<void> signOut() => _store.clear();
 
+  Future<Map<String, dynamic>> refreshProfile() async {
+    final token = await readToken();
+    if (token == null || token.isEmpty) {
+      throw const ApiException('Not signed in');
+    }
+    final detail = await _api.userDetail(token);
+    await _store.updateProfile(detail);
+    return detail;
+  }
+
   /// Merchant owner self-register (phone-first, merchant Keycloak realm).
   Future<Map<String, dynamic>> registerMerchantIdentity({
     required String mobile,
