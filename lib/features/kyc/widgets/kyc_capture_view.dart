@@ -9,6 +9,7 @@ import '../../../core/theme/bank_sync_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../kyc_document.dart';
 import '../kyc_form_data.dart';
+import '../kyc_providers.dart';
 import '../kyc_repository.dart';
 import '../kyc_status.dart';
 import 'kyc_camera_screen.dart';
