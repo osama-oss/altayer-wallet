@@ -164,8 +164,8 @@ class KycFormData {
         peps: peps ?? this.peps,
       );
 
-  /// Serialises this form into the **nested** `profile` object for the
-  /// single-call `POST /api/mobile/kyc/onboard` endpoint.
+  /// Serialises this form into the nested `profile` object for
+  /// `POST /api/mobile/kyc/onboard` (after per-photo uploadString refs are collected).
   ///
   /// The backend's onboard orchestrator expects the profile structured as:
   /// ```json

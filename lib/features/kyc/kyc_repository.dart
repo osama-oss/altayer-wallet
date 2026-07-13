@@ -105,28 +105,16 @@ class KycRepository {
   }
 
   /// Creates the wallet customer in the core from the collected form + captured
-  /// documents via the single-call `POST /api/mobile/kyc/onboard` endpoint.
+  /// documents.
   ///
-  /// The app sends the full payload in **one call**:
-  /// ```json
-  /// {
-  ///   "idType": "NATIONAL_ID",
-  ///   "profile": { ...nested identity fields... },
-  ///   "images": [ "<front base64>", "<back base64>", "<selfie base64>" ]
-  /// }
-  /// ```
+  /// 1. Upload each photo via `POST /api/mobile/kyc/document` → `uploadString`
+  /// 2. Submit `POST /api/mobile/kyc/onboard` with profile + ordered uploadRefs
   ///
-  /// The **backend** handles everything automatically:
-  ///   WALLET_DOC_UPLOAD (per image) → WALLET_CUSTOMER_VALIDATE →
-  ///   WALLET_CUSTOMER_CREATE → writes `customer_id` to Keycloak.
-  ///
-  /// The app never calls the WALLET_* integrations directly (they are INTERNAL).
-  /// No `customerId` is sent — the core generates it and returns it; it is
-  /// captured onto the cached profile.
+  /// mobile-service then runs WALLET_CUSTOMER_VALIDATE → WALLET_CUSTOMER_CREATE
+  /// and writes `customer_id` to Keycloak. No `customerId` is sent from the app.
   ///
   /// [orderedDocuments] must be in the exact order the core expects
-  /// (national: front, back, selfie · passport: passport, selfie) — that
-  /// order is preserved into the `images` list.
+  /// (national: front, back, selfie · passport: passport, selfie).
   Future<KycProfile> createCustomer({
     required KycIdType idType,
     required KycFormData formData,
@@ -137,14 +125,18 @@ class KycRepository {
       throw const ApiException('Not signed in');
     }
     try {
-      // 1. Convert each captured photo to base64; keep the core's expected order.
-      final images = <String>[];
+      // 1. Upload each photo → collect core uploadString refs (ordered).
+      final uploadRefs = <String>[];
       for (final doc in orderedDocuments) {
         final file = doc.file;
         if (file == null) {
           throw const ApiException('Missing document image');
         }
-        images.add(base64Encode(await file.readAsBytes()));
+        final ref = await _api.uploadKycDocument(
+          token,
+          fileBase64: base64Encode(await file.readAsBytes()),
+        );
+        uploadRefs.add(ref);
       }
 
       // 2. Nested profile fields; merge registration-sourced givenName /
@@ -152,11 +144,11 @@ class KycRepository {
       final profile = <String, dynamic>{...formData.toWire()};
       await _mergeRegistrationFields(profile);
 
-      // 3. Single onboard call — backend does doc-upload → validate → create.
+      // 3. Onboard with uploadString refs only — validate → create on server.
       final result = await _api.onboardKyc(token, {
         'idType': idType.wireCode, // NATIONAL_ID | PASSPORT
         'profile': profile,
-        'images': images, // ordered base64 strings
+        'uploadRefs': uploadRefs,
       });
 
       final customerId = _deepFind(result, 'customerId') ??

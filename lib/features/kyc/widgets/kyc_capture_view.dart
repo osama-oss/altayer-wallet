@@ -131,8 +131,8 @@ class _KycCaptureViewState extends ConsumerState<KycCaptureView> {
     setState(() => _submitting = true);
     final repo = ref.read(kycRepositoryProvider);
     try {
-      // Mark the captured set as in-flight; the whole payload (fields + base64
-      // photos) goes up in one WALLET_CUSTOMER_VALIDATE → CREATE call.
+      // Mark the captured set as in-flight: upload each photo for uploadString,
+      // then submit profile + refs for WALLET_CUSTOMER_VALIDATE → CREATE.
       for (final type in _types) {
         setState(() => _docs[type] =
             _docs[type]!.copyWith(uploadState: KycDocUploadState.uploading));
