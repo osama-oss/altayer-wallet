@@ -711,67 +711,97 @@ class ApiClient {
   }
 
   // ─── KYC / identity verification ─────────────────────────────────────────
-  // Binary document upload uses a dedicated multipart REST controller
-  // (`/api/mobile/kyc`) rather than the JSON integration gateway — large image
-  // payloads must not be base64-inflated through the integration chain.
-  // customer_id is derived server-side from the JWT (never sent by the client).
-  // Contract lives in `mobile-service-scaffold/KYC_BACKEND_PLAN.md`.
+  // The client calls mobile-service KYC endpoints only. mobile-service runs the
+  // INTERNAL WALLET_* integrations (WALLET_DOC_UPLOAD → WALLET_CUSTOMER_VALIDATE
+  // → WALLET_CUSTOMER_CREATE, and WALLET_COUNTRY / WALLET_SECTOR) with the
+  // registry-realm service token — the app never calls those integrations
+  // directly. Contract lives in `mobile-service-scaffold/`.
+
+  /// **Deprecated**: The single-call onboard flow now sends base64 images
+  /// inline in `POST /api/mobile/kyc/onboard` — the backend runs
+  /// WALLET_DOC_UPLOAD internally. This method is retained for backward
+  /// compatibility but is no longer called by the app.
+  ///
+  /// Uploads ONE KYC document and returns its `savedAs` string reference.
+  /// POST /api/mobile/kyc/document — mobile-service runs WALLET_DOC_UPLOAD for
+  /// this single file. The reference comes back as a plain String in `data`
+  /// (e.g. `"uploads/temp/.../abc.jpg"`); tolerates an object shape too. Called
+  /// once per captured image; the refs are collected and passed to [onboardKyc].
+  @Deprecated('Use the single-call onboard with inline base64 images instead')
+  Future<String?> uploadKycDocument(
+    String token, {
+    required String fileBase64,
+    required String documentType,
+  }) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/mobile/kyc/document',
+      data: {'file': fileBase64, 'documentType': documentType},
+      options: Options(
+        headers: _bearer(token),
+        validateStatus: _validateOptions.validateStatus,
+      ),
+    );
+    final body = res.data ?? {};
+    if (body['success'] != true) {
+      throw _apiFromBody(body, res.requestOptions);
+    }
+    String? asRef(Object? v) {
+      final s = v?.toString().trim();
+      return (s == null || s.isEmpty) ? null : s;
+    }
+
+    final data = body['data'];
+    // savedAs arrives as a plain String in `data` (manager's contract) …
+    if (data is String) return asRef(data);
+    // … or as an object `{ savedAs }` at data / top level (tolerated).
+    if (data is Map) {
+      final ref = asRef(data['savedAs']);
+      if (ref != null) return ref;
+    }
+    return asRef(body['savedAs']);
+  }
+
+  /// Account-confirmation onboarding — POST /api/mobile/kyc/onboard (Bearer).
+  /// Body: `{ idType, profile: {nested identity fields}, images: [base64...] }`.
+  /// The backend handles the full flow internally: WALLET_DOC_UPLOAD for each
+  /// image → WALLET_CUSTOMER_VALIDATE → WALLET_CUSTOMER_CREATE → writes
+  /// `customer_id` to Keycloak. Returns `{ customerId, status }`.
+  Future<Map<String, dynamic>> onboardKyc(
+    String token,
+    Map<String, dynamic> body,
+  ) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/mobile/kyc/onboard',
+      data: body,
+      options: Options(
+        headers: _bearer(token),
+        validateStatus: _validateOptions.validateStatus,
+      ),
+    );
+    return _unwrap(res);
+  }
+
+  /// Reference lists for the KYC pickers, fetched from mobile-service (which
+  /// proxies the INTERNAL WALLET_COUNTRY / WALLET_SECTOR integrations).
+  /// `GET /api/mobile/kyc/reference/{countries|sectors}`.
+  Future<Map<String, dynamic>> getKycReference(String token, String kind) async {
+    final res = await _dio.get<Map<String, dynamic>>(
+      '/api/mobile/kyc/reference/$kind',
+      options: Options(
+        headers: _bearer(token),
+        validateStatus: _validateOptions.validateStatus,
+      ),
+    );
+    return _unwrap(res);
+  }
 
   /// Current KYC status + review metadata.
   /// `GET /api/mobile/kyc/status` → `{ status, rejectionReason?, submittedAt?, reviewedAt?, documents:[...] }`.
+  /// Optional: [KycRepository.fetchStatus] falls back to the cached profile when
+  /// this endpoint isn't available.
   Future<Map<String, dynamic>> getKycStatus(String token) async {
     final res = await _dio.get<Map<String, dynamic>>(
       '/api/mobile/kyc/status',
-      options: Options(
-        headers: _bearer(token),
-        validateStatus: _validateOptions.validateStatus,
-      ),
-    );
-    return _unwrap(res);
-  }
-
-  /// Uploads one identity document as multipart form-data.
-  /// `POST /api/mobile/kyc/documents` — fields: `type` (ID_FRONT|ID_BACK|SELFIE),
-  /// `file`. Returns `{ type, documentId, uploaded:true }`.
-  Future<Map<String, dynamic>> uploadKycDocument(
-    String token, {
-    required String type,
-    required String filePath,
-    String? fileName,
-  }) async {
-    final form = FormData.fromMap({
-      'type': type,
-      'file': await MultipartFile.fromFile(filePath, filename: fileName),
-    });
-    final res = await _dio.post<Map<String, dynamic>>(
-      '/api/mobile/kyc/documents',
-      data: form,
-      options: Options(
-        headers: _bearer(token),
-        contentType: 'multipart/form-data',
-        validateStatus: _validateOptions.validateStatus,
-      ),
-    );
-    return _unwrap(res);
-  }
-
-  /// Submits the uploaded documents for back-office review.
-  /// `POST /api/mobile/kyc/submit` body `{ idType, profile? }` →
-  /// `{ status:"PENDING", submittedAt }`. [idType] is NATIONAL_ID or PASSPORT so
-  /// the server can validate the expected document set; [profile] carries the
-  /// customer-confirmed identity + residence details (nested so the server can
-  /// persist them in one call). customer_id is derived server-side from the JWT.
-  Future<Map<String, dynamic>> submitKyc(
-    String token, {
-    String? idType,
-    Map<String, dynamic>? profile,
-  }) async {
-    final res = await _dio.post<Map<String, dynamic>>(
-      '/api/mobile/kyc/submit',
-      data: {
-        if (idType != null && idType.isNotEmpty) 'idType': idType,
-        if (profile != null && profile.isNotEmpty) 'profile': profile,
-      },
       options: Options(
         headers: _bearer(token),
         validateStatus: _validateOptions.validateStatus,
