@@ -11,6 +11,16 @@
     ],
     "trustSelfSignedCerts": true
   },
+  "merchantKeycloak": {
+    "issuer": "https://88.80.145.121:8085/realms/uff-digital-banking-merchant",
+    "clientId": "digital-banking-merchant-browser",
+    "scopes": [
+      "openid",
+      "profile",
+      "email"
+    ],
+    "trustSelfSignedCerts": true
+  },
   "security": {
     "threatPolicy": "warn",
     "watcherMail": "security@uff.example",

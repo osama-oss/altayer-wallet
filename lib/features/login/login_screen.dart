@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/network/banking_auth_exceptions.dart';
 import '../../core/providers/app_providers.dart';
+import '../../core/providers/merchant_providers.dart';
 import '../../core/providers/locale_provider.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/bank_sync_colors.dart';
@@ -81,19 +82,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _login() async {
-    // Point-of-sale login has no backend yet — surface a friendly notice.
-    if (_merchant) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.merchantLoginComingSoon)),
-      );
-      return;
-    }
     if (!_formKey.currentState!.validate()) return;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
+      if (_merchant) {
+        await ref.read(merchantAuthServiceProvider).loginWithPassword(
+              _mobile.text,
+              _password.text,
+            );
+        if (!mounted) return;
+        context.go('/pos/home');
+        notifyRouterAuthChanged(ref);
+        return;
+      }
       final result = await ref.read(authServiceProvider).loginWithPassword(
             _mobile.text,
             _password.text,

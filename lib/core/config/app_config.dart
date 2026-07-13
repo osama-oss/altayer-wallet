@@ -6,6 +6,7 @@ class AppConfig {
 
   final String apiBaseUrl;
   final KeycloakConfig keycloak;
+  final KeycloakConfig? merchantKeycloak;
   final SecurityConfig security;
 
   /// Fixed idle-timeout for all users (minutes). During development ≥ 10;
@@ -19,6 +20,7 @@ class AppConfig {
   AppConfig({
     required this.apiBaseUrl,
     required this.keycloak,
+    this.merchantKeycloak,
     required this.security,
     this.sessionIdleMinutes = 10,
     this.otpStaticCode = '1234',
@@ -28,9 +30,12 @@ class AppConfig {
     final raw = await rootBundle.loadString('assets/config/app_config.json');
     final json = jsonDecode(raw) as Map<String, dynamic>;
     final kc = json['keycloak'] as Map<String, dynamic>;
+    final merchantKc = json['merchantKeycloak'] as Map<String, dynamic>?;
     instance = AppConfig(
       apiBaseUrl: json['apiBaseUrl'] as String,
       keycloak: KeycloakConfig.fromJson(kc),
+      merchantKeycloak:
+          merchantKc != null ? KeycloakConfig.fromJson(merchantKc) : null,
       security: SecurityConfig.fromJson(json['security'] as Map<String, dynamic>?),
       sessionIdleMinutes: json['sessionIdleMinutes'] as int? ?? 10,
       otpStaticCode:

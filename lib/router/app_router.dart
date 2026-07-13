@@ -47,6 +47,9 @@ import 'package:banksync_app/features/cards/my_cards_screen.dart';
 import 'package:banksync_app/features/legal/terms_screen.dart';
 import 'package:banksync_app/features/kyc/kyc_providers.dart';
 import 'package:banksync_app/features/kyc/kyc_screen.dart';
+import 'package:banksync_app/features/pos/pos_shell.dart';
+import 'package:banksync_app/features/pos/pos_transactions_screen.dart';
+import 'package:banksync_app/core/providers/merchant_providers.dart';
 import 'package:banksync_app/features/profile/profile_screen.dart';
 
 const _protectedRoutes = {
@@ -79,6 +82,8 @@ const _protectedRoutes = {
   '/unmoney',
   '/kyc',
   '/profile',
+  '/pos/home',
+  '/pos/transactions',
 };
 
 const _guestOnlyRoutes = {
@@ -127,6 +132,7 @@ const _verifiedOnlyRoutes = {
 final routerProvider = Provider<GoRouter>((ref) {
   final refresh = ref.watch(routerRefreshProvider);
   final auth = ref.read(authServiceProvider);
+  final merchantAuth = ref.read(merchantAuthServiceProvider);
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
@@ -137,6 +143,13 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       final token = await auth.readToken();
       final hasSession = token != null && token.isNotEmpty;
+      final merchantToken = await merchantAuth.readToken();
+      final hasMerchantSession = merchantToken != null && merchantToken.isNotEmpty;
+
+      if (location.startsWith('/pos')) {
+        if (!hasMerchantSession) return '/login';
+        return null;
+      }
 
       if (hasSession) {
         if (_preAuthFlowRoutes.contains(location)) {
@@ -356,6 +369,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/terms', builder: (_, __) => const TermsScreen()),
       GoRoute(path: '/kyc', builder: (_, __) => const KycScreen()),
       GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
+      GoRoute(path: '/pos/home', builder: (_, __) => const PosShell()),
+      GoRoute(path: '/pos/transactions', builder: (_, __) => const PosTransactionsScreen()),
+      GoRoute(path: '/pos/onboarding', builder: (_, __) => const KycScreen()),
       GoRoute(
           path: '/guest-support',
           builder: (_, __) => const GuestSupportScreen()),

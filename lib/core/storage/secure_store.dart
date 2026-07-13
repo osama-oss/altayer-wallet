@@ -19,6 +19,13 @@ abstract class SecureKeys {
   static const sessionTimeoutMinutes = 'session_timeout_minutes'; // int (String)
   static const lastActivityAt = 'last_activity_at'; // epoch millis (String)
 
+  // Merchant POS session (separate from customer tab)
+  static const merchantAccessToken = 'merchant_access_token';
+  static const merchantRefreshToken = 'merchant_refresh_token';
+  static const merchantAccessTokenExpiry = 'merchant_access_token_expiry';
+  static const merchantUsername = 'merchant_username';
+  static const merchantUserProfile = 'merchant_user_profile';
+
   // Device identity & biometric preferences
   static const deviceId = 'device_id';
   static const biometricEnabled = 'biometric_login_enabled';
