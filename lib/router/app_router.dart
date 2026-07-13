@@ -218,11 +218,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/set-initial-password',
         builder: (_, state) {
-          final extra = state.extra as Map<String, String>?;
+          final extra = state.extra as Map<String, dynamic>?;
           return SetInitialPasswordScreen(
-            username: extra?['username'] ?? '',
-            keycloakUsername: extra?['keycloakUsername'],
-            currentPassword: extra?['currentPassword'] ?? '',
+            username: extra?['username'] as String? ?? '',
+            keycloakUsername: extra?['keycloakUsername'] as String?,
+            currentPassword: extra?['currentPassword'] as String? ?? '',
           );
         },
       ),

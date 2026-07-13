@@ -1,4 +1,5 @@
 import '../../core/models/banking_account.dart';
+import '../../core/wallet_account_id.dart';
 
 // NOTE: accounts + preferences are read from the shared cached providers
 // (`accountsProvider` / `accountPreferencesProvider` in app_providers.dart).
@@ -98,7 +99,7 @@ String? _findTransferReferenceId(Map<String, dynamic> map) {
 }
 
 String accountDropdownLabel(BankingAccount account) {
-  return '${account.accountNumber} (${account.currency})';
+  return '${walletDisplayNumber(account.accountNumber)} (${account.currency})';
 }
 
 /// A cross-currency quote read from the `TRANSFER-TO-ACC-VALIDATE` response.

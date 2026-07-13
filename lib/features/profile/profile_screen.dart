@@ -193,6 +193,9 @@ class _VerificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.bankColors;
     final actionable = status.canSubmit;
+    final color = (status == KycStatus.unverified || status == KycStatus.incomplete)
+        ? colors.error
+        : status.color(colors);
 
     return InkWell(
       onTap: () => context.push('/kyc'),
@@ -203,7 +206,12 @@ class _VerificationCard extends StatelessWidget {
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.chevron_right_rounded, color: status.color(colors)),
+                  Icon(
+                    Directionality.of(context) == TextDirection.rtl
+                        ? Icons.chevron_left_rounded
+                        : Icons.chevron_right_rounded,
+                    color: color,
+                  ),
                 ],
               )
             : (status.isVerified

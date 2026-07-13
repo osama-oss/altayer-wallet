@@ -471,7 +471,7 @@ class _FavoritesStrip extends ConsumerWidget {
                             height: 15),
                         const SizedBox(width: 6),
                         Text(
-                          favorite.displayName,
+                          walletDisplayNumber(favorite.displayName),
                           style: AppTextStyles.labelSm(
                             color: colors.onSurface,
                             languageCode: lang,

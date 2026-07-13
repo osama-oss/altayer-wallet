@@ -11,6 +11,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/models/banking_account.dart';
 import '../../core/qr/account_qr_payload.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/wallet_account_id.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/bank_sync_colors.dart';
 import '../../l10n/app_localizations.dart';
@@ -140,7 +141,7 @@ class _CardQrSheet extends StatelessWidget {
                   const SizedBox(width: 10),
                   Flexible(
                     child: Text(
-                      account.accountNumber,
+                      walletDisplayNumber(account.accountNumber),
                       textDirection: TextDirection.ltr,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -201,7 +202,8 @@ class _CardQrSheet extends StatelessWidget {
       await file.writeAsBytes(bytes);
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'image/png')],
-        text: 'رقم حسابي في Ultimate Wallet: ${account.accountNumber}',
+        text:
+            'رقم حسابي في Ultimate Wallet: ${walletDisplayNumber(account.accountNumber)}',
       );
     } catch (_) {
       // Sharing was cancelled or unavailable — nothing to surface.
@@ -232,7 +234,8 @@ class _CardQrSheet extends StatelessWidget {
 
   void _copyAccount(BuildContext context) {
     final l10n = context.l10n;
-    Clipboard.setData(ClipboardData(text: account.accountNumber));
+    Clipboard.setData(
+        ClipboardData(text: walletDisplayNumber(account.accountNumber)));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,

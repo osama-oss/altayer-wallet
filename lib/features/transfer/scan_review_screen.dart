@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/bank_sync_colors.dart';
+import '../../core/wallet_account_id.dart';
 import '../../core/widgets/uff_ui.dart';
 import 'qr_scan_screen.dart';
 import 'transfer_review_screen.dart';
@@ -35,10 +36,17 @@ class ScanReviewScreen extends StatefulWidget {
 }
 
 class _ScanReviewScreenState extends State<ScanReviewScreen> {
+  // The field shows only the bare recipient number — the internal
+  // "_<currency>" suffix is stripped for display and preserved separately in
+  // [_creditCurrency] so the full wallet id is rebuilt for the API on continue.
   late final _account =
-      TextEditingController(text: widget.account?.trim() ?? '');
+      TextEditingController(text: walletDisplayNumber(widget.account?.trim() ?? ''));
   final _amount = TextEditingController();
   final _note = TextEditingController();
+
+  // Recipient wallet currency carried by the scanned / picked value (e.g. a QR
+  // that encoded "<phone>_YER"). Null when the customer typed a bare number.
+  late String? _creditCurrency = walletCurrencyPart(widget.account?.trim() ?? '');
 
   @override
   void dispose() {
@@ -51,14 +59,20 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
   Future<void> _rescan() async {
     final acct = await openQrScanScreen(context);
     if (acct != null && acct.isNotEmpty) {
-      setState(() => _account.text = acct);
+      setState(() {
+        _account.text = walletDisplayNumber(acct);
+        _creditCurrency = walletCurrencyPart(acct) ?? _creditCurrency;
+      });
     }
   }
 
   Future<void> _pickBeneficiary() async {
     final selected = await context.push<String>('/beneficiaries');
     if (selected != null && selected.isNotEmpty) {
-      setState(() => _account.text = selected);
+      setState(() {
+        _account.text = walletDisplayNumber(selected);
+        _creditCurrency = walletCurrencyPart(selected) ?? _creditCurrency;
+      });
     }
   }
 
@@ -82,10 +96,15 @@ class _ScanReviewScreenState extends State<ScanReviewScreen> {
       _snack(isAr ? 'أدخل مبلغًا صحيحًا للمتابعة' : 'Enter a valid amount');
       return;
     }
+    // Rebuild the internal "<number>_<currency>" wallet id for the API from the
+    // bare number the customer sees plus the currency carried by the scan/QR.
+    final creditAccount = _creditCurrency != null
+        ? walletAccountId(account, _creditCurrency!)
+        : account;
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => TransferReviewScreen(
-          account: account,
+          account: creditAccount,
           amount: _amount.text.trim(),
           note: _note.text.trim(),
           recipientName: widget.recipientName,

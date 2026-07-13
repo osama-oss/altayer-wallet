@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../../core/models/banking_account.dart';
+import '../../../core/wallet_account_id.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/bank_sync_colors.dart';
@@ -212,7 +213,7 @@ class BillAccountSheet extends StatelessWidget {
                         .copyWith(fontWeight: FontWeight.w600),
                   ),
                   subtitle: Text(
-                    account.accountNumber,
+                    walletDisplayNumber(account.accountNumber),
                     textDirection: TextDirection.ltr,
                     style: AppTextStyles.monoLabel(color: colors.onSurfaceVariant).copyWith(fontSize: 12),
                   ),

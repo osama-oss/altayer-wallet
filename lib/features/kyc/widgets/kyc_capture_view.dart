@@ -131,29 +131,24 @@ class _KycCaptureViewState extends ConsumerState<KycCaptureView> {
     setState(() => _submitting = true);
     final repo = ref.read(kycRepositoryProvider);
     try {
+      // Mark the captured set as in-flight; the whole payload (fields + base64
+      // photos) goes up in one WALLET_CUSTOMER_VALIDATE → CREATE call.
       for (final type in _types) {
-        final doc = _docs[type]!;
-        if (doc.isUploaded) continue;
         setState(() => _docs[type] =
-            doc.copyWith(uploadState: KycDocUploadState.uploading));
-        try {
-          final id = await repo.uploadDocument(_docs[type]!);
-          setState(() => _docs[type] = _docs[type]!.copyWith(
-                uploadState: KycDocUploadState.uploaded,
-                documentId: id,
-              ));
-        } catch (e) {
-          setState(() => _docs[type] =
-              _docs[type]!.copyWith(uploadState: KycDocUploadState.failed));
-          rethrow;
-        }
+            _docs[type]!.copyWith(uploadState: KycDocUploadState.uploading));
       }
-      final result = await repo.submit(
-        idType: _idType.wireCode,
-        profile: widget.formData?.toWire(),
+      final orderedDocuments = [for (final type in _types) _docs[type]!];
+      final result = await repo.createCustomer(
+        idType: _idType,
+        formData: widget.formData ?? const KycFormData(),
+        orderedDocuments: orderedDocuments,
       );
       _submitted = true;
-      // Uploaded successfully — remove the local temp copies.
+      for (final type in _types) {
+        setState(() => _docs[type] =
+            _docs[type]!.copyWith(uploadState: KycDocUploadState.uploaded));
+      }
+      // Submitted successfully — remove the local temp copies.
       for (final doc in _docs.values) {
         if (doc.file != null) _safeDelete(doc.file!.path);
       }
@@ -166,7 +161,21 @@ class _KycCaptureViewState extends ConsumerState<KycCaptureView> {
     } catch (_) {
       if (mounted) _snack(l10n.kycSubmitFailed);
     } finally {
-      if (mounted) setState(() => _submitting = false);
+      if (mounted) {
+        setState(() {
+          _submitting = false;
+          // On failure the whole submission is retried as one call, so clear the
+          // in-flight state from the captured docs (nothing was persisted).
+          if (!_submitted) {
+            for (final type in _types) {
+              if (_docs[type]!.isUploading) {
+                _docs[type] = _docs[type]!
+                    .copyWith(uploadState: KycDocUploadState.captured);
+              }
+            }
+          }
+        });
+      }
     }
   }
 

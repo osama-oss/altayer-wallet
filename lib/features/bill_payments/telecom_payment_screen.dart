@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../core/models/banking_account.dart';
+import '../../core/wallet_account_id.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -262,7 +263,7 @@ class _TelecomPaymentScreenState extends ConsumerState<TelecomPaymentScreen> {
             BillPickerTile(
               label: _account == null
                   ? (languageCode == 'ar' ? 'ادخل من حساب' : 'Choose account')
-                  : '${_account!.label}  •  ${_account!.accountNumber}',
+                  : '${_account!.label}  •  ${walletDisplayNumber(_account!.accountNumber)}',
               placeholder: _account == null,
               onTap: _pickAccount,
             ),

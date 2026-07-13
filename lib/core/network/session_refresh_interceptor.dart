@@ -2,6 +2,18 @@ import 'package:dio/dio.dart';
 
 import 'package:banksync_app/core/auth/auth_service.dart';
 
+/// TEMP — wallet phase ("prepare screens, backend wires later"): wallet users
+/// are not yet linked to a core CIF, so their access token carries no
+/// `customer_id` claim and every integration call comes back
+/// "Customer id missing from token". While this flag is true, that specific
+/// failure is treated as NON-fatal — the response is delivered to the calling
+/// screen (which renders its own empty/error state) instead of ending the
+/// session and bouncing the user to login ~2s after they sign in.
+///
+/// Flip to false once linkCore/KYC issues real `customer_id` claims, so a
+/// genuine mid-session claim loss again triggers the in-place re-login sheet.
+const bool kWalletUnlinkedClaimGrace = true;
+
 /// Intercepts every outgoing request to silently refresh an expiring access
 /// token, and handles 401 responses from the server.
 ///
@@ -208,7 +220,8 @@ class SessionRefreshInterceptor extends Interceptor {
     // Claim-level rejection rides in on a 2xx/4xx `success:false` envelope
     // (integration errors pass validateStatus). Offer an in-place re-login
     // and, when the user signs back in, replay the request transparently.
-    if (_isCustomerClaimFailure(response) &&
+    if (!kWalletUnlinkedClaimGrace &&
+        _isCustomerClaimFailure(response) &&
         _shouldOfferReauth(response.requestOptions)) {
       if (await _promptReauth()) {
         try {
@@ -231,7 +244,8 @@ class SessionRefreshInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     // Same claim-level rejection as in onResponse, for endpoints where the
     // 4xx surfaces as a DioException instead of a validated response.
-    if (_isCustomerClaimFailure(err.response) &&
+    if (!kWalletUnlinkedClaimGrace &&
+        _isCustomerClaimFailure(err.response) &&
         _shouldOfferReauth(err.requestOptions)) {
       if (await _promptReauth()) {
         try {

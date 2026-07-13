@@ -457,6 +457,36 @@ abstract class AppLocalizations {
   String get kycFieldSelectDate;
   String get kycFieldRequired;
   String get kycFieldExpiryBeforeIssue;
+  // ── KYC data-entry form (added identity/compliance fields) ─────────────
+  String get kycFieldNameOnId;
+  String get kycFieldIssueCountry;
+  String get kycSectionPersonalInfo;
+  String get kycFieldMotherName;
+  String get kycFieldMaritalStatus;
+  String get kycFieldNationality;
+  String get kycFieldSector;
+  String get kycFieldOtherNationalities;
+  String get kycSectionBirth;
+  String get kycFieldBirthCountry;
+  String get kycFieldBirthZone;
+  String get kycSectionCompliance;
+  String get kycFieldPeps;
+  String get kycMaritalSingle;
+  String get kycMaritalMarried;
+  String get kycMaritalDivorced;
+  String get kycMaritalWidowed;
+  String get kycSelectHint;
+  String get kycYes;
+  String get kycNo;
+  // ── KYC bilingual names (full name + mother name in ar/en) ─────────────
+  String get kycNamesCardTitle;
+  String get kycNamesCardHint;
+  String get kycNamesCardAction;
+  String get kycNamesSheetTitle;
+  String get kycNamesRequired;
+  String get kycLangArabic;
+  String get kycLangEnglish;
+  String get kycNamesSave;
   String get kycContinue;
   String get kycFinalStepTitle;
   String get kycFinalStepSubtitle;
@@ -1919,6 +1949,62 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get kycFieldExpiryBeforeIssue =>
       'Expiry must be after the issue date';
+  @override
+  String get kycFieldNameOnId => 'Name as printed on ID';
+  @override
+  String get kycFieldIssueCountry => 'Issuing country';
+  @override
+  String get kycSectionPersonalInfo => 'Personal details';
+  @override
+  String get kycFieldMotherName => 'Mother\'s name';
+  @override
+  String get kycFieldMaritalStatus => 'Marital status';
+  @override
+  String get kycFieldNationality => 'Nationality';
+  @override
+  String get kycFieldSector => 'Sector';
+  @override
+  String get kycFieldOtherNationalities => 'Hold other nationalities?';
+  @override
+  String get kycSectionBirth => 'Birth details';
+  @override
+  String get kycFieldBirthCountry => 'Country of birth';
+  @override
+  String get kycFieldBirthZone => 'Birth zone';
+  @override
+  String get kycSectionCompliance => 'Compliance';
+  @override
+  String get kycFieldPeps => 'Politically exposed person?';
+  @override
+  String get kycMaritalSingle => 'Single';
+  @override
+  String get kycMaritalMarried => 'Married';
+  @override
+  String get kycMaritalDivorced => 'Divorced';
+  @override
+  String get kycMaritalWidowed => 'Widowed';
+  @override
+  String get kycSelectHint => 'Select';
+  @override
+  String get kycYes => 'Yes';
+  @override
+  String get kycNo => 'No';
+  @override
+  String get kycNamesCardTitle => 'Full name & mother\'s name';
+  @override
+  String get kycNamesCardHint => 'Tap to enter in Arabic & English';
+  @override
+  String get kycNamesCardAction => 'Enter';
+  @override
+  String get kycNamesSheetTitle => 'Full name & mother\'s name';
+  @override
+  String get kycNamesRequired => 'Enter both names in Arabic and English';
+  @override
+  String get kycLangArabic => 'Arabic';
+  @override
+  String get kycLangEnglish => 'English';
+  @override
+  String get kycNamesSave => 'Save';
   @override
   String get kycContinue => 'Continue';
   @override
@@ -3657,6 +3743,62 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get kycFieldExpiryBeforeIssue =>
       'تاريخ الإنتهاء يجب أن يكون بعد تاريخ الإصدار';
+  @override
+  String get kycFieldNameOnId => 'الاسم كما هو مدوّن في الهوية';
+  @override
+  String get kycFieldIssueCountry => 'دولة إصدار الهوية';
+  @override
+  String get kycSectionPersonalInfo => 'البيانات الشخصية';
+  @override
+  String get kycFieldMotherName => 'اسم الأم';
+  @override
+  String get kycFieldMaritalStatus => 'الحالة الاجتماعية';
+  @override
+  String get kycFieldNationality => 'الجنسية';
+  @override
+  String get kycFieldSector => 'القطاع';
+  @override
+  String get kycFieldOtherNationalities => 'هل تحمل جنسيات أخرى؟';
+  @override
+  String get kycSectionBirth => 'بيانات الميلاد';
+  @override
+  String get kycFieldBirthCountry => 'دولة الميلاد';
+  @override
+  String get kycFieldBirthZone => 'منطقة الميلاد';
+  @override
+  String get kycSectionCompliance => 'بيانات الامتثال';
+  @override
+  String get kycFieldPeps => 'هل أنت شخص معرّض سياسياً؟';
+  @override
+  String get kycMaritalSingle => 'أعزب';
+  @override
+  String get kycMaritalMarried => 'متزوج';
+  @override
+  String get kycMaritalDivorced => 'مطلّق';
+  @override
+  String get kycMaritalWidowed => 'أرمل';
+  @override
+  String get kycSelectHint => 'اختر';
+  @override
+  String get kycYes => 'نعم';
+  @override
+  String get kycNo => 'لا';
+  @override
+  String get kycNamesCardTitle => 'الاسم الكامل واسم الأم';
+  @override
+  String get kycNamesCardHint => 'اضغط للإدخال بالعربية والإنجليزية';
+  @override
+  String get kycNamesCardAction => 'إدخال';
+  @override
+  String get kycNamesSheetTitle => 'الاسم الكامل واسم الأم';
+  @override
+  String get kycNamesRequired => 'الرجاء إدخال الاسم الكامل واسم الأم بالعربية والإنجليزية';
+  @override
+  String get kycLangArabic => 'العربية';
+  @override
+  String get kycLangEnglish => 'English';
+  @override
+  String get kycNamesSave => 'حفظ';
   @override
   String get kycContinue => 'استمرار';
   @override

@@ -11,6 +11,7 @@ import '../../core/network/api_exception.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/security/screen_security.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/wallet_account_id.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/bank_sync_colors.dart';
 import '../../l10n/app_localizations.dart';
@@ -330,7 +331,8 @@ class _AllAccountsScreenState extends ConsumerState<AllAccountsScreen> {
               colors: colors,
               languageCode: languageCode,
               onTap: () => _openDetails(account),
-              onCopy: () => _copyAccountNumber(account.accountNumber),
+              onCopy: () =>
+                  _copyAccountNumber(walletDisplayNumber(account.accountNumber)),
             ),
             const SizedBox(height: 12),
           ],
@@ -621,7 +623,7 @@ class _AccountListCard extends StatelessWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            account.accountNumber,
+                            walletDisplayNumber(account.accountNumber),
                             textDirection: TextDirection.ltr,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

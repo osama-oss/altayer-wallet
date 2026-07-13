@@ -59,13 +59,18 @@ class KycStatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.bankColors;
     final l10n = context.l10n;
-    final color = status.color(colors);
+    
+    // Unverified and incomplete states use the error (red) color to match the home screen alert
+    final color = (status == KycStatus.unverified || status == KycStatus.incomplete)
+        ? colors.error
+        : status.color(colors);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: color.withValues(alpha: 0.3), width: 1.2),
+        border: Border.all(color: color.withValues(alpha: 0.55), width: 1.2),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

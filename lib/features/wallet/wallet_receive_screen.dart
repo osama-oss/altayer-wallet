@@ -4,6 +4,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../core/models/banking_account.dart';
 import '../../core/qr/account_qr_payload.dart';
+import '../../core/wallet_account_id.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/bank_sync_colors.dart';
@@ -68,7 +69,7 @@ class WalletReceiveScreen extends StatelessWidget {
             const SizedBox(height: 24),
             _NumberCard(
               label: l10n.walletNumberLabel,
-              value: account.accountNumber,
+              value: walletDisplayNumber(account.accountNumber),
               copiedLabel: l10n.copied,
               colors: colors,
               lang: lang,

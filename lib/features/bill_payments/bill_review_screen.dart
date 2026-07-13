@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../core/models/banking_account.dart';
+import '../../core/wallet_account_id.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/network/banking_auth_exceptions.dart';
 import '../../core/providers/app_providers.dart';
@@ -283,7 +284,7 @@ class _BillReviewScreenState extends ConsumerState<BillReviewScreen> {
               icon: Icons.account_balance_wallet_outlined,
               label: _account == null
                   ? l10n.chooseAccount
-                  : '${_account!.label}  •  ${_account!.accountNumber}',
+                  : '${_account!.label}  •  ${walletDisplayNumber(_account!.accountNumber)}',
               loading: accounts.isLoading,
               onTap: _pickAccount,
             ),
@@ -505,7 +506,7 @@ class _AccountSheet extends StatelessWidget {
                         .copyWith(fontWeight: FontWeight.w600),
                   ),
                   subtitle: Text(
-                    account.accountNumber,
+                    walletDisplayNumber(account.accountNumber),
                     textDirection: TextDirection.ltr,
                     style: AppTextStyles.monoLabel(color: colors.onSurfaceVariant)
                         .copyWith(fontSize: 12),

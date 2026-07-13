@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/models/mobile_transaction.dart';
+import '../../core/wallet_account_id.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/theme/app_colors.dart';
@@ -244,7 +245,7 @@ class _PaymentCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      tx.billerCode ?? tx.creditAccount,
+                      tx.billerCode ?? walletDisplayNumber(tx.creditAccount),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.labelSm(
@@ -254,7 +255,7 @@ class _PaymentCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      tx.creditAccount,
+                      walletDisplayNumber(tx.creditAccount),
                       textDirection: TextDirection.ltr,
                       style: AppTextStyles.monoLabel(color: colors.onSurfaceVariant)
                           .copyWith(fontSize: 12),

@@ -6,6 +6,7 @@ import '../../core/models/mobile_transaction.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/wallet_account_id.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/bank_sync_colors.dart';
 import '../../l10n/app_localizations.dart';
@@ -238,7 +239,7 @@ class _TransferCard extends StatelessWidget {
                             ),
                             Flexible(
                               child: Text(
-                                tx.creditAccount,
+                                walletDisplayNumber(tx.creditAccount),
                                 textDirection: TextDirection.ltr,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,

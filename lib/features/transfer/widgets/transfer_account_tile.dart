@@ -175,14 +175,16 @@ class _TransferAccountPickerState extends State<TransferAccountPicker> {
     final lang = Localizations.localeOf(context).languageCode;
     final isAr = lang == 'ar';
     final filtered = _filtered;
-    final height = MediaQuery.sizeOf(context).height * 0.82;
+    // Cap the sheet at 80% of the screen — but let it shrink to fit its
+    // content, so a handful of accounts don't stretch into empty space.
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.8;
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SafeArea(
         top: false,
-        child: SizedBox(
-          height: height,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxHeight),
           child: Container(
             decoration: BoxDecoration(
               color: colors.surfaceContainerLowest,
@@ -190,6 +192,7 @@ class _TransferAccountPickerState extends State<TransferAccountPicker> {
             ),
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Center(
@@ -231,15 +234,19 @@ class _TransferAccountPickerState extends State<TransferAccountPicker> {
                   ),
                   const SizedBox(height: 6),
                 ],
-                Expanded(
+                Flexible(
                   child: filtered.isEmpty
-                      ? Center(
-                          child: Text(
-                            isAr ? 'لا توجد حسابات مطابقة' : 'No matching accounts',
-                            style: AppTextStyles.bodyMd(color: colors.onSurfaceVariant),
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 32),
+                          child: Center(
+                            child: Text(
+                              isAr ? 'لا توجد حسابات مطابقة' : 'No matching accounts',
+                              style: AppTextStyles.bodyMd(color: colors.onSurfaceVariant),
+                            ),
                           ),
                         )
                       : ListView.builder(
+                          shrinkWrap: true,
                           padding: const EdgeInsets.only(top: 2, bottom: 8),
                           itemCount: filtered.length,
                           itemExtent: 70,

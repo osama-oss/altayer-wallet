@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/models/mobile_transaction.dart';
+import '../../core/wallet_account_id.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -397,7 +398,7 @@ class _HistoryItem extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      tx.billerCode ?? tx.creditAccount,
+                      tx.billerCode ?? walletDisplayNumber(tx.creditAccount),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.labelSm(color: colors.onSurface, languageCode: lang)

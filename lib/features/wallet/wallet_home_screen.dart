@@ -11,6 +11,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../core/models/banking_account.dart';
 import '../../core/qr/account_qr_payload.dart';
 import '../../core/providers/app_providers.dart';
+import '../../core/wallet_account_id.dart';
 import '../../core/security/screen_security.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -167,7 +168,13 @@ class _KycBanner extends ConsumerWidget {
     if (status == KycStatus.verified) return const SizedBox.shrink();
 
     final bool pending = status == KycStatus.pending;
-    final Color accent = status.color(colors);
+    // Pre-submission states (unverified / incomplete) are shown as an urgent red
+    // framed alert so "confirm your account" clearly stands out; the review
+    // states keep their own semantic colour (amber for returned, red rejected).
+    final Color accent = (status == KycStatus.unverified ||
+            status == KycStatus.incomplete)
+        ? colors.error
+        : status.color(colors);
     final String text = switch (status) {
       KycStatus.rejected => l10n.kycBannerRejectedText,
       KycStatus.returned => l10n.kycBannerReturnedText,
@@ -184,9 +191,11 @@ class _KycBanner extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: colors.surfaceContainerHigh,
+            // Tinted fill + a solid accent border so the banner reads as a
+            // framed alert rather than a flat neutral strip.
+            color: accent.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: accent.withValues(alpha: 0.35)),
+            border: Border.all(color: accent.withValues(alpha: 0.55), width: 1.2),
           ),
           child: Row(
             children: [
@@ -424,7 +433,9 @@ class _WalletCardState extends ConsumerState<_WalletCard> {
   /// Full account number, lightly grouped for readability. Uses this card's
   /// own account — never a shared/placeholder value.
   String get _accountNumberText {
-    final n = account.accountNumber.trim();
+    // Show the bare wallet number — the internal "_<currency>" suffix is never
+    // surfaced to the customer.
+    final n = walletDisplayNumber(account.accountNumber);
     if (n.isEmpty) return '—';
     // Group runs of 4 for long numeric account numbers; leave short ones as-is.
     if (RegExp(r'^\d+$').hasMatch(n) && n.length > 4) {
@@ -1161,7 +1172,7 @@ class _PromoCarouselState extends State<_PromoCarousel> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!mounted || !_controller.hasClients) return;
       final next = (_index + 1) % _promos.length;
       _controller.animateToPage(

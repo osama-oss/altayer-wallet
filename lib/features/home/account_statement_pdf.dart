@@ -8,6 +8,7 @@ import 'package:printing/printing.dart';
 
 import '../../core/models/account_transaction.dart';
 import '../../core/models/banking_account.dart';
+import '../../core/wallet_account_id.dart';
 
 // uff brand palette (kept in sync with the app theme / transfer receipt).
 const _brand = PdfColor.fromInt(0xFF2119F3);
@@ -149,7 +150,7 @@ pw.Widget _miniHeader(BankingAccount account) {
         pw.Text('كشف حساب — Account Statement',
             style: const pw.TextStyle(
                 fontSize: 9, fontWeight: pw.FontWeight.bold, color: _brand)),
-        pw.Text(account.accountNumber,
+        pw.Text(walletDisplayNumber(account.accountNumber),
             style: const pw.TextStyle(fontSize: 9, color: _muted)),
       ],
     ),
@@ -168,7 +169,7 @@ pw.Widget _summaryCard(BankingAccount account, String balance, String issued) {
       children: [
         _row('اسم العميل', 'Customer name', account.label),
         _divider(),
-        _row('رقم الحساب', 'Account number', account.accountNumber),
+        _row('رقم الحساب', 'Account number', walletDisplayNumber(account.accountNumber)),
         _divider(),
         _row('العملة', 'Currency', account.currency),
         _divider(),

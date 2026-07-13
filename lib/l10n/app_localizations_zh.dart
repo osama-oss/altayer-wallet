@@ -1124,6 +1124,62 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get kycFieldExpiryBeforeIssue => '到期日期必须晚于签发日期';
   @override
+  String get kycFieldNameOnId => '证件上的姓名';
+  @override
+  String get kycFieldIssueCountry => '证件签发国家';
+  @override
+  String get kycSectionPersonalInfo => '个人信息';
+  @override
+  String get kycFieldMotherName => '母亲姓名';
+  @override
+  String get kycFieldMaritalStatus => '婚姻状况';
+  @override
+  String get kycFieldNationality => '国籍';
+  @override
+  String get kycFieldSector => '行业';
+  @override
+  String get kycFieldOtherNationalities => '是否持有其他国籍？';
+  @override
+  String get kycSectionBirth => '出生信息';
+  @override
+  String get kycFieldBirthCountry => '出生国家';
+  @override
+  String get kycFieldBirthZone => '出生地区';
+  @override
+  String get kycSectionCompliance => '合规信息';
+  @override
+  String get kycFieldPeps => '是否为政治公众人物？';
+  @override
+  String get kycMaritalSingle => '未婚';
+  @override
+  String get kycMaritalMarried => '已婚';
+  @override
+  String get kycMaritalDivorced => '离异';
+  @override
+  String get kycMaritalWidowed => '丧偶';
+  @override
+  String get kycSelectHint => '请选择';
+  @override
+  String get kycYes => '是';
+  @override
+  String get kycNo => '否';
+  @override
+  String get kycNamesCardTitle => '全名和母亲姓名';
+  @override
+  String get kycNamesCardHint => '点击以中/英文输入';
+  @override
+  String get kycNamesCardAction => '输入';
+  @override
+  String get kycNamesSheetTitle => '全名和母亲姓名';
+  @override
+  String get kycNamesRequired => '请以阿拉伯语和英语输入全名和母亲姓名';
+  @override
+  String get kycLangArabic => '阿拉伯语';
+  @override
+  String get kycLangEnglish => 'English';
+  @override
+  String get kycNamesSave => '保存';
+  @override
   String get kycContinue => '继续';
   @override
   String get kycFinalStepTitle => '最后一步';

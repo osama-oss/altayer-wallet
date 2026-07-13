@@ -10,6 +10,7 @@ import '../../core/network/api_exception.dart';
 import '../../core/providers/app_providers.dart';
 import '../../core/qr/account_qr_payload.dart';
 import '../../core/security/screen_security.dart';
+import '../../core/wallet_account_id.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/bank_sync_colors.dart';
@@ -161,7 +162,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      account.accountNumber,
+                      walletDisplayNumber(account.accountNumber),
                       style: AppTextStyles.monoLabel(
                         color: colors.onSecondary.withValues(alpha: 0.75),
                       ),
@@ -215,7 +216,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            account.accountNumber,
+                            walletDisplayNumber(account.accountNumber),
                             style: AppTextStyles.bodyMd(
                               color: colors.primary,
                               languageCode: languageCode,
@@ -224,7 +225,8 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
                         ),
                         IconButton(
                           onPressed: () {
-                            Clipboard.setData(ClipboardData(text: account.accountNumber));
+                            Clipboard.setData(ClipboardData(
+                                text: walletDisplayNumber(account.accountNumber)));
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text(l10n.accountNumberCopied)),
                             );

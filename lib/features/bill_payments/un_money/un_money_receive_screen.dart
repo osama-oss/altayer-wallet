@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../../core/models/banking_account.dart';
+import '../../../core/wallet_account_id.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/banking_auth_exceptions.dart';
 import '../../../core/providers/app_providers.dart';
@@ -96,7 +97,8 @@ class _UnMoneyReceiveScreenState extends ConsumerState<UnMoneyReceiveScreen> {
               leading: Icon(Icons.account_balance_outlined,
                   color: sheetContext.bankColors.secondary),
               title: Text(account.label),
-              subtitle: Text(account.accountNumber, textDirection: TextDirection.ltr),
+              subtitle: Text(walletDisplayNumber(account.accountNumber),
+                  textDirection: TextDirection.ltr),
               trailing: Text(
                 '${NumberFormat('#,##0.00').format(account.balance)} ${account.currency}',
                 textDirection: TextDirection.ltr,
@@ -274,7 +276,7 @@ class _UnMoneyReceiveScreenState extends ConsumerState<UnMoneyReceiveScreen> {
                           child: Text(
                             _account == null
                                 ? l10n.chooseAccount
-                                : '${_account!.label}  •  ${_account!.accountNumber}',
+                                : '${_account!.label}  •  ${walletDisplayNumber(_account!.accountNumber)}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AppTextStyles.bodyMd(color: colors.onSurface)
