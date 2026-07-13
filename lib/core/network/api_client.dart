@@ -749,12 +749,34 @@ class ApiClient {
       final ref = asRef(data);
       if (ref != null) return ref;
     }
-    final top = asRef(body['uploadString']) ?? asRef(body['savedAs']);
-    if (top != null) return top;
+    final nested = _deepFindString(body, 'uploadString') ??
+        _deepFindString(body, 'savedAs');
+    if (nested != null) return nested;
     throw ApiException(
       body['message']?.toString() ?? 'Document upload returned no uploadString',
       code: body['code']?.toString(),
     );
+  }
+
+  /// Recursively finds the first non-empty String value for [key] in a nested
+  /// map/list response. Used to locate `uploadString` when the endpoint wraps it.
+  static String? _deepFindString(dynamic node, String key) {
+    if (node is Map) {
+      final direct = node[key];
+      if (direct != null && direct.toString().trim().isNotEmpty) {
+        return direct.toString().trim();
+      }
+      for (final v in node.values) {
+        final found = _deepFindString(v, key);
+        if (found != null) return found;
+      }
+    } else if (node is List) {
+      for (final v in node) {
+        final found = _deepFindString(v, key);
+        if (found != null) return found;
+      }
+    }
+    return null;
   }
 
   /// Account-confirmation onboarding — POST /api/mobile/kyc/onboard (Bearer).

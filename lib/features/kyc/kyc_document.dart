@@ -49,13 +49,20 @@ enum KycFrameShape {
 enum KycDocType { idFront, idBack, passport, selfie }
 
 extension KycDocTypeX on KycDocType {
-  /// Wire value expected by the upload endpoint (`type` multipart field).
+  /// The `uploadType` string for this document. Sent to the upload endpoint and
+  /// stored server-side **as-is** (a plain String, not an id/object); on
+  /// create/validate it is paired with the file's `savedAs`, and on retrieval it
+  /// is what identifies which document each stored file is.
   String get wireCode => switch (this) {
         KycDocType.idFront => 'ID_FRONT',
         KycDocType.idBack => 'ID_BACK',
         KycDocType.passport => 'PASSPORT',
         KycDocType.selfie => 'SELFIE',
       };
+
+  /// Alias for [wireCode] read at the call sites that build the `upload` list,
+  /// so the intent (`uploadType`) is explicit there.
+  String get uploadType => wireCode;
 
   /// Selfies use the front camera; every document uses the rear camera.
   bool get useFrontCamera => this == KycDocType.selfie;
@@ -100,34 +107,41 @@ class KycDocument {
     required this.type,
     this.file,
     this.uploadState,
-    this.documentId,
+    this.savedAs,
   });
 
   final KycDocType type;
 
-  /// The captured image on disk (from the in-app camera). Null until captured.
+  /// The picked image on disk (from the in-app camera or the gallery). Null
+  /// until a file is chosen.
   final XFile? file;
 
   /// Null when not captured; otherwise the current upload lifecycle state.
   final KycDocUploadState? uploadState;
 
-  /// Server-assigned id once the upload succeeds.
-  final String? documentId;
+  /// The server-side filename returned by the upload endpoint once the file is
+  /// stored. This — not the raw file — is what later create/validate calls send
+  /// (paired with [KycDocTypeX.uploadType]). Null until the upload succeeds.
+  final String? savedAs;
+
+  /// The `uploadType` string for this document (see [KycDocTypeX.uploadType]).
+  String get uploadType => type.uploadType;
 
   bool get isCaptured => file != null;
-  bool get isUploaded => uploadState == KycDocUploadState.uploaded;
+  bool get isUploaded =>
+      uploadState == KycDocUploadState.uploaded && (savedAs?.isNotEmpty ?? false);
   bool get isUploading => uploadState == KycDocUploadState.uploading;
   bool get hasFailed => uploadState == KycDocUploadState.failed;
 
   KycDocument copyWith({
     XFile? file,
     KycDocUploadState? uploadState,
-    String? documentId,
+    String? savedAs,
   }) =>
       KycDocument(
         type: type,
         file: file ?? this.file,
         uploadState: uploadState ?? this.uploadState,
-        documentId: documentId ?? this.documentId,
+        savedAs: savedAs ?? this.savedAs,
       );
 }
