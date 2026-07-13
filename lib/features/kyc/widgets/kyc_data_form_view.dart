@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -230,6 +231,37 @@ class _KycDataFormViewState extends ConsumerState<KycDataFormView> {
     setState(() => _documentNumber.text = number);
   }
 
+  void _fillMockData() {
+    setState(() {
+      _documentNumber.text = '1012345678';
+      _issuingAuthority.text = 'مصلحة الأحوال المدنية';
+      _fullNameAr.text = 'سمير شاهر عبدالكافي';
+      _fullNameEn.text = 'Sameer Shaher Abdulkhafi';
+      _motherNameAr.text = 'فاطمة أحمد محمد';
+      _motherNameEn.text = 'Fatima Ahmed Mohamed';
+      _placeOfBirth.text = 'صنعاء';
+      _birthZone.text = 'الأمانة';
+      _country.text = 'اليمن';
+      _city.text = 'صنعاء';
+      _district.text = 'معين';
+      _region.text = 'الدائري';
+      _address.text = 'شارع الدائري الغربي';
+      _issueDate = DateTime(2023, 5, 12);
+      _expiryDate = DateTime(2029, 5, 12);
+      _dateOfBirth = DateTime(1995, 8, 20);
+      _issueCountryCode = 'YE';
+      _nationalityCode = 'YE';
+      _birthCountryCode = 'YE';
+      _sectorCode = '1001';
+      _maritalStatus = KycMaritalStatus.single;
+      _otherNationalities = false;
+      _peps = false;
+      _gender = 'male';
+      _genderError = null;
+      _namesError = null;
+    });
+  }
+
   Future<DateTime?> _pick({
     required DateTime? current,
     required DateTime first,
@@ -283,6 +315,28 @@ class _KycDataFormViewState extends ConsumerState<KycDataFormView> {
                       color: colors.onSurfaceVariant,
                     ),
                   ),
+                  if (kDebugMode) ...[
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: _fillMockData,
+                      icon: Icon(Icons.auto_awesome_rounded, color: colors.secondary),
+                      label: Text(
+                        'تعبئة بيانات تجريبية (Mock)',
+                        style: TextStyle(
+                          fontFamily: 'Tajawal',
+                          fontWeight: FontWeight.w800,
+                          color: colors.secondary,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: colors.secondary, width: 1.2),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   _NamesCard(
                     fullNameArabic: _fullNameAr.text,
