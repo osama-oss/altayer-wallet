@@ -423,6 +423,7 @@ abstract class AppLocalizations {
   String get kycPendingBody;
   String get kycVerifiedHeadline;
   String get kycVerifiedBody;
+  String get kycVerifiedSignInAgainBody;
   String get kycRejectedHeadline;
   String get kycRejectionReasonLabel;
   String get kycReturnedHeadline;
@@ -1879,6 +1880,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get kycVerifiedBody =>
       'Your identity is confirmed and every wallet feature is unlocked.';
+  @override
+  String get kycVerifiedSignInAgainBody =>
+      'Your account is now active. Please sign in again to refresh your session.';
   @override
   String get kycRejectedHeadline => 'Verification declined';
   @override
@@ -3673,6 +3677,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get kycVerifiedHeadline => 'تم توثيق حسابك';
   @override
   String get kycVerifiedBody => 'تم تأكيد هويتك وتفعيل جميع مزايا المحفظة.';
+  @override
+  String get kycVerifiedSignInAgainBody =>
+      'تم تفعيل حسابك. يرجى تسجيل الدخول مرة أخرى لتحديث جلستك.';
   @override
   String get kycRejectedHeadline => 'تم رفض التوثيق';
   @override

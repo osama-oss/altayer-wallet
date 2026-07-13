@@ -9,7 +9,6 @@ import '../../../core/theme/bank_sync_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../kyc_document.dart';
 import '../kyc_form_data.dart';
-import '../kyc_providers.dart';
 import '../kyc_repository.dart';
 import '../kyc_status.dart';
 import 'kyc_camera_screen.dart';
@@ -39,7 +38,7 @@ class KycCaptureView extends ConsumerStatefulWidget {
   });
 
   final KycProfile profile;
-  final ValueChanged<KycProfile> onSubmitted;
+  final Future<void> Function(KycProfile profile) onSubmitted;
 
   /// Identity type chosen upstream. When null the view shows its own selector.
   final KycIdType? initialIdType;
@@ -276,8 +275,7 @@ class _KycCaptureViewState extends ConsumerState<KycCaptureView> {
       for (final doc in _docs.values) {
         if (doc.file != null) _safeDelete(doc.file!.path);
       }
-      ref.read(kycStatusProvider.notifier).applyLocal(result);
-      if (mounted) widget.onSubmitted(result);
+      if (mounted) await widget.onSubmitted(result);
     } on KycUnavailableException {
       if (mounted) _snack(l10n.kycServiceUnavailable);
     } on ApiException catch (e) {

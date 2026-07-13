@@ -22,7 +22,7 @@ class KycFlow extends StatefulWidget {
   });
 
   final KycProfile profile;
-  final ValueChanged<KycProfile> onSubmitted;
+  final Future<void> Function(KycProfile profile) onSubmitted;
 
   @override
   State<KycFlow> createState() => _KycFlowState();

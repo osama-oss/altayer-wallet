@@ -1060,6 +1060,8 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get kycVerifiedBody => '您的身份已确认，所有钱包功能均已解锁。';
   @override
+  String get kycVerifiedSignInAgainBody => '您的账户已激活。请重新登录以刷新会话。';
+  @override
   String get kycRejectedHeadline => '验证被拒';
   @override
   String get kycRejectionReasonLabel => '原因';

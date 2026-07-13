@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/providers/app_providers.dart';
 import '../../core/theme/bank_sync_colors.dart';
 import '../../core/widgets/uff_loader.dart';
 import '../../l10n/app_localizations.dart';
@@ -45,12 +46,12 @@ class KycScreen extends ConsumerWidget {
           colors: colors,
           l10n: l10n,
         ),
-        data: (profile) => _body(context, profile),
+        data: (profile) => _body(context, ref, profile),
       ),
     );
   }
 
-  Widget _body(BuildContext context, KycProfile profile) {
+  Widget _body(BuildContext context, WidgetRef ref, KycProfile profile) {
     switch (profile.status) {
       case KycStatus.verified:
         return KycStatusResultView(
@@ -70,12 +71,60 @@ class KycScreen extends ConsumerWidget {
       case KycStatus.returned:
         return KycFlow(
           profile: profile,
-          // The provider is updated by the flow's capture step before this
-          // fires, so watching [kycStatusProvider] swaps this screen to the
-          // pending result automatically — nothing more to do here.
-          onSubmitted: (_) {},
+          onSubmitted: (result) => _onKycVerified(context, ref, result),
         );
     }
+  }
+
+  /// After account confirmation the backend writes `customer_id` to Keycloak.
+  /// The current JWT was minted before that, so we end the session and ask the
+  /// customer to sign in again for a fresh token.
+  Future<void> _onKycVerified(
+    BuildContext context,
+    WidgetRef ref,
+    KycProfile result,
+  ) async {
+    if (!result.status.isVerified || !context.mounted) return;
+
+    final l10n = context.l10n;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          l10n.kycVerifiedHeadline,
+          style: const TextStyle(
+            fontFamily: 'Tajawal',
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        content: Text(
+          l10n.kycVerifiedSignInAgainBody,
+          style: const TextStyle(
+            fontFamily: 'Tajawal',
+            fontWeight: FontWeight.w600,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(
+              l10n.okButton,
+              style: const TextStyle(
+                fontFamily: 'Tajawal',
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (!context.mounted) return;
+    await ref.read(authServiceProvider).signOut(full: true);
+    if (!context.mounted) return;
+    context.go('/login');
   }
 }
 
