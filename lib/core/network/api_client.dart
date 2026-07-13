@@ -717,25 +717,28 @@ class ApiClient {
   // registry-realm service token — the app never calls those integrations
   // directly. Contract lives in `mobile-service-scaffold/`.
 
-  /// **Deprecated**: The single-call onboard flow now sends base64 images
-  /// inline in `POST /api/mobile/kyc/onboard` — the backend runs
-  /// WALLET_DOC_UPLOAD internally. This method is retained for backward
-  /// compatibility but is no longer called by the app.
+  /// Uploads ONE KYC document and returns its `savedAs` server-side filename.
   ///
-  /// Uploads ONE KYC document and returns its `savedAs` string reference.
-  /// POST /api/mobile/kyc/document — mobile-service runs WALLET_DOC_UPLOAD for
-  /// this single file. The reference comes back as a plain String in `data`
-  /// (e.g. `"uploads/temp/.../abc.jpg"`); tolerates an object shape too. Called
-  /// once per captured image; the refs are collected and passed to [onboardKyc].
-  @Deprecated('Use the single-call onboard with inline base64 images instead')
+  /// `POST /api/mobile/kyc/document` — mobile-service stores the file (running
+  /// WALLET_DOC_UPLOAD) and returns the reference. This is the **separate upload
+  /// step**: the file is sent once, here; the returned `savedAs` (together with
+  /// [uploadType]) is what later `onboard`/validate calls send — never the file
+  /// again.
+  ///
+  /// [uploadType] is the caller-defined document-type string (e.g. `ID_FRONT`);
+  /// mobile-service persists it verbatim as a String alongside `savedAs`.
+  ///
+  /// The reference comes back as a plain String in `data`
+  /// (e.g. `"uploads/temp/.../abc.jpg"`), or as `{ savedAs }` at `data` / top
+  /// level, or nested deeper (e.g. under `message`) — all shapes are tolerated.
   Future<String?> uploadKycDocument(
     String token, {
     required String fileBase64,
-    required String documentType,
+    required String uploadType,
   }) async {
     final res = await _dio.post<Map<String, dynamic>>(
       '/api/mobile/kyc/document',
-      data: {'file': fileBase64, 'documentType': documentType},
+      data: {'file': fileBase64, 'uploadType': uploadType},
       options: Options(
         headers: _bearer(token),
         validateStatus: _validateOptions.validateStatus,
@@ -751,21 +754,46 @@ class ApiClient {
     }
 
     final data = body['data'];
-    // savedAs arrives as a plain String in `data` (manager's contract) …
-    if (data is String) return asRef(data);
-    // … or as an object `{ savedAs }` at data / top level (tolerated).
-    if (data is Map) {
-      final ref = asRef(data['savedAs']);
+    // savedAs arrives as a plain String in `data` (the endpoint's contract) …
+    if (data is String) {
+      final ref = asRef(data);
       if (ref != null) return ref;
     }
-    return asRef(body['savedAs']);
+    // … or as `{ savedAs }` at data / top level …
+    return asRef((data is Map ? data['savedAs'] : null)) ??
+        asRef(body['savedAs']) ??
+        // … or nested deeper anywhere in the response.
+        _deepFindString(body, 'savedAs');
+  }
+
+  /// Recursively finds the first non-empty String value for [key] in a nested
+  /// map/list response. Used to locate `savedAs` when the endpoint wraps it.
+  static String? _deepFindString(dynamic node, String key) {
+    if (node is Map) {
+      final direct = node[key];
+      if (direct != null && direct.toString().trim().isNotEmpty) {
+        return direct.toString().trim();
+      }
+      for (final v in node.values) {
+        final found = _deepFindString(v, key);
+        if (found != null) return found;
+      }
+    } else if (node is List) {
+      for (final v in node) {
+        final found = _deepFindString(v, key);
+        if (found != null) return found;
+      }
+    }
+    return null;
   }
 
   /// Account-confirmation onboarding — POST /api/mobile/kyc/onboard (Bearer).
-  /// Body: `{ idType, profile: {nested identity fields}, images: [base64...] }`.
-  /// The backend handles the full flow internally: WALLET_DOC_UPLOAD for each
-  /// image → WALLET_CUSTOMER_VALIDATE → WALLET_CUSTOMER_CREATE → writes
-  /// `customer_id` to Keycloak. Returns `{ customerId, status }`.
+  /// Body: `{ idType, profile: {nested identity fields},
+  ///          upload: [{ upload: "<savedAs>", uploadType: "<type>" }, ...] }`.
+  /// Files are NOT sent here — they were uploaded first via [uploadKycDocument],
+  /// and only their `savedAs` references + `uploadType` strings are passed. The
+  /// backend runs WALLET_CUSTOMER_VALIDATE → WALLET_CUSTOMER_CREATE against those
+  /// references → writes `customer_id` to Keycloak. Returns `{ customerId, status }`.
   Future<Map<String, dynamic>> onboardKyc(
     String token,
     Map<String, dynamic> body,

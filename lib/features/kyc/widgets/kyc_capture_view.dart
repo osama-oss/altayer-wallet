@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/bank_sync_colors.dart';
@@ -24,6 +25,9 @@ import 'kyc_id_type_selector.dart';
 /// form, so the in-view type selector is hidden and the collected [formData] is
 /// sent with the submit. When used standalone (none supplied) it shows its own
 /// identity-type selector and behaves as a self-contained capture flow.
+/// Where a document photo comes from: the bespoke in-app camera or the gallery.
+enum _CaptureSource { camera, gallery }
+
 class KycCaptureView extends ConsumerStatefulWidget {
   const KycCaptureView({
     super.key,
@@ -101,14 +105,21 @@ class _KycCaptureViewState extends ConsumerState<KycCaptureView> {
   }
 
   // ── Capture ─────────────────────────────────────────────────────────────
+  /// Lets the customer capture a document with the in-app camera or pick an
+  /// existing photo from the gallery, then stores it in the [type] slot.
   Future<void> _addDocument(KycDocType type) async {
+    final source = await _chooseSource();
+    if (source == null || !mounted) return;
+
     final index = _types.indexOf(type);
-    final file = await openKycCamera(
-      context,
-      docType: type,
-      stepIndex: index + 1,
-      stepCount: _types.length,
-    );
+    final file = source == _CaptureSource.camera
+        ? await openKycCamera(
+            context,
+            docType: type,
+            stepIndex: index + 1,
+            stepCount: _types.length,
+          )
+        : await _pickFromGallery();
     if (file == null || !mounted) return;
     // Replace any prior capture for this slot.
     final previous = _docs[type]?.file;
@@ -122,6 +133,89 @@ class _KycCaptureViewState extends ConsumerState<KycCaptureView> {
         uploadState: KycDocUploadState.captured,
       );
     });
+  }
+
+  /// Bottom sheet to pick where the photo comes from. Returns null if dismissed.
+  Future<_CaptureSource?> _chooseSource() {
+    final colors = context.bankColors;
+    final l10n = context.l10n;
+    return showModalBottomSheet<_CaptureSource>(
+      context: context,
+      backgroundColor: colors.surfaceContainerLowest,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        Widget option(IconData icon, String label, _CaptureSource value) =>
+            ListTile(
+              leading: Icon(icon, color: colors.secondary),
+              title: Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Tajawal',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: colors.onSurface,
+                ),
+              ),
+              onTap: () => Navigator.of(sheetContext).pop(value),
+            );
+        return SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colors.outlineVariant,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    l10n.kycChooseSource,
+                    style: TextStyle(
+                      fontFamily: 'Tajawal',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: colors.onSurface,
+                    ),
+                  ),
+                ),
+              ),
+              option(Icons.photo_camera_outlined, l10n.kycCamera,
+                  _CaptureSource.camera),
+              option(Icons.photo_library_outlined, l10n.kycGallery,
+                  _CaptureSource.gallery),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// Picks an image from the gallery, downscaled and re-encoded so the base64
+  /// payload stays small (the onboard call sends all photos inline in one JSON
+  /// body — full-resolution originals would make it too large to upload).
+  Future<XFile?> _pickFromGallery() async {
+    try {
+      return await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1600,
+        maxHeight: 1600,
+        imageQuality: 72,
+      );
+    } catch (_) {
+      if (mounted) _snack(context.l10n.kycSubmitFailed);
+      return null;
+    }
   }
 
   // ── Submit ──────────────────────────────────────────────────────────────
