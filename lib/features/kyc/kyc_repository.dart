@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import '../../core/auth/auth_service.dart';
 import '../../core/network/api_client.dart';
 import '../../core/network/api_exception.dart';
+import '../../core/profile_helpers.dart';
 import 'kyc_document.dart';
 import 'kyc_form_data.dart';
 import 'kyc_reference_data.dart';
@@ -189,7 +190,7 @@ class KycRepository {
       final profile = await _auth.readProfile();
       await _auth.saveProfile(<String, dynamic>{
         ...?profile,
-        'customerId': customerId,
+        ...coreCustomerIdProfileFields(customerId),
       });
     } catch (_) {
       // Non-fatal: the id is also written to the Keycloak user server-side.

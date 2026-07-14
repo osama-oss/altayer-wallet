@@ -45,8 +45,10 @@ class AccountsRepository {
       throw const AccountsException(AccountsErrorKind.customerIdMissing);
     }
 
-    // Best-effort wallet customer id for the search body. The backend re-derives
-    // the customer from the JWT, so this value is context only, never trusted.
+    // Best-effort core CIF for the search body. Prefer profile fields from
+    // userDetail / KYC; never treat the login phone as a CIF. Refresh profile
+    // when the cached value is missing so post-login sessions pick up
+    // customerCode after KYC link.
     var profile = await _auth.readProfile();
     var customerId = profile == null
         ? ''
@@ -58,7 +60,7 @@ class AccountsRepository {
         customerId =
             coreCustomerIdFromProfile(profile, usernameFallback: username);
       } catch (_) {
-        // Continue with the phone as fallback context.
+        // Leave empty — cards still render with zero balances.
       }
     }
 
@@ -66,17 +68,19 @@ class AccountsRepository {
     // non-fatal: the three cards still render (zero balances) so the wallet is
     // usable pre-verification and a refresh retries.
     final balanceByCurrency = <String, double>{};
-    try {
-      final integration = await _api.invokeIntegration(
-        token,
-        'CUSTOMER_WALLET_ACCOUNTS_SEARCH',
-        {'customerId': customerId.isEmpty ? phone : customerId},
-      );
-      for (final acc in BankingAccount.listFromCoreIntegration(integration)) {
-        balanceByCurrency[acc.currency.trim().toUpperCase()] = acc.balance;
+    if (customerId.isNotEmpty) {
+      try {
+        final integration = await _api.invokeIntegration(
+          token,
+          'CUSTOMER_WALLET_ACCOUNTS_SEARCH',
+          {'customerId': customerId},
+        );
+        for (final acc in BankingAccount.listFromCoreIntegration(integration)) {
+          balanceByCurrency[acc.currency.trim().toUpperCase()] = acc.balance;
+        }
+      } catch (_) {
+        // non-fatal — render the three cards with zero balances
       }
-    } catch (_) {
-      // non-fatal — render the three cards with zero balances
     }
 
     return [
