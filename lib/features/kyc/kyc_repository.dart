@@ -33,10 +33,13 @@ class KycRepository {
   final ApiClient _api;
 
 
-  /// Fetches the authoritative KYC status. If the endpoint is not yet available
-  /// it falls back to the value cached on the user profile (the real source once
-  /// the backend adds `kycStatus` to `userDetail`), defaulting to unverified —
-  /// it never fabricates a verified/pending state.
+  /// Instant status from the cached login profile (no network). Used to avoid
+  /// flashing "not verified" while `/kyc/status` loads.
+  Future<KycProfile> profileSeed() => _profileFallback();
+
+  /// Fetches the authoritative KYC status. Falls back to the cached profile when
+  /// the endpoint fails. Never demotes a verified profile to UNVERIFIED based on
+  /// a false-negative status response.
   Future<KycProfile> fetchStatus() async {
     final token = await _auth.readToken();
     if (token == null || token.isEmpty) {
@@ -44,7 +47,15 @@ class KycRepository {
     }
     try {
       final data = await _api.getKycStatus(token);
-      return KycProfile.fromMap(data);
+      final live = KycProfile.fromMap(data);
+      final cached = await _profileFallback();
+      // Never let a false "UNVERIFIED" from a flaky mobile lookup demote a
+      // customer who already has ACTIVE + core CIF on the login profile.
+      if (live.status == KycStatus.unverified && cached.status.isVerified) {
+        return cached;
+      }
+      await _persistKycStatus(live);
+      return live;
     } on DioException {
       return _profileFallback();
     } on ApiException {
@@ -56,6 +67,22 @@ class KycRepository {
   Future<KycProfile> _profileFallback() async {
     final profile = await _auth.readProfile();
     return KycProfile.fromUserProfile(profile);
+  }
+
+  /// Keeps the last known KYC status on the cached profile so a later login
+  /// (or a failed /status call) does not flash "not verified" for an ACTIVE user.
+  Future<void> _persistKycStatus(KycProfile kyc) async {
+    try {
+      final profile = await _auth.readProfile();
+      await _auth.saveProfile(<String, dynamic>{
+        ...?profile,
+        'kycStatus': kyc.status.wireValue,
+        // Mirror registry ACTIVE so fromUserProfile stays aligned.
+        if (kyc.status.isVerified) 'status': 'ACTIVE',
+      });
+    } catch (_) {
+      // Non-fatal cache write.
+    }
   }
 
   /// Live country list (WALLET_COUNTRY via mobile-service). Falls back to the

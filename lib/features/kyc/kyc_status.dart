@@ -173,17 +173,45 @@ class KycProfile {
     );
   }
 
-  /// Derives a KYC snapshot from the cached user profile (`userDetail`). This is
-  /// the real source once the backend adds `kycStatus` to the profile payload;
-  /// until then it resolves to [KycStatus.unverified].
+  /// Derives a KYC snapshot from the cached user profile (`userDetail` /
+  /// biometric login). Prefers an explicit `kycStatus`, then registry
+  /// `status` (`ACTIVE` → verified). A core CIF with Active status also counts
+  /// as verified so the home banner never sticks on "not verified" when the
+  /// status endpoint fails transiently.
   factory KycProfile.fromUserProfile(Map<String, dynamic>? profile) {
     if (profile == null) return unverified;
+    final explicit = profile['kycStatus'] ?? profile['kyc_status'];
+    final registryStatus = profile['status'];
+    var status = KycStatusX.parse(explicit ?? registryStatus);
+
+    final hasCoreCif = () {
+      for (final key in ['coreCustomerId', 'customerCode', 'customerId']) {
+        final v = profile[key]?.toString().trim();
+        if (v != null && v.isNotEmpty) return true;
+      }
+      return false;
+    }();
+
+    // userDetail / biometric put registry status ACTIVE after KYC link; treat
+    // a core CIF as verified when status is missing or ACTIVE — never when the
+    // profile explicitly says rejected / pending / returned.
+    if (!status.isVerified &&
+        hasCoreCif &&
+        (status == KycStatus.unverified || status == KycStatus.incomplete)) {
+      final raw = (explicit ?? registryStatus)?.toString().trim().toUpperCase();
+      if (raw == null ||
+          raw.isEmpty ||
+          raw == 'ACTIVE' ||
+          raw == 'VERIFIED' ||
+          raw == 'APPROVED') {
+        status = KycStatus.verified;
+      }
+    }
+
+    final reason = profile['kycRejectionReason']?.toString().trim();
     return KycProfile(
-      status: KycStatusX.parse(profile['kycStatus'] ?? profile['kyc_status']),
-      rejectionReason:
-          profile['kycRejectionReason']?.toString().trim().isEmpty ?? true
-              ? null
-              : profile['kycRejectionReason'].toString().trim(),
+      status: status,
+      rejectionReason: (reason == null || reason.isEmpty) ? null : reason,
     );
   }
 

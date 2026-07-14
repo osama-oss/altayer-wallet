@@ -368,6 +368,8 @@ class AuthService {
       'fullName': data['fullName'],
       'preferredUsername': data['preferredUsername'],
       'pinStatus': data['pinStatus'],
+      // Registry status (ACTIVE after KYC) — same field as password userDetail.
+      if (data['status'] != null) 'status': data['status'],
       // Core CIF fields returned by biometric login (same as password userDetail).
       if (data['customerId'] != null) 'customerId': data['customerId'],
       if (data['coreCustomerId'] != null) 'coreCustomerId': data['coreCustomerId'],

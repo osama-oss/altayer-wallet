@@ -56,15 +56,36 @@ class KycStatusNotifier extends AsyncNotifier<KycProfile> {
     ref.onCancel(() {
       if (state.hasError) ref.invalidateSelf();
     });
+    // Seed from the cached profile first so a verified customer never flashes
+    // the "not verified" banner while /kyc/status is in flight.
+    final seeded = await ref.read(kycRepositoryProvider).profileSeed();
+    if (seeded.status.isVerified) {
+      // Still refresh from the server in the background, but don't wait.
+      Future(() async {
+        try {
+          final live = await ref.read(kycRepositoryProvider).fetchStatus();
+          if (!ref.exists(kycStatusProvider)) return;
+          state = AsyncData(live);
+        } catch (_) {
+          // Keep the seeded verified status.
+        }
+      });
+      return seeded;
+    }
     return ref.read(kycRepositoryProvider).fetchStatus();
   }
 
-  /// Re-reads the status from the backend.
+  /// Re-reads the status from the backend. Keeps the previous value visible
+  /// (no AsyncLoading) so the home banner does not flash "not verified".
   Future<void> refresh() async {
-    state = const AsyncLoading();
+    final previous = state.valueOrNull;
     state = await AsyncValue.guard(
       () => ref.read(kycRepositoryProvider).fetchStatus(),
     );
+    // If the live call failed and we already knew the user was verified, keep it.
+    if (state.hasError && previous != null && previous.status.isVerified) {
+      state = AsyncData(previous);
+    }
   }
 
   /// Applies a status snapshot returned by a successful submit without a round
@@ -76,11 +97,13 @@ class KycStatusNotifier extends AsyncNotifier<KycProfile> {
 
 /// Whether the signed-in customer has completed identity verification.
 ///
-/// Fails safe to `false` while the status is loading, errored, or anything
-/// other than VERIFIED — so operations stay locked until the account is
-/// confirmed. This is a UX gate only: the server remains the authoritative gate
-/// (money operations need a `customer_id` the backend issues only after
-/// verification).
+/// While status is loading, keeps the previous known value (does not treat
+/// loading as unverified). Fails safe to `false` only when there is no prior
+/// data. This is a UX gate only: the server remains the authoritative gate.
 final walletVerifiedProvider = Provider<bool>((ref) {
-  return ref.watch(kycStatusProvider).valueOrNull?.status.isVerified ?? false;
+  final async = ref.watch(kycStatusProvider);
+  final status = async.valueOrNull?.status;
+  if (status != null) return status.isVerified;
+  // Loading/error with no prior value → not verified yet.
+  return false;
 });

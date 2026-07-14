@@ -162,10 +162,17 @@ class _KycBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final status = ref.watch(kycStatusProvider).valueOrNull?.status ??
-        KycStatus.unverified;
-    // Verified customers see no banner at all.
-    if (status == KycStatus.verified) return const SizedBox.shrink();
+    final async = ref.watch(kycStatusProvider);
+    // Never treat "still loading" as unverified — that flash is what verified
+    // customers were seeing after login / session cache invalidate.
+    if (async.isLoading && async.valueOrNull == null) {
+      return const SizedBox.shrink();
+    }
+    final status = async.valueOrNull?.status;
+    // Verified or unknown → no banner. Only show when we know they need action.
+    if (status == null || status == KycStatus.verified) {
+      return const SizedBox.shrink();
+    }
 
     final bool pending = status == KycStatus.pending;
     // Pre-submission states (unverified / incomplete) are shown as an urgent red

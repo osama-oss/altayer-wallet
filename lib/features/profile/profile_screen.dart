@@ -85,10 +85,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final languageCode = Localizations.localeOf(context).languageCode;
     // While KYC is disabled (dead code), don't watch the provider — that avoids
     // hitting the KYC backend during app testing.
-    final kycStatus = kycFeatureEnabled
-        ? (ref.watch(kycStatusProvider).valueOrNull?.status ??
-            KycStatus.unverified)
-        : KycStatus.unverified;
+    final kycAsync = kycFeatureEnabled ? ref.watch(kycStatusProvider) : null;
+    final kycStatus = kycAsync?.valueOrNull?.status;
+    // Loading / unknown → do not show "unverified" chrome for a verified user.
+    final showAsVerified = kycStatus?.isVerified ?? false;
 
     final fullName =
         _pick(['fullName', 'name', 'customerName']) ?? _username ?? '';
@@ -112,12 +112,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       fullName.isNotEmpty ? fullName : (username ?? '?')),
                   name: fullName.isNotEmpty ? fullName : (username ?? ''),
                   username: username,
-                  verified: kycStatus.isVerified,
+                  verified: showAsVerified,
                   colors: colors,
                   languageCode: languageCode,
                 ),
                 const SizedBox(height: 20),
-                if (kycFeatureEnabled) ...[
+                if (kycFeatureEnabled && kycStatus != null) ...[
                   _VerificationCard(status: kycStatus),
                   const SizedBox(height: 20),
                 ],
