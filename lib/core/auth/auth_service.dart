@@ -11,6 +11,7 @@ import 'package:banksync_app/core/config/app_config.dart';
 import 'package:banksync_app/core/network/api_client.dart';
 import 'package:banksync_app/core/network/api_exception.dart';
 import 'package:banksync_app/core/network/banking_auth_exceptions.dart';
+import 'package:banksync_app/core/profile_helpers.dart';
 
 enum PostLoginRoute { home, pinSetup, setInitialPassword, biometricEnroll }
 
@@ -361,13 +362,25 @@ class AuthService {
     final username = data['preferredUsername']?.toString() ??
         await _store.readUsername() ??
         '';
-    final profile = {
+    final profile = <String, dynamic>{
       'id': data['id'],
       'mobile': data['mobile'],
       'fullName': data['fullName'],
       'preferredUsername': data['preferredUsername'],
       'pinStatus': data['pinStatus'],
+      // Core CIF fields returned by biometric login (same as password userDetail).
+      if (data['customerId'] != null) 'customerId': data['customerId'],
+      if (data['coreCustomerId'] != null) 'coreCustomerId': data['coreCustomerId'],
+      if (data['customerCode'] != null) 'customerCode': data['customerCode'],
     };
+    // Prefer the dedicated helper when any core id is present so all three keys exist.
+    final coreId = coreCustomerIdFromProfile(
+      Map<String, dynamic>.from(profile),
+      usernameFallback: username,
+    );
+    if (coreId.isNotEmpty) {
+      profile.addAll(coreCustomerIdProfileFields(coreId));
+    }
 
     await _store.saveSession(
       token: accessToken,
