@@ -52,12 +52,13 @@ final sessionRefreshInterceptorProvider = Provider<SessionRefreshInterceptor>((r
   return interceptor;
 });
 
-/// Registers the [SessionIdleWatcher] so a background stay longer than the
-/// fixed `sessionIdleMinutes` config value ends the session on resume.
+/// Registers the [SessionIdleWatcher] so leaving the foreground soft-locks
+/// the session, and a longer idle also expires with a user-facing notice.
 final sessionIdleWatcherProvider = Provider<SessionIdleWatcher>((ref) {
   final watcher = SessionIdleWatcher(
     auth: ref.watch(authServiceProvider),
     onSessionExpired: () => _notifySessionExpired(ref),
+    onSessionLocked: () => ref.read(routerRefreshProvider).notifyAuthChanged(),
   );
   WidgetsBinding.instance.addObserver(watcher);
   ref.onDispose(() => WidgetsBinding.instance.removeObserver(watcher));

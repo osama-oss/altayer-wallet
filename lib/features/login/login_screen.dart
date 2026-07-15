@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/auth/device_signing_service.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/network/banking_auth_exceptions.dart';
 import '../../core/providers/app_providers.dart';
@@ -141,6 +142,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
+  /// Runs biometric unlock in place (OS sheet only) — never navigates to the
+  /// dedicated biometric unlock page.
   Future<void> _biometricLogin() async {
     if (!_canBiometric) {
       _showBiometricSetupDialog();
@@ -151,8 +154,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _error = null;
     });
     try {
+      final auth = ref.read(authServiceProvider);
+      final challenge = await auth.requestBiometricChallenge();
+      final result = await auth.completeBiometricLogin(challenge);
       if (!mounted) return;
-      context.go('/biometric-unlock');
+      navigateAfterLogin(context, ref, result);
+    } on DeviceSigningException {
+      setState(() => _error = context.l10n.biometricVerificationFailed);
+    } on BiometricLockedException catch (e) {
+      setState(() => _error = e.message);
+    } on BiometricNotEnrolledException catch (e) {
+      setState(() => _error = e.message);
+    } on DeviceAlreadyBoundException catch (e) {
+      setState(() => _error = e.message);
+    } on DeviceNotRegisteredException catch (e) {
+      setState(() => _error = e.message);
+    } on ApiException catch (e) {
+      setState(() => _error = e.message);
+    } catch (e) {
+      setState(() => _error = e.toString());
     } finally {
       if (mounted) setState(() => _biometricLoading = false);
     }

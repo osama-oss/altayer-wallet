@@ -112,7 +112,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _signOut() async {
-    await ref.read(authServiceProvider).signOut();
+    // Prefer password so the router does not bounce logout → biometric page.
+    await ref.read(authServiceProvider).switchToPasswordLogin();
     if (!mounted) return;
     invalidateUserSessionCache(ref);
     notifyRouterAuthChanged(ref);

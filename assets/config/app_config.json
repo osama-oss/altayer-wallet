@@ -1,5 +1,5 @@
 {
-  "apiBaseUrl": "http://88.80.145.121:8089",
+  "apiBaseUrl": "http://88.80.145.121:8083",
   "sessionIdleMinutes": 10,
   "keycloak": {
     "issuer": "https://88.80.145.121:8085/realms/uff-digital-banking",
@@ -19,7 +19,7 @@
     "iosBundleIds": [
       "com.banksync.banksyncApp"
     ]
-  },
+  },  
   "otp": {
     "staticCode": "1234"
   }

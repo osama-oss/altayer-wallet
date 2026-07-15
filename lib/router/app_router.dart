@@ -46,7 +46,6 @@ import 'package:banksync_app/features/bill_payments/un_money/un_money_hub_screen
 import 'package:banksync_app/features/transfer_hub/network_transfers_screen.dart';
 import 'package:banksync_app/features/cards/my_cards_screen.dart';
 import 'package:banksync_app/features/legal/terms_screen.dart';
-import 'package:banksync_app/features/kyc/kyc_providers.dart';
 import 'package:banksync_app/features/kyc/kyc_screen.dart';
 import 'package:banksync_app/features/profile/profile_screen.dart';
 
@@ -163,7 +162,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       if (await auth.canUnlockWithBiometric()) {
-        if (await auth.prefersPasswordLogin() && location == '/login') {
+        // Manual logout / session expiry set prefer-password so the user
+        // lands on the login screen (fingerprint stays as a simple inline
+        // option) instead of the dedicated biometric unlock page.
+        if (await auth.prefersPasswordLogin()) {
+          if (location == '/login') return null;
+          if (_protectedRoutes.contains(location) ||
+              location.startsWith('/support/')) {
+            return '/login';
+          }
           return null;
         }
         if (location == '/login') {

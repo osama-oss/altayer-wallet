@@ -429,22 +429,13 @@ class AuthService {
     await _store.touchLastActivity(persist: true);
   }
 
+  /// Cold start always ends any surviving session. Process kill often races
+  /// async background clears, so silent restore into `/home` is never safe —
+  /// the customer must sign in (password) or use the simple fingerprint control.
   Future<String?> bootstrapRoute() async {
-    // Idle timeout applies across process death too: if the app was killed and
-    // reopened after the user's timeout, drop the session before restoring it.
-    if (await isIdleTimedOut()) {
-      await _store.clearSessionTokens();
-    }
-    if (await canUnlockWithBiometric()) {
-      final token = await _store.readToken();
-      if (token == null || token.isEmpty) {
-        if (await prefersPasswordLogin()) return '/login';
-        return '/biometric-unlock';
-      }
-    }
-    final restored = await tryRestoreSession();
-    if (!restored) return '/login';
-    return postRestoreRoute();
+    await _devices.setPreferPasswordLogin(true);
+    await _store.clearSessionTokens();
+    return '/login';
   }
 
   Future<bool> tryRestoreSession() async {
@@ -613,10 +604,24 @@ class AuthService {
     return DateTime.now().difference(last) > timeout;
   }
 
-  /// Drops the expired session (soft — biometric enrollment survives) so the
-  /// router lands on biometric-unlock/login. Used by the idle watcher and the
-  /// refresh interceptor when the session can no longer be renewed.
-  Future<void> expireSession() => signOut();
+  /// Drops the expired session (soft — biometric enrollment survives) and
+  /// prefers the password login screen so mid-session expiry does not dump
+  /// the user onto the full biometric unlock page. Biometric stays available
+  /// as the simple fingerprint affordance on login / the relogin sheet.
+  Future<void> expireSession() async {
+    await _devices.setPreferPasswordLogin(true);
+    await signOut();
+  }
+
+  /// Soft-locks the session when the app leaves the foreground / is closed so
+  /// reopening always requires login or biometric again. Enrollment is kept.
+  /// Prefers the password login screen (fingerprint stays as a simple control).
+  Future<void> lockSessionOnBackground() async {
+    final token = await _store.readToken();
+    if (token == null || token.isEmpty) return;
+    await _devices.setPreferPasswordLogin(true);
+    await _store.clearSessionTokens();
+  }
 
   /// Converts a Keycloak `expires_in` value (seconds) into an absolute instant.
   DateTime? _expiryFromExpiresIn(dynamic expiresIn) {

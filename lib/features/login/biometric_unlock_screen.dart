@@ -36,12 +36,11 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
   void initState() {
     super.initState();
     _loadGreetingName();
+    // Prefetch the challenge only — wait for the user to tap Unlock / fingerprint
+    // before prompting the OS biometric sheet.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _showSessionExpiredNotice();
       await _loadChallenge();
-      if (mounted && _challenge != null && !_challengeLoading) {
-        await _unlock();
-      }
     });
   }
 
@@ -129,6 +128,9 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
           returnTo != null &&
           returnTo.startsWith('/') &&
           !returnTo.startsWith('//')) {
+        // navigateAfterLogin is skipped on returnTo — still must refresh caches
+        // so home/accounts aren't stuck on the empty post-logout list.
+        invalidateUserSessionCache(ref);
         context.go(returnTo);
         notifyRouterAuthChanged(ref);
       } else {
@@ -221,50 +223,29 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
                 children: [
                   const Spacer(),
 
-                  // Biometric Icon Circle with dynamic states (failed vs verifying)
-                  if (busy)
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          width: 140,
-                          height: 140,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Color(0xFFEFF6FF), // soft blue background
-                          ),
+                  // Biometric icon — idle fingerprint; small loader only after tap.
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 140,
+                        height: 140,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _error != null
+                              ? const Color(0xFFFEF2F2)
+                              : const Color(0xFFEFF6FF),
                         ),
-                        const SizedBox(
-                          width: 130,
-                          height: 130,
-                          child: UffLoader(size: 130),
-                        ),
-                        const Icon(
-                          Icons.fingerprint_rounded,
-                          size: 64,
-                          color: Color(0xFF5B2EE5),
-                        ),
-                      ],
-                    )
-                  else
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          width: 140,
-                          height: 140,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: _error != null ? const Color(0xFFFEF2F2) : const Color(0xFFEFF6FF), // light red if error, otherwise light blue
-                          ),
-                        ),
-                        Icon(
-                          Icons.fingerprint_rounded,
-                          size: 64,
-                          color: _error != null ? const Color(0xFFEF4444) : const Color(0xFF5B2EE5),
-                        ),
-                      ],
-                    ),
+                      ),
+                      Icon(
+                        Icons.fingerprint_rounded,
+                        size: 64,
+                        color: _error != null
+                            ? const Color(0xFFEF4444)
+                            : const Color(0xFF5B2EE5),
+                      ),
+                    ],
+                  ),
 
                   const SizedBox(height: 24),
 
@@ -284,7 +265,7 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
 
                   // Subtitle message (verifying vs request verification)
                   Text(
-                    busy
+                    _loading
                         ? l10n.verifyingStatus
                         : l10n.biometricPromptMessage, // سيطلب جهازك التحقق البيومتري.
                     style: TextStyle(
@@ -340,15 +321,21 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                      child: Text(
-                        l10n.unlock, // فتح
-                        style: TextStyle(
-                          fontFamily: 'Tajawal',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: busy ? Colors.grey[400] : Colors.white,
-                        ),
-                      ),
+                      child: _loading
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: UffLoader(size: 22, color: Colors.white),
+                            )
+                          : Text(
+                              l10n.unlock, // فتح
+                              style: TextStyle(
+                                fontFamily: 'Tajawal',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: busy ? Colors.grey[400] : Colors.white,
+                              ),
+                            ),
                     ),
                   ),
 

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/providers/app_providers.dart';
 import '../../core/security/screen_security.dart';
 import '../../core/widgets/banksync_bottom_nav.dart';
 import '../../l10n/app_localizations.dart';
+import '../../router/app_router.dart';
 import '../home/explore_screen.dart';
 import '../reports/reports_screen.dart';
 import '../transfer_hub/transfer_hub_screen.dart';
@@ -60,29 +63,42 @@ class _MainShellState extends ConsumerState<MainShell> {
       _ => const BankSyncTopBar(),
     };
 
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            topBar,
-            Expanded(
-              child: IndexedStack(
-                index: tab.index,
-                children: const [
-                  WalletHomeScreen(),
-                  TransferHubScreen(),
-                  ReportsScreen(),
-                  ExploreScreen(),
-                ],
+    // Final system back soft-locks the session before exiting so a kill that
+    // races the lifecycle watcher cannot leave tokens for the next cold start.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        await ref.read(authServiceProvider).lockSessionOnBackground();
+        invalidateUserSessionCache(ref);
+        notifyRouterAuthChanged(ref);
+        await SystemNavigator.pop();
+      },
+      child: Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              topBar,
+              Expanded(
+                child: IndexedStack(
+                  index: tab.index,
+                  children: const [
+                    WalletHomeScreen(),
+                    TransferHubScreen(),
+                    ReportsScreen(),
+                    ExploreScreen(),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: BankSyncBottomNav(
-        currentTab: tab,
-        onTabSelected: (newTab) => ref.read(dashboardTabProvider.notifier).state = newTab,
+        bottomNavigationBar: BankSyncBottomNav(
+          currentTab: tab,
+          onTabSelected: (newTab) =>
+              ref.read(dashboardTabProvider.notifier).state = newTab,
+        ),
       ),
     );
   }
