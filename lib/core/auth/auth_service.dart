@@ -139,10 +139,16 @@ class AuthService {
       await _store.clear();
       rethrow;
     } catch (_) {}
+    // Never overwrite a prior KYC/CIF profile with an empty userDetail miss —
+    // that flashes "Not verified" and empty balances until the next refresh.
+    final prior = await _store.readProfile();
+    final profile = detail.isNotEmpty
+        ? detail
+        : <String, dynamic>{...?prior};
     await _store.saveSession(
       token: token,
       username: username,
-      profile: detail,
+      profile: profile,
       refreshToken: refreshToken,
       accessTokenExpiry: accessTokenExpiry,
       authMethod: SessionAuthMethod.password,
@@ -150,11 +156,11 @@ class AuthService {
     await clearPreferPasswordLogin();
     await _store.touchLastActivity(persist: true);
     _onLoginSuccess?.call();
-    if (detail.isEmpty) {
+    if (profile.isEmpty) {
       // No profile (unverified/dev session) — go straight in to test.
       return const LoginResult(route: PostLoginRoute.home);
     }
-    final pinStatus = detail['pinStatus']?.toString();
+    final pinStatus = profile['pinStatus']?.toString();
     if (pinStatus == 'NOT_SET') {
       return const LoginResult(route: PostLoginRoute.pinSetup);
     }

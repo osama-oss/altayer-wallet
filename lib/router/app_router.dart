@@ -403,6 +403,9 @@ void invalidateUserSessionCache(WidgetRef ref) {
 void navigateAfterLogin(
     BuildContext context, WidgetRef ref, LoginResult result) {
   invalidateUserSessionCache(ref);
+  // Force accounts to rebuild after invalidate — previous logout `[]` must not
+  // stick as the visible home state.
+  ref.read(accountsRevisionProvider.notifier).state++;
   switch (result.route) {
     case PostLoginRoute.setInitialPassword:
       context.go(

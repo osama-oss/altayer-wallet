@@ -2,17 +2,16 @@ import 'package:flutter/widgets.dart';
 
 import 'package:banksync_app/core/auth/auth_service.dart';
 
-/// Enforces session lock across background / close without running timers.
+/// Soft-locks the session when the process is leaving (detached) and enforces
+/// idle timeout on resume.
 ///
-/// When the app leaves the foreground (paused / hidden / detached — includes
-/// swipe-away and final back), session tokens are cleared so reopen always
-/// requires login again. Biometric enrollment survives; the login screen keeps
-/// a simple fingerprint control (no dedicated biometric unlock page).
+/// Deliberately does **not** clear tokens on every `paused`/`hidden` — that
+/// races the OS biometric sheet and post-login navigation, which briefly
+/// background the app and used to wipe the new session (empty wallet + false
+/// "not verified" until pull-to-refresh).
 ///
-/// [onSessionLocked] is a quiet router refresh (no “session expired” banner).
-/// [onSessionExpired] is reserved for the configured idle-timeout path.
-///
-/// In-foreground idleness remains covered by the refresh interceptor + Keycloak.
+/// Cold start still ends the session in [AuthService.bootstrapRoute]. Final
+/// system back on the main shell soft-locks before [SystemNavigator.pop].
 class SessionIdleWatcher with WidgetsBindingObserver {
   SessionIdleWatcher({
     required AuthService auth,
@@ -25,7 +24,7 @@ class SessionIdleWatcher with WidgetsBindingObserver {
   /// Idle timeout while away — may show a “session expired” notice.
   final void Function()? onSessionExpired;
 
-  /// Soft lock on leave-foreground — router refresh only, no snackbar.
+  /// Soft lock when the process is dying — router refresh only, no snackbar.
   final void Function()? onSessionLocked;
 
   bool _notifiedLock = false;
@@ -33,18 +32,18 @@ class SessionIdleWatcher with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
-      case AppLifecycleState.paused:
-      case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
-        _lockOnLeaveForeground();
+        _lockOnProcessExit();
       case AppLifecycleState.resumed:
         _onResumed();
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
       case AppLifecycleState.inactive:
         break;
     }
   }
 
-  Future<void> _lockOnLeaveForeground() async {
+  Future<void> _lockOnProcessExit() async {
     final token = await _auth.readToken();
     if (token == null || token.isEmpty) return;
     await _auth.lockSessionOnBackground();
@@ -55,15 +54,13 @@ class SessionIdleWatcher with WidgetsBindingObserver {
 
   Future<void> _onResumed() async {
     _notifiedLock = false;
-    // Warm resume after a background lock — token may already be gone; bounce
-    // off protected screens so the UI cannot stay on /home without a session.
     final token = await _auth.readToken();
     if (token == null || token.isEmpty) {
-      await _auth.expireSession();
+      // Soft-lock already happened (back / detached / cold start). Sync router
+      // so we never paint /home without a session.
       onSessionLocked?.call();
       return;
     }
-    // Safety net if tokens somehow survived a kill without lifecycle callbacks.
     if (await _auth.isIdleTimedOut()) {
       await _auth.expireSession();
       onSessionExpired?.call();

@@ -131,6 +131,7 @@ class _BiometricUnlockScreenState extends ConsumerState<BiometricUnlockScreen> {
         // navigateAfterLogin is skipped on returnTo — still must refresh caches
         // so home/accounts aren't stuck on the empty post-logout list.
         invalidateUserSessionCache(ref);
+        ref.read(accountsRevisionProvider.notifier).state++;
         context.go(returnTo);
         notifyRouterAuthChanged(ref);
       } else {

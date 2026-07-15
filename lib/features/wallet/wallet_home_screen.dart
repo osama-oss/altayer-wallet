@@ -72,9 +72,14 @@ class _WalletHomeScreenState extends ConsumerState<WalletHomeScreen> {
     final l10n = context.l10n;
     final lang = Localizations.localeOf(context).languageCode;
 
-    final loading = accountsAsync.isLoading && !accountsAsync.hasValue;
-    final hasError = accountsAsync.hasError && !accountsAsync.hasValue;
+    // After logout the cache is often `[]`. A post-login refresh keeps that
+    // previous value while loading — treat empty+loading as loading so we
+    // never flash "No accounts found" before the real fetch finishes.
     final accounts = accountsAsync.valueOrNull ?? const <BankingAccount>[];
+    final loading = accountsAsync.isLoading &&
+        (!accountsAsync.hasValue || accounts.isEmpty);
+    final hasError = accountsAsync.hasError &&
+        (!accountsAsync.hasValue || accounts.isEmpty);
 
     Widget body;
     if (loading) {
@@ -163,9 +168,9 @@ class _KycBanner extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(kycStatusProvider);
-    // Never treat "still loading" as unverified — that flash is what verified
-    // customers were seeing after login / session cache invalidate.
-    if (async.isLoading && async.valueOrNull == null) {
+    // Never treat "still loading" / stale post-logout UNVERIFIED as final —
+    // that flash is what verified customers were seeing after login.
+    if (async.isLoading) {
       return const SizedBox.shrink();
     }
     final status = async.valueOrNull?.status;
